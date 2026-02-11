@@ -4,23 +4,27 @@ declare(strict_types=1);
 namespace App\Presentation\Http\Controller\Public\Offer;
 
 use App\Application\Offer\DTO\OfferPublicFilters;
-use App\Application\Offer\Handler\ListPublicOffersHandler;
-use App\Application\Offer\PublicQuery\ListPublicOffersQuery;
+use App\Application\Offer\Handler\ListOfferMapBusinessesHandler;
+use App\Application\Offer\PublicQuery\ListOfferMapBusinessesQuery;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class ListPublicOffersController extends AbstractController
+final class ListOfferMapBusinessesController extends AbstractController
 {
-    #[Route('/api/public/offers', name: 'public_list_offers', methods: ['GET'])]
-    public function __invoke(Request $request, ListPublicOffersHandler $handler): JsonResponse
-    {
-        $page = (int) $request->query->get('page', 1);
-        $limit = (int) $request->query->get('limit', 20);
-        $sort = (string) $request->query->get('sort', 'recent');
-        $order = (string) $request->query->get('order', 'desc');
+    #[Route('/api/public/offers/map-businesses', name: 'public_offer_map_businesses', methods: ['GET'], priority: 10)]
 
+    public function __invoke(Request $request, ListOfferMapBusinessesHandler $handler): JsonResponse
+    {
+        $filters = $this->filtersFromRequest($request);
+        $items = $handler(new ListOfferMapBusinessesQuery(filters: $filters));
+
+        return $this->json(['items' => $items]);
+    }
+
+    private function filtersFromRequest(Request $request): OfferPublicFilters
+    {
         $q = $this->stringOrNull($request->query->get('q'));
         $discountType = $this->stringOrNull($request->query->get('discountType'));
         $priceMin = $this->stringOrNull($request->query->get('priceMin'));
@@ -33,7 +37,7 @@ final class ListPublicOffersController extends AbstractController
 
         [$bboxMinLng, $bboxMinLat, $bboxMaxLng, $bboxMaxLat] = $this->parseBbox($request->query->get('bbox'));
 
-        $filters = new OfferPublicFilters(
+        return new OfferPublicFilters(
             q: $q,
             discountType: $discountType,
             priceMin: $priceMin,
@@ -46,16 +50,6 @@ final class ListPublicOffersController extends AbstractController
             bboxMaxLng: $bboxMaxLng,
             bboxMaxLat: $bboxMaxLat
         );
-
-        $result = $handler(new ListPublicOffersQuery(
-            filters: $filters,
-            page: $page,
-            limit: $limit,
-            sort: $sort,
-            order: $order
-        ));
-
-        return $this->json($result);
     }
 
     private function stringOrNull(mixed $v): ?string
@@ -70,7 +64,7 @@ final class ListPublicOffersController extends AbstractController
         return is_numeric($v) ? (int) $v : null;
     }
 
-    /** @return array{0:?float,1:?float,2:?float,3:?float} bbox=minLng,minLat,maxLng,maxLat */
+    /** bbox=minLng,minLat,maxLng,maxLat */
     private function parseBbox(mixed $bbox): array
     {
         if (!is_string($bbox) || trim($bbox) === '')

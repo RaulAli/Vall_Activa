@@ -19,7 +19,7 @@ final class OfferPublicListItem
         public readonly int $quantity,
         public readonly int $pointsCost,
         public readonly bool $isActive,
-        public readonly string $createdAt
+        public readonly string $createdAt,
     ) {
     }
 }

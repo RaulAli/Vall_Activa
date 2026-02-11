@@ -40,4 +40,4 @@ services:
 
   App\Application\Offer\Port\OfferPublicReadRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineOfferPublicReadRepository
-
+    

@@ -17,6 +17,12 @@ final class ListPublicOffersHandler
         $page = max(1, $query->page);
         $limit = min(100, max(1, $query->limit));
 
-        return $this->repo->listPublic($page, $limit);
+        $sort = strtolower($query->sort);
+        $sort = in_array($sort, ['recent', 'price', 'points'], true) ? $sort : 'recent';
+
+        $order = strtolower($query->order);
+        $order = in_array($order, ['asc', 'desc'], true) ? $order : 'desc';
+
+        return $this->repo->listPublic($query->filters, $page, $limit, $sort, $order);
     }
 }

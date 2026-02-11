@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 namespace App\Infrastructure\Persistence\Doctrine\Repository;
 
+use App\Application\Offer\DTO\OfferPublicFilters;
 use App\Application\Offer\DTO\OfferPublicListItem;
 use App\Application\Offer\Port\OfferPublicReadRepositoryInterface;
 use App\Application\Shared\DTO\PaginatedResult;
+use App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm;
 use App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -15,27 +17,91 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
     {
     }
 
-    public function listPublic(int $page, int $limit): PaginatedResult
+    public function listPublic(OfferPublicFilters $filters, int $page, int $limit, string $sort, string $order): PaginatedResult
     {
         $offset = ($page - 1) * $limit;
 
-        // Si aún no tienes PUBLISHED, cambia el filtro status por el que uses o elimínalo.
-        $total = (int) $this->em->createQueryBuilder()
-            ->select('COUNT(o.id)')
+        $baseQb = $this->em->createQueryBuilder()
+            ->select('o')
             ->from(OfferOrm::class, 'o')
             ->andWhere('o.isActive = true')
             ->andWhere('o.status = :status')
-            ->setParameter('status', 'PUBLISHED')
-            ->getQuery()
-            ->getSingleScalarResult();
+            ->setParameter('status', 'PUBLISHED');
 
-        $rows = $this->em->createQueryBuilder()
+        // JOIN al perfil del business (para bbox + markers en futuro)
+        $baseQb->innerJoin(
+            BusinessProfileOrm::class,
+            'b',
+            'WITH',
+            'b.userId = o.businessId AND b.isActive = true'
+        );
+
+        // bbox por business.lat/lng
+        $hasBbox =
+            $filters->bboxMinLat !== null && $filters->bboxMinLng !== null &&
+            $filters->bboxMaxLat !== null && $filters->bboxMaxLng !== null;
+
+        if ($hasBbox) {
+            $baseQb
+                ->andWhere('b.lat IS NOT NULL AND b.lng IS NOT NULL')
+                ->andWhere('b.lat >= :minLat AND b.lat <= :maxLat')
+                ->andWhere('b.lng >= :minLng AND b.lng <= :maxLng')
+                ->setParameter('minLat', $filters->bboxMinLat)
+                ->setParameter('maxLat', $filters->bboxMaxLat)
+                ->setParameter('minLng', $filters->bboxMinLng)
+                ->setParameter('maxLng', $filters->bboxMaxLng);
+        }
+
+        // q
+        if ($filters->q !== null && trim($filters->q) !== '') {
+            $q = '%' . mb_strtolower(trim($filters->q)) . '%';
+            $baseQb
+                ->andWhere('(LOWER(o.title) LIKE :q OR LOWER(COALESCE(o.description, \'\')) LIKE :q)')
+                ->setParameter('q', $q);
+        }
+
+        // discountType
+        if ($filters->discountType !== null && trim($filters->discountType) !== '') {
+            $baseQb->andWhere('o.discountType = :dt')->setParameter('dt', trim($filters->discountType));
+        }
+
+        // price
+        if ($filters->priceMin !== null && $filters->priceMin !== '') {
+            $baseQb->andWhere('o.price >= :pmin')->setParameter('pmin', $filters->priceMin);
+        }
+        if ($filters->priceMax !== null && $filters->priceMax !== '') {
+            $baseQb->andWhere('o.price <= :pmax')->setParameter('pmax', $filters->priceMax);
+        }
+
+        // points
+        if ($filters->pointsMin !== null) {
+            $baseQb->andWhere('o.pointsCost >= :ptMin')->setParameter('ptMin', $filters->pointsMin);
+        }
+        if ($filters->pointsMax !== null) {
+            $baseQb->andWhere('o.pointsCost <= :ptMax')->setParameter('ptMax', $filters->pointsMax);
+        }
+
+        // stock
+        if ($filters->inStock === true) {
+            $baseQb->andWhere('o.quantity > 0');
+        }
+
+        // total
+        $totalQb = clone $baseQb;
+        $total = (int) $totalQb->select('COUNT(o.id)')->getQuery()->getSingleScalarResult();
+
+        // order by
+        $orderByField = match ($sort) {
+            'price' => 'o.price',
+            'points' => 'o.pointsCost',
+            default => 'o.createdAt',
+        };
+
+        // rows
+        $rowsQb = clone $baseQb;
+        $rows = $rowsQb
             ->select('o.id, o.businessId, o.title, o.slug, o.description, o.price, o.currency, o.image, o.discountType, o.status, o.quantity, o.pointsCost, o.isActive, o.createdAt')
-            ->from(OfferOrm::class, 'o')
-            ->andWhere('o.isActive = true')
-            ->andWhere('o.status = :status')
-            ->setParameter('status', 'PUBLISHED')
-            ->orderBy('o.createdAt', 'DESC')
+            ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
             ->getQuery()
@@ -63,12 +129,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             );
         }, $rows);
 
-        return new PaginatedResult(
-            page: $page,
-            limit: $limit,
-            total: $total,
-            items: $items
-        );
+        return new PaginatedResult($page, $limit, $total, $items);
     }
 
     public function findPublicBySlug(string $slug): ?\App\Application\Offer\DTO\OfferPublicDetails
@@ -118,4 +179,92 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             createdAt: $createdAtStr
         );
     }
+
+    public function listMapBusinesses(\App\Application\Offer\DTO\OfferPublicFilters $filters): array
+    {
+        $qb = $this->em->createQueryBuilder()
+            ->from(OfferOrm::class, 'o')
+            ->andWhere('o.isActive = true')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', 'PUBLISHED');
+
+        // join business profile (para bbox + datos marker)
+        $qb->innerJoin(
+            BusinessProfileOrm::class,
+            'b',
+            'WITH',
+            'b.userId = o.businessId AND b.isActive = true'
+        );
+
+        // bbox
+        $hasBbox =
+            $filters->bboxMinLat !== null && $filters->bboxMinLng !== null &&
+            $filters->bboxMaxLat !== null && $filters->bboxMaxLng !== null;
+
+        if ($hasBbox) {
+            $qb
+                ->andWhere('b.lat IS NOT NULL AND b.lng IS NOT NULL')
+                ->andWhere('b.lat >= :minLat AND b.lat <= :maxLat')
+                ->andWhere('b.lng >= :minLng AND b.lng <= :maxLng')
+                ->setParameter('minLat', $filters->bboxMinLat)
+                ->setParameter('maxLat', $filters->bboxMaxLat)
+                ->setParameter('minLng', $filters->bboxMinLng)
+                ->setParameter('maxLng', $filters->bboxMaxLng);
+        }
+
+        // q
+        if ($filters->q !== null && trim($filters->q) !== '') {
+            $q = '%' . mb_strtolower(trim($filters->q)) . '%';
+            $qb
+                ->andWhere('(LOWER(o.title) LIKE :q OR LOWER(COALESCE(o.description, \'\')) LIKE :q)')
+                ->setParameter('q', $q);
+        }
+
+        // discountType
+        if ($filters->discountType !== null && trim($filters->discountType) !== '') {
+            $qb->andWhere('o.discountType = :dt')->setParameter('dt', trim($filters->discountType));
+        }
+
+        // price
+        if ($filters->priceMin !== null && $filters->priceMin !== '') {
+            $qb->andWhere('o.price >= :pmin')->setParameter('pmin', $filters->priceMin);
+        }
+        if ($filters->priceMax !== null && $filters->priceMax !== '') {
+            $qb->andWhere('o.price <= :pmax')->setParameter('pmax', $filters->priceMax);
+        }
+
+        // points
+        if ($filters->pointsMin !== null) {
+            $qb->andWhere('o.pointsCost >= :ptMin')->setParameter('ptMin', $filters->pointsMin);
+        }
+        if ($filters->pointsMax !== null) {
+            $qb->andWhere('o.pointsCost <= :ptMax')->setParameter('ptMax', $filters->pointsMax);
+        }
+
+        // stock
+        if ($filters->inStock === true) {
+            $qb->andWhere('o.quantity > 0');
+        }
+
+        // SELECT agrupado
+        $rows = $qb
+            ->select('b.userId AS businessUserId, b.name AS name, b.profileIcon AS profileIcon, b.lat AS lat, b.lng AS lng, u.slug AS slug, COUNT(o.id) AS offersCount')
+            ->innerJoin(\App\Infrastructure\Persistence\Doctrine\Entity\Identity\UserOrm::class, 'u', 'WITH', 'u.id = b.userId')
+            ->groupBy('b.userId, b.name, b.profileIcon, b.lat, b.lng, u.slug')
+            ->getQuery()
+            ->getArrayResult();
+
+        return array_map(static function (array $r): \App\Application\Offer\DTO\BusinessMapMarker {
+            return new \App\Application\Offer\DTO\BusinessMapMarker(
+                businessUserId: (string) $r['businessUserId'],
+                slug: (string) $r['slug'],
+                name: (string) $r['name'],
+                lat: (float) $r['lat'],
+                lng: (float) $r['lng'],
+                profileIcon: $r['profileIcon'] ?? null,
+                offersCount: (int) $r['offersCount']
+            );
+        }, $rows);
+    }
+
 }
