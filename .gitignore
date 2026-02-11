@@ -1,0 +1,48 @@
+### OS ###
+.DS_Store
+Thumbs.db
+desktop.ini
+
+### Logs ###
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+
+### Env ###
+.env
+.env.local
+.env.*.local
+
+### IDE ###
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+### Editor ###
+*.swp
+*.swo
+*~
+
+### Node ###
+node_modules/
+dist/
+build/
+coverage/
+
+### PHP ###
+vendor/
+composer.lock
+
+### Cache ###
+.cache/
+tmp/
+temp/
+
+### Docker ###
+docker-compose.override.yml
+
+### Testing ###
+.phpunit.result.cache
+coverage/

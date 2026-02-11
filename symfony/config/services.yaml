@@ -1,0 +1,43 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/Kernel.php'
+
+  # Controllers fuera de src/Controller (Presentation layer)
+  App\Presentation\Http\Controller\:
+    resource: '../src/Presentation/Http/Controller/'
+    tags: ['controller.service_arguments']
+
+  # Ports -> Adapters (Clean Architecture)
+  App\Application\Shared\Security\AuthorizationServiceInterface:
+    class: App\Infrastructure\Security\AuthorizationService
+
+  App\Application\Shared\Port\TransactionInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Transaction\DoctrineTransaction
+
+  App\Domain\Offer\Repository\OfferRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineOfferRepository
+
+  App\Application\Shared\Security\CurrentUserProviderInterface:
+    class: App\Infrastructure\Security\DoctrineCurrentUserProvider
+
+  App\Domain\Route\Repository\RouteRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRouteRepository
+
+  App\Domain\Sport\Repository\SportRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineSportRepository
+
+  App\Application\Route\Port\RouteParserInterface:
+    class: App\Infrastructure\Route\Parser\GpxRouteParser
+
+  App\Application\Route\Port\RoutePublicReadRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRoutePublicReadRepository
+
+  App\Application\Offer\Port\OfferPublicReadRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineOfferPublicReadRepository
+
