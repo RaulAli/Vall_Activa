@@ -941,6 +941,34 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     enable_profiler?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Whether or not to enable the profiler collector to calculate and visualize migration status. This adds some queries overhead. // Default: false
  *     transactional?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Whether or not to wrap migrations in a single transaction. // Default: true
  * }
+ * @psalm-type NelmioCorsConfig = array{
+ *     defaults?: array{
+ *         allow_credentials?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         allow_origin?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_headers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_methods?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_private_network?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         expose_headers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         max_age?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 0
+ *         hosts?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         origin_regex?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         forced_allow_origin_value?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         skip_same_as_origin?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *     },
+ *     paths?: array<string, array{ // Default: []
+ *         allow_credentials?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
+ *         allow_origin?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_headers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_methods?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_private_network?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
+ *         expose_headers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         max_age?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 0
+ *         hosts?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         origin_regex?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
+ *         forced_allow_origin_value?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         skip_same_as_origin?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
+ *     }>,
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -948,6 +976,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     framework?: FrameworkConfig,
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
+ *     nelmio_cors?: NelmioCorsConfig,
  *     "when@dev"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -955,6 +984,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         framework?: FrameworkConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
  *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
@@ -963,6 +993,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         framework?: FrameworkConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -971,6 +1002,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         framework?: FrameworkConfig,
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
+ *         nelmio_cors?: NelmioCorsConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

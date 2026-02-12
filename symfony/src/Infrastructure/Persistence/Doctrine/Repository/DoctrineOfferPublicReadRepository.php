@@ -267,4 +267,188 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
         }, $rows);
     }
 
+    public function getFiltersMeta(\App\Application\Offer\DTO\OfferPublicFilters $filters): \App\Application\Offer\DTO\OfferFiltersMeta
+    {
+        // Base QB con filtros comunes (siempre)
+        $baseQb = $this->em->createQueryBuilder()
+            ->from(\App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm::class, 'o')
+            ->andWhere('o.isActive = true')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', 'PUBLISHED');
+
+        // join business profile (para bbox + bounds)
+        $baseQb->innerJoin(
+            \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
+            'b',
+            'WITH',
+            'b.userId = o.businessId AND b.isActive = true'
+        );
+
+        // bbox (minLng,minLat,maxLng,maxLat)
+        $hasBbox =
+            $filters->bboxMinLat !== null && $filters->bboxMinLng !== null &&
+            $filters->bboxMaxLat !== null && $filters->bboxMaxLng !== null;
+
+        if ($hasBbox) {
+            $baseQb
+                ->andWhere('b.lat IS NOT NULL AND b.lng IS NOT NULL')
+                ->andWhere('b.lat >= :minLat AND b.lat <= :maxLat')
+                ->andWhere('b.lng >= :minLng AND b.lng <= :maxLng')
+                ->setParameter('minLat', $filters->bboxMinLat)
+                ->setParameter('maxLat', $filters->bboxMaxLat)
+                ->setParameter('minLng', $filters->bboxMinLng)
+                ->setParameter('maxLng', $filters->bboxMaxLng);
+        }
+
+        // q
+        if ($filters->q !== null && trim($filters->q) !== '') {
+            $q = '%' . mb_strtolower(trim($filters->q)) . '%';
+            $baseQb
+                ->andWhere('(LOWER(o.title) LIKE :q OR LOWER(COALESCE(o.description, \'\')) LIKE :q)')
+                ->setParameter('q', $q);
+        }
+
+        // discountType (solo afecta a ranges/counts, pero NO a la faceta discountTypes)
+        if ($filters->discountType !== null && trim($filters->discountType) !== '') {
+            $baseQb->andWhere('o.discountType = :dt')->setParameter('dt', trim($filters->discountType));
+        }
+
+        // price range filters
+        if ($filters->priceMin !== null && $filters->priceMin !== '') {
+            $baseQb->andWhere('o.price >= :pmin')->setParameter('pmin', $filters->priceMin);
+        }
+        if ($filters->priceMax !== null && $filters->priceMax !== '') {
+            $baseQb->andWhere('o.price <= :pmax')->setParameter('pmax', $filters->priceMax);
+        }
+
+        // points range filters
+        if ($filters->pointsMin !== null) {
+            $baseQb->andWhere('o.pointsCost >= :ptMin')->setParameter('ptMin', $filters->pointsMin);
+        }
+        if ($filters->pointsMax !== null) {
+            $baseQb->andWhere('o.pointsCost <= :ptMax')->setParameter('ptMax', $filters->pointsMax);
+        }
+
+        // stock
+        if ($filters->inStock === true) {
+            $baseQb->andWhere('o.quantity > 0');
+        }
+
+        // ---------- 1) RANGES (sobre query completa con TODOS los filtros) ----------
+        $ranges = (clone $baseQb)
+            ->select(
+                'MIN(o.price) AS minPrice, MAX(o.price) AS maxPrice,
+             MIN(o.pointsCost) AS minPoints, MAX(o.pointsCost) AS maxPoints'
+            )
+            ->getQuery()
+            ->getOneOrNullResult(\Doctrine\ORM\Query::HYDRATE_ARRAY) ?? [];
+
+        $priceMin = $ranges['minPrice'] ?? null;
+        $priceMax = $ranges['maxPrice'] ?? null;
+
+        $pointsMin = isset($ranges['minPoints']) ? (int) $ranges['minPoints'] : null;
+        $pointsMax = isset($ranges['maxPoints']) ? (int) $ranges['maxPoints'] : null;
+
+        // ---------- 2) COUNTS (sobre query completa con TODOS los filtros) ----------
+        $offersCount = (int) (clone $baseQb)
+            ->select('COUNT(o.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        $businessesCount = (int) (clone $baseQb)
+            ->select('COUNT(DISTINCT o.businessId)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // ---------- 3) BOUNDS (sobre businesses filtrados) ----------
+        // bounds deben reflejar el estado filtrado actual
+        $boundsRow = (clone $baseQb)
+            ->select('MIN(b.lng) AS minLng, MIN(b.lat) AS minLat, MAX(b.lng) AS maxLng, MAX(b.lat) AS maxLat')
+            ->getQuery()
+            ->getOneOrNullResult(\Doctrine\ORM\Query::HYDRATE_ARRAY) ?? [];
+
+        $bounds = null;
+        if (
+            isset($boundsRow['minLng'], $boundsRow['minLat'], $boundsRow['maxLng'], $boundsRow['maxLat']) &&
+            $boundsRow['minLng'] !== null && $boundsRow['minLat'] !== null &&
+            $boundsRow['maxLng'] !== null && $boundsRow['maxLat'] !== null
+        ) {
+            $bounds = [
+                'minLng' => (float) $boundsRow['minLng'],
+                'minLat' => (float) $boundsRow['minLat'],
+                'maxLng' => (float) $boundsRow['maxLng'],
+                'maxLat' => (float) $boundsRow['maxLat'],
+            ];
+        }
+
+        // ---------- 4) DISCOUNT TYPES FACET (ignora SOLO discountType seleccionado) ----------
+        $facetQb = $this->em->createQueryBuilder()
+            ->from(\App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm::class, 'o')
+            ->andWhere('o.isActive = true')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', 'PUBLISHED')
+            ->innerJoin(
+                \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
+                'b',
+                'WITH',
+                'b.userId = o.businessId AND b.isActive = true'
+            );
+
+        // copiar filtros excepto discountType
+        if ($hasBbox) {
+            $facetQb
+                ->andWhere('b.lat IS NOT NULL AND b.lng IS NOT NULL')
+                ->andWhere('b.lat >= :minLat AND b.lat <= :maxLat')
+                ->andWhere('b.lng >= :minLng AND b.lng <= :maxLng')
+                ->setParameter('minLat', $filters->bboxMinLat)
+                ->setParameter('maxLat', $filters->bboxMaxLat)
+                ->setParameter('minLng', $filters->bboxMinLng)
+                ->setParameter('maxLng', $filters->bboxMaxLng);
+        }
+
+        if ($filters->q !== null && trim($filters->q) !== '') {
+            $q = '%' . mb_strtolower(trim($filters->q)) . '%';
+            $facetQb
+                ->andWhere('(LOWER(o.title) LIKE :q OR LOWER(COALESCE(o.description, \'\')) LIKE :q)')
+                ->setParameter('q', $q);
+        }
+
+        if ($filters->priceMin !== null && $filters->priceMin !== '') {
+            $facetQb->andWhere('o.price >= :pmin')->setParameter('pmin', $filters->priceMin);
+        }
+        if ($filters->priceMax !== null && $filters->priceMax !== '') {
+            $facetQb->andWhere('o.price <= :pmax')->setParameter('pmax', $filters->priceMax);
+        }
+        if ($filters->pointsMin !== null) {
+            $facetQb->andWhere('o.pointsCost >= :ptMin')->setParameter('ptMin', $filters->pointsMin);
+        }
+        if ($filters->pointsMax !== null) {
+            $facetQb->andWhere('o.pointsCost <= :ptMax')->setParameter('ptMax', $filters->pointsMax);
+        }
+        if ($filters->inStock === true) {
+            $facetQb->andWhere('o.quantity > 0');
+        }
+
+        $discountRows = $facetQb
+            ->select('o.discountType AS value, COUNT(o.id) AS count')
+            ->groupBy('o.discountType')
+            ->orderBy('count', 'DESC')
+            ->getQuery()
+            ->getArrayResult();
+
+        $discountTypes = array_map(static fn(array $r) => [
+            'value' => (string) $r['value'],
+            'count' => (int) $r['count'],
+        ], $discountRows);
+
+        return new \App\Application\Offer\DTO\OfferFiltersMeta(
+            price: ['min' => $priceMin, 'max' => $priceMax],
+            points: ['min' => $pointsMin, 'max' => $pointsMax],
+            discountTypes: $discountTypes,
+            counts: ['offers' => $offersCount, 'businesses' => $businessesCount],
+            bounds: $bounds
+        );
+    }
+
+
 }
