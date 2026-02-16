@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { useShopStore } from "../../../store/shopStore";
 import type { RouteListItem } from "../domain/types";
 
@@ -6,98 +7,95 @@ type Props = {
 };
 
 export function RoutesList({ items }: Props) {
+    const navigate = useNavigate();
     const routes = useShopStore((s) => s.routes);
     const setRoutesSelected = useShopStore((s) => s.setRoutesSelected);
     const clearRoutesFocusBbox = useShopStore((s) => s.clearRoutesFocusBbox);
 
     return (
-        <div style={{ display: "grid", gap: 10 }}>
+        <div className="flex flex-col gap-6">
+            {/* Focus Mode Banner */}
             {routes.focusBbox && (
-                <div
-                    style={{
-                        padding: "10px 15px",
-                        background: "#f8f9fa",
-                        borderRadius: 10,
-                        border: "1px solid #e9ecef",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                    }}
-                >
-                    <div style={{ fontSize: 13, color: "#666" }}>
-                        📌 Modo foco activo ({items.length} rutas)
+                <div className="p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                    <div className="text-sm">
+                        <span className="font-bold text-slate-900 dark:text-white">📌 Modo foco activo</span>
+                        <p className="text-slate-500 dark:text-slate-400 text-xs">Mostrando {items.length} rutas en el área</p>
                     </div>
                     <button
                         onClick={() => clearRoutesFocusBbox()}
-                        style={{
-                            padding: "6px 12px",
-                            background: "#dc3545",
-                            color: "white",
-                            border: "none",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                            fontSize: 12,
-                            fontWeight: 600,
-                        }}
+                        className="px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg text-xs font-bold transition-colors"
                     >
                         Ver todas
                     </button>
                 </div>
             )}
-            {items.map((r) => {
-                const isSelected = routes.selected?.slug === r.slug;
 
-                return (
-                    <div
-                        key={r.id}
-                        style={{
-                            border: "1px solid #eee",
-                            borderRadius: 10,
-                            padding: 12,
-                            background: "white",
-                        }}
-                    >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10 }}>
-                            <div>
-                                <div style={{ fontWeight: 700 }}>{r.title}</div>
-                                <div style={{ opacity: 0.75, fontSize: 12 }}>{r.slug}</div>
+            {/* Routes Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8">
+                {items.map((r) => {
+                    const isSelected = routes.selected?.slug === r.slug;
+
+                    return (
+                        <div
+                            key={r.id}
+                            className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all cursor-pointer"
+                            onClick={() => navigate(`/route/${r.slug}`)}
+                        >
+                            <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 dark:bg-slate-800">
+                                <img
+                                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100"
+                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeMNav5kD1rer4TAx3aytDvr9wbPAkro-iEuwkwY0aH9OnA7S-miQXCMs4Aw1-REGFrppWuycRB1gKsM7pf-bjWG4Sjv1htnpNGV4wEOoyF2BedQ7-7pfp0Os_wCsy70tBPLYOMAo7sGN1OoDdkMbc3WMJt5_DJpiSf0d9idMv65hduqGzIfyixVqLoyqFyd1g43Xx0SpV3J3rlbkD5AhrmZWDdphTM1SaBhKfD3rkiZ3-Ob7dOtmdVXRIKOK2eaNUIMqkuC2VwHNg"
+                                    alt={r.title}
+                                />
+                                <div className="absolute top-3 left-3 flex gap-2">
+                                    <span className="px-2 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded text-[10px] font-bold uppercase tracking-widest text-primary">Moderate</span>
+                                </div>
+                                <div className="absolute top-3 right-3 flex gap-2">
+                                    {/* Map Toggle (Only show if needed or simplify) */}
+                                    {routes.focusBbox && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setRoutesSelected(isSelected ? null : { slug: r.slug, polyline: null });
+                                            }}
+                                            className={`size-8 flex items-center justify-center rounded-full backdrop-blur transition-all ${isSelected ? 'bg-primary text-white' : 'bg-white/20 text-white hover:bg-white/40'}`}
+                                            title={isSelected ? "Quitar del mapa" : "Ver en mapa"}
+                                        >
+                                            <span className="material-symbols-outlined !text-xl">{isSelected ? "layers_clear" : "layers"}</span>
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="size-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur text-white hover:bg-white/40"
+                                    >
+                                        <span className="material-symbols-outlined !text-xl">bookmark</span>
+                                    </button>
+                                </div>
                             </div>
-
-                            {/* Solo tiene sentido en modo foco */}
-                            {routes.focusBbox && (
-                                <button
-                                    onClick={() =>
-                                        setRoutesSelected(isSelected ? null : { slug: r.slug, polyline: null })
-                                    }
-                                    style={{
-                                        padding: "8px 10px",
-                                        border: "1px solid #ddd",
-                                        borderRadius: 8,
-                                        background: isSelected ? "#111" : "white",
-                                        color: isSelected ? "white" : "#111",
-                                        cursor: "pointer",
-                                        height: 36,
-                                        alignSelf: "start",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 5
-                                    }}
-                                    title={isSelected ? "Quitar trazado" : "Ver trazado"}
-                                >
-                                    <span>{isSelected ? "👁️‍🗨️" : "👁️"}</span>
-                                    <span style={{ fontSize: 12 }}>{isSelected ? "Quitar" : "Ver"}</span>
-                                </button>
-                            )}
+                            <div className="p-4">
+                                <div className="flex justify-between items-start mb-2">
+                                    <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate pr-2">{r.title}</h4>
+                                    <span className="font-extrabold text-primary text-sm tracking-tight">$5.00</span>
+                                </div>
+                                <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+                                    <div className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined !text-[14px]">distance</span>
+                                        {(r.distanceM / 1000).toFixed(1)} km
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined !text-[14px]">schedule</span>
+                                        3h 45m
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <span className="material-symbols-outlined !text-[14px]">altitude</span>
+                                        {r.elevationGainM}m
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
-                        <div style={{ marginTop: 10, display: "flex", gap: 12, opacity: 0.85, fontSize: 13 }}>
-                            <div>Dist: {(r.distanceM / 1000).toFixed(1)} km</div>
-                            <div>+{r.elevationGainM} m</div>
-                            <div>-{r.elevationLossM} m</div>
-                        </div>
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
         </div>
     );
 }

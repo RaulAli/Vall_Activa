@@ -30,7 +30,7 @@ export function ShopMap() {
     const tab = useShopStore((s) => s.tab);
 
     return (
-        <MapContainer center={[38.968, -0.181]} zoom={12} style={{ height: "100vh", width: "100%" }}>
+        <MapContainer center={[38.968, -0.181]} zoom={12} style={{ height: "100%", width: "100%" }}>
             <TileLayer attribution="&copy; OpenStreetMap" url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
             <BboxWatcher />

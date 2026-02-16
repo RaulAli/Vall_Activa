@@ -8,6 +8,10 @@ export type OffersUiState = {
     q: string;
     discountType: string | null;
     inStock: boolean;
+    priceMin: number | null;
+    priceMax: number | null;
+    pointsMin: number | null;
+    pointsMax: number | null;
     sort: "recent" | "price" | "points";
     order: "asc" | "desc";
     page: number;
@@ -68,6 +72,10 @@ const defaultOffers: OffersUiState = {
     q: "",
     discountType: null,
     inStock: false,
+    priceMin: null,
+    priceMax: null,
+    pointsMin: null,
+    pointsMax: null,
     sort: "recent",
     order: "desc",
     page: 1,

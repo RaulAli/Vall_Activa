@@ -6,7 +6,7 @@ export function ShopSidebar() {
     const tab = useShopStore((s) => s.tab);
 
     return (
-        <div>
+        <div className="flex flex-col h-full min-h-0">
             {tab === "offers" ? <OffersSidebarPanel /> : <RoutesSidebarPanel />}
         </div>
     );

@@ -10,6 +10,10 @@ export type OffersListParams = {
     q: string;
     discountType: string | null;
     inStock: boolean;
+    priceMin: number | null;
+    priceMax: number | null;
+    pointsMin: number | null;
+    pointsMax: number | null;
     sort: string;
     order: string;
     page: number;
@@ -26,6 +30,10 @@ export function useOffersListQuery(params: OffersListParams) {
                     q: params.q || null,
                     discountType: params.discountType ?? null,
                     inStock: params.inStock ? "1" : null,
+                    priceMin: params.priceMin ?? null,
+                    priceMax: params.priceMax ?? null,
+                    pointsMin: params.pointsMin ?? null,
+                    pointsMax: params.pointsMax ?? null,
                     sort: params.sort,
                     order: params.order,
                     page: params.page,
