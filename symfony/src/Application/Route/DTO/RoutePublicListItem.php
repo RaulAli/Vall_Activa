@@ -10,15 +10,15 @@ final class RoutePublicListItem
         public readonly string $sportId,
         public readonly string $title,
         public readonly string $slug,
-        public readonly ?string $polyline,
-        public readonly ?float $minLat,
-        public readonly ?float $minLng,
-        public readonly ?float $maxLat,
-        public readonly ?float $maxLng,
+
+        public readonly ?float $startLat,
+        public readonly ?float $startLng,
+
         public readonly int $distanceM,
         public readonly int $elevationGainM,
         public readonly int $elevationLossM,
-        public readonly bool $isActive,   // ✅ ESTE CAMPO ES EL QUE TE FALTA
+
+        public readonly bool $isActive,
         public readonly string $createdAt
     ) {
     }

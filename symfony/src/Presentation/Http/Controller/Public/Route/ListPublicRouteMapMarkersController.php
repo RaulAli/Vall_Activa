@@ -4,17 +4,17 @@ declare(strict_types=1);
 namespace App\Presentation\Http\Controller\Public\Route;
 
 use App\Application\Route\DTO\RoutePublicFilters;
-use App\Application\Route\Handler\GetRouteFiltersHandler;
-use App\Application\Route\PublicQuery\GetRouteFiltersQuery;
+use App\Application\Route\Handler\ListPublicRouteMapMarkersHandler;
+use App\Application\Route\PublicQuery\ListPublicRouteMapMarkersQuery;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-final class GetRouteFiltersController extends AbstractController
+final class ListPublicRouteMapMarkersController extends AbstractController
 {
-    #[Route('/api/public/routes/filters', name: 'public_route_filters', methods: ['GET'], priority: 20)]
-    public function __invoke(Request $request, GetRouteFiltersHandler $handler): JsonResponse
+    #[Route('/api/public/routes/map-markers', name: 'public_route_map_markers', methods: ['GET'], priority: 30)]
+    public function __invoke(Request $request, ListPublicRouteMapMarkersHandler $handler): JsonResponse
     {
         $sportCode = $this->stringOrNull($request->query->get('sportCode'));
         $distanceMin = $this->intOrNull($request->query->get('distanceMin'));
@@ -23,10 +23,7 @@ final class GetRouteFiltersController extends AbstractController
         $gainMax = $this->intOrNull($request->query->get('gainMax'));
         $q = $this->stringOrNull($request->query->get('q'));
 
-        // focus tiene prioridad
         [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
-
-        // bbox=minLng,minLat,maxLng,maxLat
         [$minLng, $minLat, $maxLng, $maxLat] = $this->parseBbox($request->query->get('bbox'));
 
         if ($focusLng !== null && $focusLat !== null && $focusRadiusM !== null) {
@@ -34,10 +31,7 @@ final class GetRouteFiltersController extends AbstractController
         }
 
         if ($focusLng === null && $minLng === null) {
-            return $this->json([
-                'error' => 'bad_request',
-                'message' => 'Missing bbox or focus parameter.'
-            ], 400);
+            return $this->json(['error' => 'bad_request', 'message' => 'Missing bbox or focus parameter.'], 400);
         }
 
         $filters = new RoutePublicFilters(
@@ -53,11 +47,16 @@ final class GetRouteFiltersController extends AbstractController
             focusLng: $focusLng,
             focusLat: $focusLat,
             focusRadiusM: $focusRadiusM,
-            q: $q,
+            q: $q
         );
 
-        $meta = $handler(new GetRouteFiltersQuery($filters));
-        return $this->json($meta);
+        $limit = (int) $request->query->get('limit', 5000);
+        if ($limit <= 0)
+            $limit = 5000;
+        if ($limit > 10000)
+            $limit = 10000;
+
+        return $this->json($handler(new ListPublicRouteMapMarkersQuery($filters, $limit)));
     }
 
     private function stringOrNull(mixed $v): ?string
@@ -99,7 +98,7 @@ final class GetRouteFiltersController extends AbstractController
     }
 
     /**
-     * focus en orden: lng,lat,radiusM
+     * focus: lng,lat,radiusM
      * @return array{0:?float,1:?float,2:?int}
      */
     private function parseFocus(mixed $focus): array

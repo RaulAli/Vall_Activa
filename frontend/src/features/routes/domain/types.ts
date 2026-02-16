@@ -4,12 +4,9 @@ export type RouteListItem = {
     title: string;
     slug: string;
 
-    polyline: string | null;
-
-    minLat: number | null;
-    minLng: number | null;
-    maxLat: number | null;
-    maxLng: number | null;
+    // list v2
+    startLat: number | null;
+    startLng: number | null;
 
     distanceM: number;
     elevationGainM: number;
@@ -33,3 +30,16 @@ export type RouteFiltersMeta = {
     counts: { routes: number };
     bounds: { minLng: number; minLat: number; maxLng: number; maxLat: number } | null;
 };
+
+export type RouteMapMarker = {
+    slug: string;
+    title: string;
+    lat: number;
+    lng: number;
+};
+
+export type RouteMapMarkersResponse = {
+    items: RouteMapMarker[];
+};
+
+

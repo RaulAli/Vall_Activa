@@ -33,7 +33,24 @@ final class ListPublicRoutesController extends AbstractController
         $q = $request->query->get('q');
         $q = is_string($q) && trim($q) !== '' ? trim($q) : null;
 
+        // focus=lng,lat,radiusM (si existe, IGNORA bbox)
+        [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
+
+        // bbox=minLng,minLat,maxLng,maxLat
         [$bboxMinLng, $bboxMinLat, $bboxMaxLng, $bboxMaxLat] = $this->parseBbox($request->query->get('bbox'));
+
+        // Si focus está activo, deshabilitamos bbox (para que mover mapa no cambie)
+        if ($focusLng !== null && $focusLat !== null && $focusRadiusM !== null) {
+            $bboxMinLng = $bboxMinLat = $bboxMaxLng = $bboxMaxLat = null;
+        }
+
+        // Seguridad: si no hay focus ni bbox, devolvemos 400 (evita “todo el mundo”)
+        if ($focusLng === null && $bboxMinLng === null) {
+            return $this->json([
+                'error' => 'bad_request',
+                'message' => 'Missing bbox or focus parameter.'
+            ], 400);
+        }
 
         $filters = new RoutePublicFilters(
             sportCode: $sportCode,
@@ -45,6 +62,9 @@ final class ListPublicRoutesController extends AbstractController
             bboxMinLat: $bboxMinLat,
             bboxMaxLng: $bboxMaxLng,
             bboxMaxLat: $bboxMaxLat,
+            focusLng: $focusLng,
+            focusLat: $focusLat,
+            focusRadiusM: $focusRadiusM,
             q: $q
         );
 
@@ -61,13 +81,9 @@ final class ListPublicRoutesController extends AbstractController
 
     private function intOrNull(mixed $v): ?int
     {
-        if ($v === null || $v === '') {
+        if ($v === null || $v === '')
             return null;
-        }
-        if (is_numeric($v)) {
-            return (int) $v;
-        }
-        return null;
+        return is_numeric($v) ? (int) $v : null;
     }
 
     /**
@@ -76,15 +92,12 @@ final class ListPublicRoutesController extends AbstractController
      */
     private function parseBbox(mixed $bbox): array
     {
-        if (!is_string($bbox) || trim($bbox) === '') {
+        if (!is_string($bbox) || trim($bbox) === '')
             return [null, null, null, null];
-        }
 
         $parts = array_map('trim', explode(',', $bbox));
-        if (count($parts) !== 4) {
+        if (count($parts) !== 4)
             return [null, null, null, null];
-        }
-
         if (!is_numeric($parts[0]) || !is_numeric($parts[1]) || !is_numeric($parts[2]) || !is_numeric($parts[3])) {
             return [null, null, null, null];
         }
@@ -94,14 +107,46 @@ final class ListPublicRoutesController extends AbstractController
         $maxLng = (float) $parts[2];
         $maxLat = (float) $parts[3];
 
-        // normalización básica: asegurar min<=max
-        if ($minLng > $maxLng) {
+        if ($minLng > $maxLng)
             [$minLng, $maxLng] = [$maxLng, $minLng];
-        }
-        if ($minLat > $maxLat) {
+        if ($minLat > $maxLat)
             [$minLat, $maxLat] = [$maxLat, $minLat];
-        }
 
         return [$minLng, $minLat, $maxLng, $maxLat];
+    }
+
+    /**
+     * focus en orden: lng,lat,radiusM
+     * @return array{0:?float,1:?float,2:?int}
+     */
+    private function parseFocus(mixed $focus): array
+    {
+        if (!is_string($focus) || trim($focus) === '') {
+            return [null, null, null];
+        }
+
+        $parts = array_map('trim', explode(',', $focus));
+        if (count($parts) !== 3) {
+            return [null, null, null];
+        }
+
+        if (!is_numeric($parts[0]) || !is_numeric($parts[1]) || !is_numeric($parts[2])) {
+            return [null, null, null];
+        }
+
+        $lng = (float) $parts[0];
+        $lat = (float) $parts[1];
+        $radius = (int) $parts[2];
+
+        if ($radius <= 0) {
+            return [null, null, null];
+        }
+
+        // Hard caps razonables (evita abuse)
+        if ($radius > 2000) {
+            $radius = 2000;
+        }
+
+        return [$lng, $lat, $radius];
     }
 }

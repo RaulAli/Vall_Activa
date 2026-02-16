@@ -8,6 +8,7 @@ export const endpoints = {
     routes: {
         list: "/api/public/routes",
         filters: "/api/public/routes/filters",
+        mapMarkers: "/api/public/routes/map-markers",
         details: (slug: string) => `/api/public/routes/${slug}`,
     },
 };

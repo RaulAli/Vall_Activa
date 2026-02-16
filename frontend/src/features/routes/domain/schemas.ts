@@ -5,12 +5,10 @@ export const RouteListItemSchema = z.object({
     sportId: z.string(),
     title: z.string(),
     slug: z.string(),
-    polyline: z.string().nullable(),
 
-    minLat: z.number().nullable(),
-    minLng: z.number().nullable(),
-    maxLat: z.number().nullable(),
-    maxLng: z.number().nullable(),
+    // list v2
+    startLat: z.number().nullable(),
+    startLng: z.number().nullable(),
 
     distanceM: z.number(),
     elevationGainM: z.number(),
@@ -42,3 +40,16 @@ export const RouteFiltersMetaSchema = z.object({
         })
         .nullable(),
 });
+
+
+export const RouteMapMarkerSchema = z.object({
+    slug: z.string(),
+    title: z.string(),
+    lat: z.number(),
+    lng: z.number(),
+});
+
+export const RouteMapMarkersResponseSchema = z.object({
+    items: z.array(RouteMapMarkerSchema),
+});
+

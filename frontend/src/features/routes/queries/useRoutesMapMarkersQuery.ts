@@ -3,10 +3,10 @@ import { endpoints } from "../../../shared/api/endpoints";
 import { http } from "../../../shared/api/http";
 import { bboxToParam, type Bbox } from "../../../shared/utils/bbox";
 import { focusToParam, type Focus } from "../../../shared/utils/focus";
-import { PaginatedSchema, RouteListItemSchema } from "../domain/schemas";
-import type { PaginatedResult, RouteListItem } from "../domain/types";
+import { RouteMapMarkerSchema } from "../domain/schemas";
+import type { RouteMapMarker } from "../domain/types";
 
-export type RoutesListParams = {
+export type RoutesMapMarkersParams = {
     bbox: Bbox | null;
     focus: Focus | null;
 
@@ -18,23 +18,16 @@ export type RoutesListParams = {
 
     gainMin: number | null;
     gainMax: number | null;
-
-    sort: "recent" | "distance" | "gain";
-    order: "asc" | "desc";
-
-    page: number;
-    limit: number;
 };
 
-export function useRoutesListQuery(params: RoutesListParams) {
+export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
     const hasGeo = params.focus !== null || params.bbox !== null;
 
     return useQuery({
-        queryKey: ["routes", "list", params],
+        queryKey: ["routes", "map-markers", params],
         queryFn: async () => {
-            const data = await http<unknown>("GET", endpoints.routes.list, {
+            const data = await http<unknown>("GET", endpoints.routes.mapMarkers, {
                 query: {
-                    // prioridad focus > bbox
                     focus: focusToParam(params.focus),
                     bbox: params.focus ? null : bboxToParam(params.bbox),
 
@@ -44,17 +37,10 @@ export function useRoutesListQuery(params: RoutesListParams) {
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,
                     gainMax: params.gainMax ?? null,
-
-                    sort: params.sort,
-                    order: params.order,
-                    page: params.page,
-                    limit: params.limit,
                 },
             });
 
-            return PaginatedSchema(RouteListItemSchema).parse(
-                data
-            ) as PaginatedResult<RouteListItem>;
+            return RouteMapMarkerSchema.array().parse(data.items) as RouteMapMarker[];
         },
         enabled: hasGeo,
     });
