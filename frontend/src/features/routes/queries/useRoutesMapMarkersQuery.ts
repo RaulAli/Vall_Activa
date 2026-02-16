@@ -2,13 +2,24 @@ import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../../shared/api/endpoints";
 import { http } from "../../../shared/api/http";
 import { bboxToParam, type Bbox } from "../../../shared/utils/bbox";
-import { focusToParam, type Focus } from "../../../shared/utils/focus";
-import { RouteMapMarkerSchema } from "../domain/schemas";
-import type { RouteMapMarker } from "../domain/types";
+import { z } from "zod";
+
+export const RouteMapMarkerSchema = z.object({
+    slug: z.string(),
+    title: z.string(),
+    lat: z.number(),
+    lng: z.number(),
+});
+
+export const RouteMapMarkersResponseSchema = z.object({
+    items: z.array(RouteMapMarkerSchema),
+});
+
+export type RouteMapMarker = z.infer<typeof RouteMapMarkerSchema>;
 
 export type RoutesMapMarkersParams = {
     bbox: Bbox | null;
-    focus: Focus | null;
+    focusBbox: Bbox | null;
 
     q: string;
     sportCode: string | null;
@@ -21,16 +32,26 @@ export type RoutesMapMarkersParams = {
 };
 
 export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
-    const hasGeo = params.focus !== null || params.bbox !== null;
+    const geoParam = params.focusBbox ? bboxToParam(params.focusBbox) : bboxToParam(params.bbox);
+
+    const key = [
+        "routes",
+        "map-markers",
+        geoParam,
+        params.q || "",
+        params.sportCode || "",
+        params.distanceMin ?? "",
+        params.distanceMax ?? "",
+        params.gainMin ?? "",
+        params.gainMax ?? "",
+    ] as const;
 
     return useQuery({
-        queryKey: ["routes", "map-markers", params],
+        queryKey: key,
         queryFn: async () => {
             const data = await http<unknown>("GET", endpoints.routes.mapMarkers, {
                 query: {
-                    focus: focusToParam(params.focus),
-                    bbox: params.focus ? null : bboxToParam(params.bbox),
-
+                    bbox: geoParam,
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
                     distanceMin: params.distanceMin ?? null,
@@ -40,8 +61,10 @@ export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
                 },
             });
 
-            return RouteMapMarkerSchema.array().parse(data.items) as RouteMapMarker[];
+            return RouteMapMarkersResponseSchema.parse(data);
         },
-        enabled: hasGeo,
+        enabled: !!geoParam,
+        placeholderData: (prev) => prev,
+        staleTime: 3_000,
     });
 }

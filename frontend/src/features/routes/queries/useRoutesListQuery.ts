@@ -2,13 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../../shared/api/endpoints";
 import { http } from "../../../shared/api/http";
 import { bboxToParam, type Bbox } from "../../../shared/utils/bbox";
-import { focusToParam, type Focus } from "../../../shared/utils/focus";
 import { PaginatedSchema, RouteListItemSchema } from "../domain/schemas";
 import type { PaginatedResult, RouteListItem } from "../domain/types";
 
 export type RoutesListParams = {
     bbox: Bbox | null;
-    focus: Focus | null;
+    focusBbox: Bbox | null;
 
     q: string;
     sportCode: string | null;
@@ -27,24 +26,39 @@ export type RoutesListParams = {
 };
 
 export function useRoutesListQuery(params: RoutesListParams) {
-    const hasGeo = params.focus !== null || params.bbox !== null;
+    const geoParam = params.focusBbox ? bboxToParam(params.focusBbox) : bboxToParam(params.bbox);
+
+    // ⚠️ queryKey: NO metas el objeto params entero (cambia por referencia y dispara refetch)
+    // Creamos una key estable con valores primitivos
+    const key = [
+        "routes",
+        "list",
+        geoParam,
+        params.q || "",
+        params.sportCode || "",
+        params.distanceMin ?? "",
+        params.distanceMax ?? "",
+        params.gainMin ?? "",
+        params.gainMax ?? "",
+        params.sort,
+        params.order,
+        params.page,
+        params.limit,
+    ] as const;
 
     return useQuery({
-        queryKey: ["routes", "list", params],
+        queryKey: key,
         queryFn: async () => {
             const data = await http<unknown>("GET", endpoints.routes.list, {
                 query: {
-                    // prioridad focus > bbox
-                    focus: focusToParam(params.focus),
-                    bbox: params.focus ? null : bboxToParam(params.bbox),
-
+                    // 👇 prioridad: focusBbox si existe
+                    bbox: geoParam,
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
                     distanceMin: params.distanceMin ?? null,
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,
                     gainMax: params.gainMax ?? null,
-
                     sort: params.sort,
                     order: params.order,
                     page: params.page,
@@ -52,10 +66,10 @@ export function useRoutesListQuery(params: RoutesListParams) {
                 },
             });
 
-            return PaginatedSchema(RouteListItemSchema).parse(
-                data
-            ) as PaginatedResult<RouteListItem>;
+            return PaginatedSchema(RouteListItemSchema).parse(data) as PaginatedResult<RouteListItem>;
         },
-        enabled: hasGeo,
+        enabled: !!geoParam, // bbox o focusBbox
+        placeholderData: (prev) => prev, // ✅ evita "vacío" visual al cambiar filtros/paginación
+        staleTime: 3_000,
     });
 }

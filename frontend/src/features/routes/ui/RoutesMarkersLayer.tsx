@@ -4,16 +4,20 @@ import type { RouteMapMarker } from "../domain/types";
 import { useShopStore } from "../../../store/shopStore";
 
 export function RoutesMarkersLayer({ items }: { items: RouteMapMarker[] }) {
-    const setRoutesFocus = useShopStore((s) => s.setRoutesFocus);
+    const setRoutesFocusBbox = useShopStore((s) => s.setRoutesFocusBbox);
 
     return (
         <MarkerClusterGroup
             chunkedLoading
             eventHandlers={{
                 clusterclick: (e: any) => {
-                    const ll = e.layer?.getLatLng?.();
-                    if (!ll) return;
-                    setRoutesFocus({ lng: ll.lng, lat: ll.lat, radius: 100 });
+                    const bounds = e.layer.getBounds();
+                    setRoutesFocusBbox({
+                        minLng: bounds.getWest(),
+                        minLat: bounds.getSouth(),
+                        maxLng: bounds.getEast(),
+                        maxLat: bounds.getNorth(),
+                    });
                 },
             }}
         >
@@ -22,14 +26,20 @@ export function RoutesMarkersLayer({ items }: { items: RouteMapMarker[] }) {
                     key={m.slug}
                     position={[m.lat, m.lng]}
                     eventHandlers={{
-                        click: () => setRoutesFocus({ lng: m.lng, lat: m.lat, radius: 100 }),
+                        click: () =>
+                            setRoutesFocusBbox({
+                                minLng: m.lng - 0.005,
+                                minLat: m.lat - 0.005,
+                                maxLng: m.lng + 0.005,
+                                maxLat: m.lat + 0.005,
+                            }),
                     }}
                 >
                     <Popup>
                         <div style={{ fontWeight: 600 }}>{m.title}</div>
                         <div style={{ opacity: 0.8 }}>{m.slug}</div>
                         <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                            Click para modo foco (100m)
+                            Click para modo foco
                         </div>
                     </Popup>
                 </Marker>

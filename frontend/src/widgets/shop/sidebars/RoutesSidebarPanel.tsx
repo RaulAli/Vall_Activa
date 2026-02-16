@@ -14,14 +14,17 @@ export function RoutesSidebarPanel() {
     const routes = useShopStore((s) => s.routes);
     const setRoutes = useShopStore((s) => s.setRoutes);
     const resetRoutesPage = useShopStore((s) => s.resetRoutesPage);
-    const clearRoutesFocus = useShopStore((s) => s.clearRoutesFocus);
+
+    const clearRoutesFocusBbox = useShopStore((s) => s.clearRoutesFocusBbox);
+    const clearRoutesSelected = useShopStore((s) => s.clearRoutesSelected);
 
     const qDebounced = useDebounce(routes.q, 250);
 
+    const focusBbox = routes.focusBbox;
+
     const filtersQuery = useRoutesFiltersQuery({
         bbox,
-        focus: routes.focus,
-
+        focusBbox,
         q: qDebounced,
         sportCode: routes.sportCode,
         distanceMin: routes.distanceMin,
@@ -32,22 +35,20 @@ export function RoutesSidebarPanel() {
 
     const listQuery = useRoutesListQuery({
         bbox,
-        focus: routes.focus,
-
+        focusBbox,
         q: qDebounced,
         sportCode: routes.sportCode,
         distanceMin: routes.distanceMin,
         distanceMax: routes.distanceMax,
         gainMin: routes.gainMin,
         gainMax: routes.gainMax,
-
         sort: routes.sort,
         order: routes.order,
         page: routes.page,
         limit: routes.limit,
     });
 
-    const hasGeo = routes.focus !== null || bbox !== null;
+    const hasGeo = !!bbox || !!routes.focusBbox;
 
     return (
         <div>
@@ -59,36 +60,50 @@ export function RoutesSidebarPanel() {
                 </div>
             )}
 
-            {routes.focus && (
+            {/* ✅ Banner de modo foco */}
+            {routes.focusBbox && (
                 <div
                     style={{
+                        border: "1px solid #e5e7eb",
+                        borderRadius: 10,
+                        padding: 10,
                         marginBottom: 12,
-                        padding: "8px 10px",
-                        border: "1px solid #ddd",
-                        borderRadius: 8,
+                        background: "#f8fafc",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
                         gap: 10,
                     }}
                 >
-                    <div style={{ fontSize: 13, opacity: 0.9 }}>
-                        Focus activo · radio {routes.focus.radius}m
+                    <div style={{ fontSize: 13 }}>
+                        <div style={{ fontWeight: 700 }}>Modo foco</div>
+                        <div style={{ opacity: 0.8 }}>
+                            Area restringida activa
+                        </div>
                     </div>
+
                     <button
                         onClick={() => {
-                            clearRoutesFocus();
-                            resetRoutesPage();
+                            clearRoutesSelected();
+                            clearRoutesFocusBbox(); // 👈 esto vuelve a bbox normal sin mover mapa
                         }}
-                        style={{ padding: "6px 10px" }}
+                        style={{
+                            padding: "8px 10px",
+                            border: "1px solid #ddd",
+                            borderRadius: 8,
+                            background: "white",
+                            cursor: "pointer",
+                            height: 36,
+                        }}
                     >
-                        Salir del focus
+                        Salir del foco
                     </button>
                 </div>
             )}
 
             {filtersQuery.isLoading && <Loader label="Cargando filtros..." />}
             {filtersQuery.error && <ErrorState message={(filtersQuery.error as Error).message} />}
+
             {filtersQuery.data && (
                 <RoutesFiltersPanel
                     meta={filtersQuery.data}
@@ -107,6 +122,7 @@ export function RoutesSidebarPanel() {
 
             {listQuery.isLoading && <Loader label="Cargando rutas..." />}
             {listQuery.error && <ErrorState message={(listQuery.error as Error).message} />}
+
             {listQuery.data && (
                 <>
                     <div style={{ marginBottom: 10, opacity: 0.8 }}>

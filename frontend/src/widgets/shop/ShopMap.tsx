@@ -5,9 +5,14 @@ import { RoutesMapPanel } from "./maps/RoutesMapPanel";
 
 function BboxWatcher() {
     const setBbox = useShopStore((s) => s.setBbox);
+    const tab = useShopStore((s) => s.tab);
+    const routesFocus = useShopStore((s) => s.routes.focus);
 
     useMapEvents({
         moveend: (e) => {
+
+            if (tab === "routes" && routesFocus) return;
+
             const b = e.target.getBounds();
             setBbox({
                 minLng: b.getWest(),

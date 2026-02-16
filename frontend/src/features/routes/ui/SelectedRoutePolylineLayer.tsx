@@ -1,47 +1,23 @@
-import { Polyline } from "react-leaflet";
+import { Polyline, Popup } from "react-leaflet";
+import polyline from "@mapbox/polyline";
 
-// decoder simple de polyline (Google Encoded Polyline Algorithm)
-function decodePolyline(encoded: string): [number, number][] {
-    let index = 0;
-    const len = encoded.length;
-    let lat = 0;
-    let lng = 0;
-    const coordinates: [number, number][] = [];
+type Props = {
+    slug: string;
+    title: string;
+    encoded: string;
+};
 
-    while (index < len) {
-        let b: number;
-        let shift = 0;
-        let result = 0;
+export function SelectedRoutePolylineLayer({ slug, title, encoded }: Props) {
+    const latlngs = polyline.decode(encoded).map(([lat, lng]) => [lat, lng] as [number, number]);
 
-        do {
-            b = encoded.charCodeAt(index++) - 63;
-            result |= (b & 0x1f) << shift;
-            shift += 5;
-        } while (b >= 0x20);
+    if (latlngs.length < 2) return null;
 
-        const dlat = (result & 1) ? ~(result >> 1) : result >> 1;
-        lat += dlat;
-
-        shift = 0;
-        result = 0;
-
-        do {
-            b = encoded.charCodeAt(index++) - 63;
-            result |= (b & 0x1f) << shift;
-            shift += 5;
-        } while (b >= 0x20);
-
-        const dlng = (result & 1) ? ~(result >> 1) : result >> 1;
-        lng += dlng;
-
-        coordinates.push([lat / 1e5, lng / 1e5]);
-    }
-
-    return coordinates;
-}
-
-export function SelectedRoutePolylineLayer({ polyline }: { polyline: string }) {
-    const points = decodePolyline(polyline);
-    if (points.length < 2) return null;
-    return <Polyline positions={points} />;
+    return (
+        <Polyline positions={latlngs}>
+            <Popup>
+                <div style={{ fontWeight: 700 }}>{title}</div>
+                <div style={{ opacity: 0.8, fontSize: 12 }}>{slug}</div>
+            </Popup>
+        </Polyline>
+    );
 }

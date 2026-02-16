@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { Bbox } from "../shared/utils/bbox";
-import type { Focus } from "../shared/utils/focus";
+import type { FocusBbox } from "../shared/utils/focus";
 
 export type ShopTab = "offers" | "routes";
 
@@ -31,11 +31,11 @@ export type RoutesUiState = {
     limit: number;
 
     // ✅ NUEVO: modo foco (cluster click)
-    focus: Focus | null;
+    focusBbox: FocusBbox | null;
 
     // ✅ NUEVO: (opcional) estado UI para mostrar una polyline seleccionada
     // Nota: con tu backend v2 list NO devuelve polyline; esto quedará útil cuando lo pintes con /details
-    selected: { slug: string } | null;
+    selected: { slug: string; polyline: string | null } | null;
 };
 
 type ShopState = {
@@ -55,10 +55,10 @@ type ShopState = {
     resetRoutesPage: () => void;
 
     // ✅ NUEVO: helpers focus/selected
-    setRoutesFocus: (focus: Focus | null) => void;
-    clearRoutesFocus: () => void;
+    setRoutesFocusBbox: (bbox: FocusBbox | null) => void;
+    clearRoutesFocusBbox: () => void;
 
-    setRoutesSelected: (sel: { slug: string } | null) => void;
+    setRoutesSelected: (sel: { slug: string; polyline: string | null } | null) => void;
     clearRoutesSelected: () => void;
 
     resetAll: () => void;
@@ -86,7 +86,7 @@ const defaultRoutes: RoutesUiState = {
     page: 1,
     limit: 20,
 
-    focus: null,
+    focusBbox: null,
     selected: null,
 };
 
@@ -120,25 +120,26 @@ export const useShopStore = create<ShopState>((set) => ({
             routes: { ...s.routes, page: 1 },
         })),
 
-    setRoutesFocus: (focus) =>
+    setRoutesFocusBbox: (bbox) =>
         set((s) => ({
             routes: {
                 ...s.routes,
-                focus,
-                page: 1, // cuando cambias foco reinicias paginación
-                selected: null, // limpias selección
-            },
-        })),
-
-    clearRoutesFocus: () =>
-        set((s) => ({
-            routes: {
-                ...s.routes,
-                focus: null,
+                focusBbox: bbox,
                 page: 1,
                 selected: null,
             },
         })),
+
+    clearRoutesFocusBbox: () =>
+        set((s) => ({
+            routes: {
+                ...s.routes,
+                focusBbox: null,
+                page: 1,
+                selected: null,
+            },
+        })),
+
 
     setRoutesSelected: (sel) =>
         set((s) => ({

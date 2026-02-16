@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { endpoints } from "../../../shared/api/endpoints";
 import { http } from "../../../shared/api/http";
 import { bboxToParam, type Bbox } from "../../../shared/utils/bbox";
-import { focusToParam, type Focus } from "../../../shared/utils/focus";
 import { RouteFiltersMetaSchema } from "../domain/schemas";
 import type { RouteFiltersMeta } from "../domain/types";
+import { type FocusBbox } from "../../../shared/utils/focus";
 
 export type RoutesFiltersParams = {
     bbox: Bbox | null;
-    focus: Focus | null;
+    focusBbox: FocusBbox | null;
 
     q: string;
     sportCode: string | null;
@@ -21,15 +21,14 @@ export type RoutesFiltersParams = {
 };
 
 export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
-    const hasGeo = params.focus !== null || params.bbox !== null;
+    const hasGeo = params.focusBbox !== null || params.bbox !== null;
 
     return useQuery({
         queryKey: ["routes", "filters", params],
         queryFn: async () => {
             const data = await http<unknown>("GET", endpoints.routes.filters, {
                 query: {
-                    focus: focusToParam(params.focus),
-                    bbox: params.focus ? null : bboxToParam(params.bbox),
+                    bbox: params.focusBbox ? bboxToParam(params.focusBbox) : bboxToParam(params.bbox),
 
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
@@ -42,6 +41,7 @@ export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
 
             return RouteFiltersMetaSchema.parse(data) as RouteFiltersMeta;
         },
+        placeholderData: (prev) => prev,
         enabled: hasGeo,
     });
 }
