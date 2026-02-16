@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useShopStore } from "../../../store/shopStore";
 import type { RouteListItem } from "../domain/types";
+import { getFallbackImage } from "../../../shared/utils/images";
 
 type Props = {
     items: RouteListItem[];
@@ -44,7 +45,7 @@ export function RoutesList({ items }: Props) {
                             <div className="relative aspect-[16/9] overflow-hidden bg-slate-200 dark:bg-slate-800">
                                 <img
                                     className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-80 group-hover:opacity-100"
-                                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuBeMNav5kD1rer4TAx3aytDvr9wbPAkro-iEuwkwY0aH9OnA7S-miQXCMs4Aw1-REGFrppWuycRB1gKsM7pf-bjWG4Sjv1htnpNGV4wEOoyF2BedQ7-7pfp0Os_wCsy70tBPLYOMAo7sGN1OoDdkMbc3WMJt5_DJpiSf0d9idMv65hduqGzIfyixVqLoyqFyd1g43Xx0SpV3J3rlbkD5AhrmZWDdphTM1SaBhKfD3rkiZ3-Ob7dOtmdVXRIKOK2eaNUIMqkuC2VwHNg"
+                                    src={r.image || getFallbackImage(r.id, "route")}
                                     alt={r.title}
                                 />
                                 <div className="absolute top-3 left-3 flex gap-2">

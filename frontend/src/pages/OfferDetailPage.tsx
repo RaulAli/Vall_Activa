@@ -4,6 +4,8 @@ import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
 import { Header } from "../widgets/layout/Header";
 import { Footer } from "../widgets/layout/Footer";
+import { getFallbackImage } from "../shared/utils/images";
+import { DetailsMap } from "../shared/ui/DetailsMap";
 
 export function OfferDetailPage() {
     const { slug } = useParams<{ slug: string }>();
@@ -13,7 +15,7 @@ export function OfferDetailPage() {
     if (error || !offer) return <ErrorState message="No se pudo cargar la oferta" />;
 
     return (
-        <div className="relative flex flex-col w-full overflow-x-hidden font-display">
+        <div className="relative flex flex-col w-full overflow-x-hidden font-display bg-white dark:bg-background-dark text-slate-900 dark:text-white min-h-screen transition-colors duration-300">
             <Header />
 
             <main className="max-w-[1200px] mx-auto w-full px-4 md:px-10 min-h-screen">
@@ -32,7 +34,7 @@ export function OfferDetailPage() {
                         <div
                             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                             style={{
-                                backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.7) 100%), url("${offer.image || 'https://lh3.googleusercontent.com/aida-public/AB6AXuBeMNav5kD1rer4TAx3aytDvr9wbPAkro-iEuwkwY0aH9OnA7S-miQXCMs4Aw1-REGFrppWuycRB1gKsM7pf-bjWG4Sjv1htnpNGV4wEOoyF2BedQ7-7pfp0Os_wCsy70tBPLYOMAo7sGN1OoDdkMbc3WMJt5_DJpiSf0d9idMv65hduqGzIfyixVqLoyqFyd1g43Xx0SpV3J3rlbkD5AhrmZWDdphTM1SaBhKfD3rkiZ3-Ob7dOtmdVXRIKOK2eaNUIMqkuC2VwHNg'}")`
+                                backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.7) 100%), url("${offer.image || getFallbackImage(offer.id, "offer")}")`
                             }}
                         />
                         <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -79,14 +81,14 @@ export function OfferDetailPage() {
                                     {offer.description || "Esta es una oferta exclusiva disponible a través de VAMO. Aprovecha esta oportunidad única para disfrutar de servicios premium a precios reducidos o canjeando tus puntos de actividad."}
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-                                    <div className="p-5 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                         <div className="flex items-center gap-2 mb-2 text-primary">
                                             <span className="material-symbols-outlined">inventory_2</span>
                                             <h4 className="font-bold text-sm uppercase tracking-tight">Stock Disponible</h4>
                                         </div>
                                         <p className="text-2xl font-bold">{offer.quantity} unidades</p>
                                     </div>
-                                    <div className="p-5 bg-background-light dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
                                         <div className="flex items-center gap-2 mb-2 text-primary">
                                             <span className="material-symbols-outlined">verified</span>
                                             <h4 className="font-bold text-sm uppercase tracking-tight">Estado</h4>
@@ -105,6 +107,13 @@ export function OfferDetailPage() {
                             <p className="text-slate-600 dark:text-slate-400 mb-6">
                                 Este establecimiento colabora con VAMO para ofrecer las mejores experiencias y productos a nuestra comunidad de deportistas.
                             </p>
+
+                            {offer.lat && offer.lng && (
+                                <div className="w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner mb-6">
+                                    <DetailsMap marker={{ lat: offer.lat, lng: offer.lng, title: offer.business?.name }} />
+                                </div>
+                            )}
+
                             <button className="flex items-center gap-2 text-primary font-bold hover:underline transition-all">
                                 Ver perfil del negocio <span className="material-symbols-outlined !text-sm">arrow_forward</span>
                             </button>

@@ -32,6 +32,7 @@ final class RouteMapper
         $orm->maxLng = $route->maxLng();
 
         $orm->polyline = $route->polyline(); // ✅ NUEVO
+        $orm->image = $route->image();
 
         $orm->distanceM = $route->distanceM();
         $orm->elevationGainM = $route->elevationGainM();

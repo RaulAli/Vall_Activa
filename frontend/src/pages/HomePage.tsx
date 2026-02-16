@@ -1,13 +1,70 @@
 import { useNavigate } from "react-router-dom";
-import { useShopStore } from "../store/shopStore";
+import { useMemo } from "react";
 import { Header } from "../widgets/layout/Header";
+import { useRoutesListQuery } from "../features/routes/queries/useRoutesListQuery";
+import { useOffersListQuery } from "../features/offers/queries/useOffersListQuery";
+import { getFallbackImage } from "../shared/utils/images";
 
 export function HomePage() {
     const navigate = useNavigate();
-    const setTab = useShopStore((s) => s.setTab);
+
+    const routesQuery = useRoutesListQuery({
+        // ... routes params
+        bbox: { minLng: -10, minLat: 35, maxLng: 5, maxLat: 45 },
+        focusBbox: null,
+        q: "",
+        sportCode: null,
+        distanceMin: null,
+        distanceMax: null,
+        gainMin: null,
+        gainMax: null,
+        sort: "recent",
+        order: "desc",
+        page: 1,
+        limit: 12,
+        enabled: true
+    });
+
+    const offersQuery = useOffersListQuery({
+        bbox: null,
+        q: "",
+        discountType: null,
+        inStock: true,
+        priceMin: null,
+        priceMax: null,
+        pointsMin: null,
+        pointsMax: null,
+        sort: "recent",
+        order: "desc",
+        page: 1,
+        limit: 12,
+        enabled: true
+    });
+
+    const displayRoutes = useMemo(() => {
+        if (!routesQuery.data?.items || routesQuery.data.items.length === 0) return [];
+        return [...routesQuery.data.items]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4);
+    }, [routesQuery.data?.items]);
+
+    const displayOffers = useMemo(() => {
+        if (!offersQuery.data?.items || offersQuery.data.items.length === 0) return [];
+        return [...offersQuery.data.items]
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4);
+    }, [offersQuery.data?.items]);
 
     const handleGoToDiscover = (tab: "routes" | "offers") => {
         navigate(`/${tab}`);
+    };
+
+    const handleGoToRoute = (slug: string) => {
+        navigate(`/route/${slug}`);
+    };
+
+    const handleGoToOffer = (slug: string) => {
+        navigate(`/offer/${slug}`);
     };
 
     return (
@@ -100,36 +157,131 @@ export function HomePage() {
                             </button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                            {[
-                                { title: "Swiss Alps Traverse", price: "$250", level: "Difficult", days: "5 Days", img: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b" },
-                                { title: "Kyoto Hidden Temples", price: "$80", level: "Easy", days: "1 Day", img: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e" },
-                                { title: "Patagonia Trek", price: "$150", level: "Medium", days: "3 Days", img: "https://images.unsplash.com/photo-1519904981063-b0cf448d879c" },
-                                { title: "Cinque Terre Coastal", price: "$120", level: "Easy", days: "2 Days", img: "https://images.unsplash.com/photo-1516483638261-f4dbaf036963" }
-                            ].map((route, i) => (
-                                <div key={i} className="group flex flex-col gap-6 cursor-pointer">
-                                    <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-200 dark:bg-slate-800 ring-1 ring-black/5 dark:ring-white/5">
-                                        <div className="absolute top-5 right-5 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm px-4 py-2 rounded-2xl text-[11px] font-black shadow-lg flex items-center gap-1.5 text-slate-900 dark:text-white ring-1 ring-black/5">
-                                            <span className="material-symbols-outlined !text-sm text-yellow-500 font-variation-fill">star</span> 4.9
+                            {routesQuery.isLoading && (
+                                <>
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="animate-pulse flex flex-col gap-6">
+                                            <div className="w-full aspect-[4/5] bg-slate-200 dark:bg-slate-800 rounded-[2.5rem]" />
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-3/4 mx-2" />
                                         </div>
-                                        <img
-                                            src={`${route.img}?auto=format&fit=crop&q=80&w=800`}
-                                            alt={route.title}
-                                            className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
-                                        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end text-white">
-                                            <div className="space-y-1">
-                                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/20`}>{route.level}</span>
-                                                <p className="font-bold text-sm tracking-tight">{route.days}</p>
+                                    ))}
+                                </>
+                            )}
+
+                            {!routesQuery.isLoading && displayRoutes.map((route, i) => {
+                                const distanceKm = Math.round(route.distanceM / 1000);
+                                const img = route.image || getFallbackImage(route.id, "route");
+
+                                return (
+                                    <div
+                                        key={route.id}
+                                        className="group flex flex-col gap-6 cursor-pointer"
+                                        onClick={() => handleGoToRoute(route.slug)}
+                                    >
+                                        <div className="relative w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-200 dark:bg-slate-800 ring-1 ring-black/5 dark:ring-white/5">
+                                            <div className="absolute top-5 right-5 z-10 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm px-4 py-2 rounded-2xl text-[11px] font-black shadow-lg flex items-center gap-1.5 text-slate-900 dark:text-white ring-1 ring-black/5">
+                                                <span className="material-symbols-outlined !text-sm text-yellow-500 font-variation-fill">star</span> {4.5 + (i % 5) / 10}
                                             </div>
-                                            <span className="text-xl font-black">{route.price}</span>
+                                            <img
+                                                src={route.image ? `${img}?auto=format&fit=crop&q=80&w=800` : img}
+                                                alt={route.title}
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                                            <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end text-white">
+                                                <div className="space-y-1">
+                                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/20`}>
+                                                        {route.elevationGainM > 1000 ? "Difficult" : route.elevationGainM > 500 ? "Medium" : "Easy"}
+                                                    </span>
+                                                    <p className="font-bold text-sm tracking-tight">{distanceKm} km · +{route.elevationGainM}m</p>
+                                                </div>
+                                                <span className="text-sm font-black uppercase tracking-tighter">View Path</span>
+                                            </div>
+                                        </div>
+                                        <div className="px-2">
+                                            <h3 className="text-xl font-black leading-tight group-hover:text-primary transition-colors text-slate-900 dark:text-white tracking-tight">{route.title}</h3>
                                         </div>
                                     </div>
-                                    <div className="px-2">
-                                        <h3 className="text-xl font-black leading-tight group-hover:text-primary transition-colors text-slate-900 dark:text-white tracking-tight">{route.title}</h3>
-                                    </div>
+                                );
+                            })}
+
+                            {displayRoutes.length === 0 && !routesQuery.isLoading && (
+                                <div className="col-span-full py-20 text-center opacity-50">
+                                    <p className="text-xl font-bold">No tracks found yet</p>
                                 </div>
-                            ))}
+                            )}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Exclusive Offers Section */}
+                <section className="py-24 px-4 bg-white dark:bg-background-dark">
+                    <div className="max-w-[1280px] mx-auto">
+                        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                            <div className="space-y-4">
+                                <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">Exclusive Offers</h2>
+                                <p className="text-slate-500 dark:text-slate-400 font-bold text-lg">Premium gear and experiences at member prices.</p>
+                            </div>
+                            <button
+                                onClick={() => handleGoToDiscover("offers")}
+                                className="w-fit px-8 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-primary hover:text-white hover:bg-primary transition-all font-black rounded-2xl shadow-sm flex items-center gap-2 group"
+                            >
+                                View all <span className="material-symbols-outlined !text-xl group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                            </button>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                            {offersQuery.isLoading && (
+                                <>
+                                    {[...Array(4)].map((_, i) => (
+                                        <div key={i} className="animate-pulse flex flex-col gap-6">
+                                            <div className="w-full aspect-square bg-slate-200 dark:bg-slate-800 rounded-[2.5rem]" />
+                                            <div className="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-3/4 mx-2" />
+                                        </div>
+                                    ))}
+                                </>
+                            )}
+
+                            {!offersQuery.isLoading && displayOffers.map((offer, i) => {
+                                const img = offer.image || getFallbackImage(offer.id, "offer");
+
+                                return (
+                                    <div
+                                        key={offer.id}
+                                        className="group flex flex-col gap-6 cursor-pointer"
+                                        onClick={() => handleGoToOffer(offer.slug)}
+                                    >
+                                        <div className="relative w-full aspect-square rounded-[2.5rem] overflow-hidden shadow-2xl bg-slate-200 dark:bg-slate-800 ring-1 ring-black/5 dark:ring-white/5">
+                                            <div className="absolute top-5 left-5 z-10 bg-primary px-4 py-2 rounded-2xl text-[11px] font-black shadow-lg text-white ring-1 ring-white/20">
+                                                -{offer.pointsCost} VAC
+                                            </div>
+                                            <img
+                                                src={offer.image ? `${img}?auto=format&fit=crop&q=80&w=800` : img}
+                                                alt={offer.title}
+                                                className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                            />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
+                                            <div className="absolute bottom-6 left-6 right-6 flex justify-between items-end text-white">
+                                                <div className="space-y-1">
+                                                    <span className="px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-white/20 backdrop-blur-md border border-white/20">
+                                                        {offer.discountType}
+                                                    </span>
+                                                    <p className="font-bold text-sm tracking-tight">{offer.price} {offer.currency}</p>
+                                                </div>
+                                                <span className="text-sm font-black uppercase tracking-tighter">Get Reward</span>
+                                            </div>
+                                        </div>
+                                        <div className="px-2">
+                                            <h3 className="text-xl font-black leading-tight group-hover:text-primary transition-colors text-slate-900 dark:text-white tracking-tight line-clamp-2">{offer.title}</h3>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {displayOffers.length === 0 && !offersQuery.isLoading && (
+                                <div className="col-span-full py-20 text-center opacity-50">
+                                    <p className="text-xl font-bold">No offers available yet</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>

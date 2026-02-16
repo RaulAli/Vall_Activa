@@ -80,7 +80,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
 
         // list (SIN polyline)
         $rows = (clone $baseQb)
-            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.isActive, r.createdAt')
+            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.isActive, r.createdAt, r.image')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -102,7 +102,8 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                 elevationGainM: (int) $r['elevationGainM'],
                 elevationLossM: (int) $r['elevationLossM'],
                 isActive: (bool) $r['isActive'],
-                createdAt: $createdAtStr
+                createdAt: $createdAtStr,
+                image: $r['image'] ?? null
             );
         }, $rows);
 
@@ -172,7 +173,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             ->select('r.id, r.sportId, r.title, r.slug, r.description, r.visibility, r.status,
                  r.startLat, r.startLng, r.endLat, r.endLng,
                  r.minLat, r.minLng, r.maxLat, r.maxLng,
-                 r.distanceM, r.elevationGainM, r.elevationLossM, r.polyline, r.createdAt')
+                 r.distanceM, r.elevationGainM, r.elevationLossM, r.polyline, r.createdAt, r.image')
             ->from(RouteOrm::class, 'r')
             ->andWhere('r.isActive = true')
             ->andWhere('r.visibility = :vis')
@@ -211,7 +212,8 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             elevationGainM: (int) $row['elevationGainM'],
             elevationLossM: (int) $row['elevationLossM'],
             polyline: $row['polyline'] ?? null,
-            createdAt: $createdAtStr
+            createdAt: $createdAtStr,
+            image: $row['image'] ?? null
         );
     }
 

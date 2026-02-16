@@ -16,6 +16,7 @@ export const RouteListItemSchema = z.object({
 
     isActive: z.boolean(),
     createdAt: z.string(),
+    image: z.string().nullable(),
 });
 
 export const PaginatedSchema = <T extends z.ZodTypeAny>(item: T) =>

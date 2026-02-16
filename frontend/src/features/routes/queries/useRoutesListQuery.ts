@@ -23,6 +23,7 @@ export type RoutesListParams = {
 
     page: number;
     limit: number;
+    enabled?: boolean;
 };
 
 export function useRoutesListQuery(params: RoutesListParams) {
@@ -68,8 +69,8 @@ export function useRoutesListQuery(params: RoutesListParams) {
 
             return PaginatedSchema(RouteListItemSchema).parse(data) as PaginatedResult<RouteListItem>;
         },
-        enabled: !!geoParam, // bbox o focusBbox
-        placeholderData: (prev) => prev, // ✅ evita "vacío" visual al cambiar filtros/paginación
+        enabled: params.enabled ?? !!geoParam,
+        placeholderData: (prev) => prev,
         staleTime: 3_000,
     });
 }

@@ -36,8 +36,8 @@ final class Route
         private int $distanceM,
         private int $elevationGainM,
         private int $elevationLossM,
-
-        private bool $isActive
+        private bool $isActive,
+        private ?string $image = null
     ) {
     }
 
@@ -181,5 +181,10 @@ final class Route
     public function isActive(): bool
     {
         return $this->isActive;
+    }
+
+    public function image(): ?string
+    {
+        return $this->image;
     }
 }

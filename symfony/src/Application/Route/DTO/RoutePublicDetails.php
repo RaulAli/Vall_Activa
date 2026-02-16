@@ -30,8 +30,8 @@ final class RoutePublicDetails
         public readonly int $elevationLossM,
 
         public readonly ?string $polyline,
-
-        public readonly string $createdAt
+        public readonly string $createdAt,
+        public readonly ?string $image = null
     ) {
     }
 }

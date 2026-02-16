@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import type { OfferListItem } from "../domain/types";
+import { getFallbackImage } from "../../../shared/utils/images";
 
 export function OfferCard({ item }: { item: OfferListItem }) {
     const navigate = useNavigate();
@@ -10,17 +11,11 @@ export function OfferCard({ item }: { item: OfferListItem }) {
             className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-none transition-all cursor-pointer"
         >
             <div className="relative aspect-[16/9] overflow-hidden bg-slate-100 dark:bg-slate-800">
-                {item.image ? (
-                    <img
-                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                        src={item.image}
-                        alt={item.title}
-                    />
-                ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
-                        <span className="material-symbols-outlined !text-4xl">image</span>
-                    </div>
-                )}
+                <img
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    src={item.image || getFallbackImage(item.id, "offer")}
+                    alt={item.title}
+                />
                 <div className="absolute top-3 left-3">
                     <span className="px-2 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded text-[10px] font-bold uppercase tracking-widest text-primary shadow-sm">
                         {item.discountType}

@@ -18,6 +18,8 @@ export const OfferDetailsSchema = z.object({
     pointsCost: z.number(),
     isActive: z.boolean(),
     createdAt: z.string(),
+    lat: z.number().nullable().optional(),
+    lng: z.number().nullable().optional(),
     // Extended business info might be here in real API
     business: z.object({
         name: z.string(),

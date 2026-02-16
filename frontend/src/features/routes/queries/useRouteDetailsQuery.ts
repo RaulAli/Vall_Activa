@@ -29,6 +29,7 @@ export const RouteDetailsSchema = z.object({
 
     polyline: z.string().nullable(),
     createdAt: z.string(),
+    image: z.string().nullable().optional(),
 });
 
 export type RouteDetails = z.infer<typeof RouteDetailsSchema>;

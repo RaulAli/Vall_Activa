@@ -19,7 +19,8 @@ final class RoutePublicListItem
         public readonly int $elevationLossM,
 
         public readonly bool $isActive,
-        public readonly string $createdAt
+        public readonly string $createdAt,
+        public readonly ?string $image = null
     ) {
     }
 }

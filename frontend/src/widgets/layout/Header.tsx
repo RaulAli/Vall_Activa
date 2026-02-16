@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useShopStore } from "../../store/shopStore";
+import { getTheme, toggleTheme, type Theme } from "../../shared/utils/theme";
 
 export function Header() {
     const navigate = useNavigate();
     const location = useLocation();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [themeState, setThemeState] = useState<Theme>(getTheme());
 
     const isHome = location.pathname === "/";
     const isOffers = location.pathname === "/offers";
@@ -58,6 +60,14 @@ export function Header() {
 
                     {/* Actions */}
                     <div className="hidden md:flex items-center gap-3">
+                        <button
+                            onClick={() => setThemeState(toggleTheme())}
+                            className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
+                        >
+                            <span className="material-symbols-outlined">
+                                {themeState === "dark" ? "light_mode" : "dark_mode"}
+                            </span>
+                        </button>
                         <button className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">
                             <span className="material-symbols-outlined">notifications</span>
                         </button>

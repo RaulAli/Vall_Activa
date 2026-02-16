@@ -4,6 +4,8 @@ import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
 import { Header } from "../widgets/layout/Header";
 import { Footer } from "../widgets/layout/Footer";
+import { getFallbackImage } from "../shared/utils/images";
+import { DetailsMap } from "../shared/ui/DetailsMap";
 
 export function RouteDetailPage() {
     const { slug } = useParams<{ slug: string }>();
@@ -13,7 +15,7 @@ export function RouteDetailPage() {
     if (error || !route) return <ErrorState message="No se pudo cargar la ruta" />;
 
     return (
-        <div className="relative flex flex-col w-full overflow-x-hidden font-display">
+        <div className="relative flex flex-col w-full overflow-x-hidden font-display bg-white dark:bg-background-dark text-slate-900 dark:text-white min-h-screen transition-colors duration-300">
             <Header />
 
             <main className="max-w-[1200px] mx-auto w-full px-4 md:px-10">
@@ -32,7 +34,7 @@ export function RouteDetailPage() {
                         <div
                             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
                             style={{
-                                backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.7) 100%), url("https://lh3.googleusercontent.com/aida-public/AB6AXuBXuor0nDIRe85bV6sUcmzGVIGLzLzMAHvu0NJA6NBa4ahXPmiCQ0zwp4OnNKtBNYoxFdxqmjcAZeJu41VeWGvygmMulGfypiFpxJDJNGbvYypPxJw4T0fTrcKeHTnmUBrRxGY-DH4BB9eNrXIKld0XkpiXe2TGgwVVRPZzBF3IZOQtgp-duInP0qONMMbU1Bv8uAtzGo_VAIWjTM_Ncy2k47953PEQPkLD659d4i4QJki1V-kmuS0wF5dc7Sj96U2PC8HUzmWp-3UM")`
+                                backgroundImage: `linear-gradient(180deg, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.7) 100%), url("${route.image || getFallbackImage(route.id, "route")}")`
                             }}
                         />
                         <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -99,23 +101,25 @@ export function RouteDetailPage() {
                             </div>
                         </section>
 
-                        {/* Map Area */}
-                        <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-2xl font-bold flex items-center gap-2">
+                        {/* Map Section */}
+                        <section className="bg-slate-50 dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold flex items-center gap-2">
                                     <span className="material-symbols-outlined text-primary">map</span>
-                                    Interactive Map
-                                </h2>
-                                <button className="text-primary text-sm font-bold flex items-center gap-1 hover:underline transition-all">
-                                    <span className="material-symbols-outlined text-sm">fullscreen</span>
-                                    Full screen
+                                    Mapa de la ruta
+                                </h3>
+                                <button className="text-sm font-bold text-primary hover:underline flex items-center gap-1 transition-all">
+                                    Pantalla completa <span className="material-symbols-outlined !text-sm">open_in_full</span>
                                 </button>
                             </div>
                             <div className="relative w-full aspect-video rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden group shadow-inner">
-                                {/* Map will be integrated here */}
-                                <div className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-900">
-                                    <span className="text-slate-400 font-medium">Map coming soon...</span>
-                                </div>
+                                {route.polyline ? (
+                                    <DetailsMap polylineEncoded={route.polyline} />
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center bg-slate-100 dark:bg-slate-900">
+                                        <span className="text-slate-400 font-medium">Map coming soon...</span>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     </div>
@@ -124,17 +128,21 @@ export function RouteDetailPage() {
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-6">
                             {/* Route Info Card */}
-                            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden transition-all">
+                            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold mb-6">Route Information</h3>
+                                    <h3 className="text-xl font-bold mb-6">Completar Ruta</h3>
+
                                     <div className="space-y-4 mb-8">
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                                            <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-primary">signal_cellular_alt</span>
-                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Difficulty</span>
-                                            </div>
-                                            <span className="px-2 py-1 rounded bg-orange-100 text-orange-700 text-[10px] font-bold uppercase">Advanced</span>
+                                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Recompensa</span>
+                                            <span className="text-xl font-black text-primary">500 VAC</span>
                                         </div>
+                                        <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg text-[11px] text-slate-500 flex items-start gap-2 italic">
+                                            <span className="material-symbols-outlined !text-sm mt-0.5">info</span>
+                                            Sube tu track GPX o registra la actividad para reclamar tus puntos.
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4 mb-8">
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                                             <div className="flex items-center gap-3">
                                                 <span className="material-symbols-outlined text-primary">hiking</span>

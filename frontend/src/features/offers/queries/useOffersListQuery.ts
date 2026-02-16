@@ -18,6 +18,7 @@ export type OffersListParams = {
     order: string;
     page: number;
     limit: number;
+    enabled?: boolean;
 };
 
 export function useOffersListQuery(params: OffersListParams) {
@@ -44,6 +45,6 @@ export function useOffersListQuery(params: OffersListParams) {
             const parsed = PaginatedSchema(OfferListItemSchema).parse(data);
             return parsed as PaginatedResult<OfferListItem>;
         },
-        enabled: params.bbox !== null, // MVP: solo cargar si ya hay bbox
+        enabled: params.enabled ?? (params.bbox !== null),
     });
 }

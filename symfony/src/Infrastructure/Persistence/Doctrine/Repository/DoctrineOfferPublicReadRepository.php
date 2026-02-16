@@ -137,8 +137,15 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
         $row = $this->em->createQueryBuilder()
             ->select('o.id, o.businessId, o.title, o.slug, o.description,
                  o.price, o.currency, o.image, o.discountType,
-                 o.quantity, o.pointsCost, o.status, o.isActive, o.createdAt')
+                 o.quantity, o.pointsCost, o.status, o.isActive, o.createdAt,
+                 b.lat, b.lng')
             ->from(\App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm::class, 'o')
+            ->innerJoin(
+                \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
+                'b',
+                'WITH',
+                'b.userId = o.businessId'
+            )
             ->andWhere('o.isActive = true')
             ->andWhere('o.status = :status')
             ->andWhere('o.slug = :slug')
@@ -175,6 +182,9 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
 
             status: (string) $row['status'],
             isActive: (bool) $row['isActive'],
+
+            lat: isset($row['lat']) ? (float) $row['lat'] : null,
+            lng: isset($row['lng']) ? (float) $row['lng'] : null,
 
             createdAt: $createdAtStr
         );

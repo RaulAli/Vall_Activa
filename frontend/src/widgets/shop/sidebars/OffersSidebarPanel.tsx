@@ -41,13 +41,13 @@ export function OffersSidebarPanel() {
     const hasGeo = !!bbox;
 
     return (
-        <div className="flex flex-col h-full bg-white dark:bg-background-dark overflow-hidden">
+        <div className="flex flex-col h-full bg-white dark:bg-background-dark overflow-hidden transition-colors duration-300">
             {/* Toolbar: Search + Filters */}
             <div className="sticky top-0 z-20 bg-white/95 dark:bg-background-dark/95 backdrop-blur shadow-sm border-b border-slate-100 dark:border-slate-800">
                 <div className="p-4 space-y-3">
                     {/* Search Field */}
                     <div className="flex items-center gap-3">
-                        <div className="relative flex-1 flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl px-4 py-2 border border-transparent focus-within:border-primary/50 transition-all shadow-sm">
+                        <div className="relative flex-1 flex items-center bg-slate-50 dark:bg-slate-800 rounded-xl px-4 py-2 border border-slate-200 dark:border-slate-700 focus-within:border-primary/50 transition-all shadow-sm">
                             <span className="material-symbols-outlined text-slate-400 !text-lg">search</span>
                             <input
                                 className="bg-transparent border-none focus:ring-0 text-sm w-full placeholder:text-slate-400 pl-3 font-medium text-slate-900 dark:text-white"
@@ -96,8 +96,8 @@ export function OffersSidebarPanel() {
                         <button
                             onClick={() => setOffers({ inStock: !offers.inStock })}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${offers.inStock
-                                    ? "bg-primary text-white border-primary"
-                                    : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
+                                ? "bg-primary text-white border-primary"
+                                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700"
                                 }`}
                         >
                             <span className="material-symbols-outlined !text-[14px]">inventory_2</span>
@@ -111,8 +111,8 @@ export function OffersSidebarPanel() {
                                 key={dt.value}
                                 onClick={() => setOffers({ discountType: offers.discountType === dt.value ? null : dt.value })}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${offers.discountType === dt.value
-                                        ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
-                                        : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700"
+                                    ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                                    : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700"
                                     }`}
                             >
                                 {dt.value}

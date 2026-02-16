@@ -75,6 +75,9 @@ class RouteOrm
     #[ORM\Column(type: 'text', nullable: true)]
     public ?string $polyline = null;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    public ?string $image = null;
+
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 

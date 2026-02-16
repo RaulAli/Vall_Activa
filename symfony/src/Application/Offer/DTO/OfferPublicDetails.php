@@ -24,6 +24,9 @@ final class OfferPublicDetails
         public readonly string $status,
         public readonly bool $isActive,
 
+        public readonly ?float $lat = null,
+        public readonly ?float $lng = null,
+
         public readonly string $createdAt
     ) {
     }
