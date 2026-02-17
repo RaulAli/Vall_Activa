@@ -42,6 +42,7 @@ temp/
 
 ### Docker ###
 docker-compose.override.yml
+DOCKER_PERFORMANCE.txt
 
 ### Testing ###
 .phpunit.result.cache

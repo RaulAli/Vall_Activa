@@ -11,12 +11,12 @@ final class SportCode
 
     public static function fromString(string $value): self
     {
-        $v = strtolower(trim($value));
+        $v = strtoupper(trim($value));
         if ($v === '' || strlen($v) > 50) {
             throw new \InvalidArgumentException('Invalid sport code.');
         }
         // opcional: permitir solo a-z0-9_-:
-        if (!preg_match('/^[a-z0-9_-]+$/', $v)) {
+        if (!preg_match('/^[A-Z0-9_-]+$/', $v)) {
             throw new \InvalidArgumentException('Invalid sport code format.');
         }
         return new self($v);

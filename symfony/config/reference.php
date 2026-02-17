@@ -128,7 +128,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     http_method_override?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Set true to enable support for the '_method' request parameter to determine the intended HTTP method on POST requests. // Default: false
  *     allowed_http_method_override?: list<string|\Symfony\Component\Config\Loader\ParamConfigurator>|null,
  *     trust_x_sendfile_type_header?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Set true to enable support for xsendfile in binary file responses. // Default: "%env(bool:default::SYMFONY_TRUST_X_SENDFILE_TYPE_HEADER)%"
- *     ide?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "%env(default::SYMFONY_IDE)%"
+ *     ide?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
  *     test?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
  *     default_locale?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "en"
  *     set_locale_from_accept_language?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Whether to use the Accept-Language HTTP header to set the Request locale (only when the "_locale" request attribute is not passed). // Default: false
@@ -285,7 +285,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         paths?: array<string, scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
  *         excluded_patterns?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
  *         exclude_dotfiles?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // If true, any files starting with "." will be excluded from the asset mapper. // Default: true
- *         server?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // If true, a "dev server" will return the assets from the public directory (true in "debug" mode only by default). // Default: true
+ *         server?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // If true, a "dev server" will return the assets from the public directory (true in "debug" mode only by default). // Default: false
  *         public_prefix?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The public path where the assets will be written to (and served from when "server" is true). // Default: "/assets/"
  *         missing_import_mode?: "strict"|"warn"|"ignore"|\Symfony\Component\Config\Loader\ParamConfigurator, // Behavior if an asset cannot be found when imported from JavaScript or CSS files - e.g. "import './non-existent.js'". "strict" means an exception is thrown, "warn" means a warning is logged, "ignore" means the import is left as-is. // Default: "warn"
  *         extensions?: array<string, scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
@@ -405,7 +405,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     },
  *     php_errors?: array{ // PHP errors handling configuration
  *         log?: mixed, // Use the application logger instead of the PHP logger for logging PHP errors. // Default: true
- *         throw?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Throw PHP errors as \ErrorException instances. // Default: true
+ *         throw?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Throw PHP errors as \ErrorException instances. // Default: false
  *     },
  *     exceptions?: array<string, array{ // Default: []
  *         log_level?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The level of log message. Null to let Symfony decide. // Default: null
@@ -468,7 +468,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     scheduler?: bool|array{ // Scheduler configuration
  *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
  *     },
- *     disallow_search_engine_index?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Enabled by default when debug is enabled. // Default: true
+ *     disallow_search_engine_index?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Enabled by default when debug is enabled. // Default: false
  *     http_client?: bool|array{ // HTTP Client configuration
  *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
  *         max_host_connections?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // The maximum number of connections to a single host.
@@ -731,8 +731,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *             platform_service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Deprecated: The "platform_service" configuration key is deprecated since doctrine-bundle 2.9. DBAL 4 will not support setting a custom platform via connection params anymore.
  *             auto_commit?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
  *             schema_filter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
- *             logging?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
- *             profiling?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             logging?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             profiling?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
  *             profiling_collect_backtrace?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Enables collecting backtraces when profiling is enabled // Default: false
  *             profiling_collect_schema_errors?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Enables collecting schema errors when profiling is enabled // Default: true
  *             disable_type_comments?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
@@ -871,7 +871,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *                     pool?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
  *                 },
  *                 region_lock_lifetime?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 60
- *                 log_enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *                 log_enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
  *                 region_lifetime?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 3600
  *                 enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
  *                 factory?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
@@ -977,15 +977,6 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     nelmio_cors?: NelmioCorsConfig,
- *     "when@dev"?: array{
- *         imports?: ImportsConfig,
- *         parameters?: ParametersConfig,
- *         services?: ServicesConfig,
- *         framework?: FrameworkConfig,
- *         doctrine?: DoctrineConfig,
- *         doctrine_migrations?: DoctrineMigrationsConfig,
- *         nelmio_cors?: NelmioCorsConfig,
- *     },
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -1083,7 +1074,6 @@ namespace Symfony\Component\Routing\Loader\Configurator;
  *     deprecated?: array{package:string, version:string, message?:string},
  * }
  * @psalm-type RoutesConfig = array{
- *     "when@dev"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
  *     "when@prod"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
  *     "when@test"?: array<string, RouteConfig|ImportConfig|AliasConfig>,
  *     ...<string, RouteConfig|ImportConfig|AliasConfig>

@@ -7,3 +7,31 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    restart: always
+
+  backend:
+    build: ./symfony
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: prod
+      APP_DEBUG: 0
+      DATABASE_URL: "postgresql://postgres:postgres@db:5432/vamo?serverVersion=16&charset=utf8"
+    volumes:
+      - ./symfony:/app
+    depends_on:
+      - db
+    restart: always
+
+volumes:
+  db_data:
