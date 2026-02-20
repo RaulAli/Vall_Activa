@@ -52,3 +52,7 @@ docker-compose.override.yml
 ### Secrets ###
 config/secrets/*/*.decrypt.private.php
 config/secrets/prod/prod.decrypt.private.php
+
+###> lexik/jwt-authentication-bundle ###
+/config/jwt/*.pem
+###< lexik/jwt-authentication-bundle ###

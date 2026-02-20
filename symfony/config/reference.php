@@ -969,6 +969,409 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         skip_same_as_origin?: bool|\Symfony\Component\Config\Loader\ParamConfigurator,
  *     }>,
  * }
+ * @psalm-type SecurityConfig = array{
+ *     access_denied_url?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *     session_fixation_strategy?: "none"|"migrate"|"invalidate"|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: "migrate"
+ *     hide_user_not_found?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Deprecated: The "hide_user_not_found" option is deprecated and will be removed in 8.0. Use the "expose_security_errors" option instead.
+ *     expose_security_errors?: \Symfony\Component\Security\Http\Authentication\ExposeSecurityLevel::None|\Symfony\Component\Security\Http\Authentication\ExposeSecurityLevel::AccountStatus|\Symfony\Component\Security\Http\Authentication\ExposeSecurityLevel::All|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: "none"
+ *     erase_credentials?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *     access_decision_manager?: array{
+ *         strategy?: "affirmative"|"consensus"|"unanimous"|"priority"|\Symfony\Component\Config\Loader\ParamConfigurator,
+ *         service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         strategy_service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         allow_if_all_abstain?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         allow_if_equal_granted_denied?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *     },
+ *     password_hashers?: array<string, string|array{ // Default: []
+ *         algorithm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         migrate_from?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         hash_algorithm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Name of hashing algorithm for PBKDF2 (i.e. sha256, sha512, etc..) See hash_algos() for a list of supported algorithms. // Default: "sha512"
+ *         key_length?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 40
+ *         ignore_case?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         encode_as_base64?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *         iterations?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 5000
+ *         cost?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: null
+ *         memory_cost?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         time_cost?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *     }>,
+ *     providers?: array<string, array{ // Default: []
+ *         id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         chain?: array{
+ *             providers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         },
+ *         entity?: array{
+ *             class: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The full entity class name of your user class.
+ *             property?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             manager_name?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         },
+ *         memory?: array{
+ *             users?: array<string, array{ // Default: []
+ *                 password?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *                 roles?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             }>,
+ *         },
+ *         ldap?: array{
+ *             service: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             base_dn: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             search_dn?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             search_password?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             extra_fields?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             default_roles?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             role_fetcher?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             uid_key?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "sAMAccountName"
+ *             filter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "({uid_key}={user_identifier})"
+ *             password_attribute?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         },
+ *         lexik_jwt?: array{
+ *             class?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "Lexik\\Bundle\\JWTAuthenticationBundle\\Security\\User\\JWTUser"
+ *         },
+ *     }>,
+ *     firewalls: array<string, array{ // Default: []
+ *         pattern?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         host?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         methods?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         security?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *         user_checker?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The UserChecker to use when authenticating users in this firewall. // Default: "security.user_checker"
+ *         request_matcher?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         access_denied_url?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         access_denied_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         entry_point?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // An enabled authenticator name or a service id that implements "Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface".
+ *         provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         stateless?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         lazy?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         context?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *         logout?: array{
+ *             enable_csrf?: bool|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             csrf_token_id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "logout"
+ *             csrf_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_csrf_token"
+ *             csrf_token_manager?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/logout"
+ *             target?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *             invalidate_session?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             clear_site_data?: list<"*"|"cache"|"cookies"|"storage"|"executionContexts"|\Symfony\Component\Config\Loader\ParamConfigurator>,
+ *             delete_cookies?: array<string, array{ // Default: []
+ *                 path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *                 domain?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *                 secure?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: false
+ *                 samesite?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *                 partitioned?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: false
+ *             }>,
+ *         },
+ *         switch_user?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_switch_user"
+ *             role?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "ROLE_ALLOWED_TO_SWITCH"
+ *             target_route?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         },
+ *         required_badges?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         custom_authenticators?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         login_throttling?: array{
+ *             limiter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // A service id implementing "Symfony\Component\HttpFoundation\RateLimiter\RequestRateLimiterInterface".
+ *             max_attempts?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: 5
+ *             interval?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "1 minute"
+ *             lock_factory?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The service ID of the lock factory used by the login rate limiter (or null to disable locking). // Default: null
+ *             cache_pool?: string|\Symfony\Component\Config\Loader\ParamConfigurator, // The cache pool to use for storing the limiter state // Default: "cache.rate_limiter"
+ *             storage_service?: string|\Symfony\Component\Config\Loader\ParamConfigurator, // The service ID of a custom storage implementation, this precedes any configured "cache_pool" // Default: null
+ *         },
+ *         x509?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             user?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "SSL_CLIENT_S_DN_Email"
+ *             credentials?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "SSL_CLIENT_S_DN"
+ *             user_identifier?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "emailAddress"
+ *         },
+ *         remote_user?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             user?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "REMOTE_USER"
+ *         },
+ *         jwt?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             authenticator?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "lexik_jwt_authentication.security.jwt_authenticator"
+ *         },
+ *         login_link?: array{
+ *             check_route: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Route that will validate the login link - e.g. "app_login_link_verify".
+ *             check_post_only?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // If true, only HTTP POST requests to "check_route" will be handled by the authenticator. // Default: false
+ *             signature_properties: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             lifetime?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // The lifetime of the login link in seconds. // Default: 600
+ *             max_uses?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // Max number of times a login link can be used - null means unlimited within lifetime. // Default: null
+ *             used_link_cache?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Cache service id used to expired links of max_uses is set.
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // A service id that implements Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface.
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // A service id that implements Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface.
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The user provider to load users from.
+ *             secret?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "%kernel.secret%"
+ *             always_use_default_target_path?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             default_target_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *             login_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login"
+ *             target_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_target_path"
+ *             use_referer?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             failure_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_failure_path"
+ *         },
+ *         form_login?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             check_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login_check"
+ *             use_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             login_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login"
+ *             username_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_username"
+ *             password_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_password"
+ *             csrf_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_csrf_token"
+ *             csrf_token_id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "authenticate"
+ *             enable_csrf?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             post_only?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             form_only?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             always_use_default_target_path?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             default_target_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *             target_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_target_path"
+ *             use_referer?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             failure_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_failure_path"
+ *         },
+ *         form_login_ldap?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             check_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login_check"
+ *             use_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             login_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login"
+ *             username_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_username"
+ *             password_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_password"
+ *             csrf_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_csrf_token"
+ *             csrf_token_id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "authenticate"
+ *             enable_csrf?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             post_only?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             form_only?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             always_use_default_target_path?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             default_target_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *             target_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_target_path"
+ *             use_referer?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             failure_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             failure_path_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_failure_path"
+ *             service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "ldap"
+ *             dn_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "{user_identifier}"
+ *             query_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             search_dn?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *             search_password?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *         },
+ *         json_login?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             check_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login_check"
+ *             use_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             login_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login"
+ *             username_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "username"
+ *             password_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "password"
+ *         },
+ *         json_login_ldap?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             check_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login_check"
+ *             use_forward?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             login_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/login"
+ *             username_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "username"
+ *             password_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "password"
+ *             service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "ldap"
+ *             dn_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "{user_identifier}"
+ *             query_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             search_dn?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *             search_password?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *         },
+ *         access_token?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             success_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             failure_handler?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             realm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             token_extractors?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             token_handler: string|array{
+ *                 id?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *                 oidc_user_info?: string|array{
+ *                     base_uri: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Base URI of the userinfo endpoint on the OIDC server, or the OIDC server URI to use the discovery (require "discovery" to be configured).
+ *                     discovery?: array{ // Enable the OIDC discovery.
+ *                         cache?: array{
+ *                             id: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Cache service id to use to cache the OIDC discovery configuration.
+ *                         },
+ *                     },
+ *                     claim?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Claim which contains the user identifier (e.g. sub, email, etc.). // Default: "sub"
+ *                     client?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // HttpClient service id to use to call the OIDC server.
+ *                 },
+ *                 oidc?: array{
+ *                     discovery?: array{ // Enable the OIDC discovery.
+ *                         base_uri: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *                         cache?: array{
+ *                             id: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Cache service id to use to cache the OIDC discovery configuration.
+ *                         },
+ *                     },
+ *                     claim?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Claim which contains the user identifier (e.g.: sub, email..). // Default: "sub"
+ *                     audience: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Audience set in the token, for validation purpose.
+ *                     issuers: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *                     algorithm?: array<mixed>,
+ *                     algorithms: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *                     key?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Deprecated: The "key" option is deprecated and will be removed in 8.0. Use the "keyset" option instead. // JSON-encoded JWK used to sign the token (must contain a "kty" key).
+ *                     keyset?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // JSON-encoded JWKSet used to sign the token (must contain a list of valid public keys).
+ *                     encryption?: bool|array{
+ *                         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *                         enforce?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // When enabled, the token shall be encrypted. // Default: false
+ *                         algorithms: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *                         keyset: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // JSON-encoded JWKSet used to decrypt the token (must contain a list of valid private keys).
+ *                     },
+ *                 },
+ *                 cas?: array{
+ *                     validation_url: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // CAS server validation URL
+ *                     prefix?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // CAS prefix // Default: "cas"
+ *                     http_client?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // HTTP Client service // Default: null
+ *                 },
+ *                 oauth2?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             },
+ *         },
+ *         http_basic?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             realm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "Secured Area"
+ *         },
+ *         http_basic_ldap?: array{
+ *             provider?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             realm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "Secured Area"
+ *             service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "ldap"
+ *             dn_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "{user_identifier}"
+ *             query_string?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             search_dn?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *             search_password?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: ""
+ *         },
+ *         remember_me?: array{
+ *             secret?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "%kernel.secret%"
+ *             service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null,
+ *             user_providers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             catch_exceptions?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             signature_properties?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             token_provider?: string|array{
+ *                 service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The service ID of a custom remember-me token provider.
+ *                 doctrine?: bool|array{
+ *                     enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *                     connection?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *                 },
+ *             },
+ *             token_verifier?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The service ID of a custom rememberme token verifier.
+ *             name?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "REMEMBERME"
+ *             lifetime?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: 31536000
+ *             path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *             domain?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *             secure?: true|false|"auto"|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             httponly?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             samesite?: null|"lax"|"strict"|"none"|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: null
+ *             always_remember_me?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             remember_me_parameter?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "_remember_me"
+ *         },
+ *     }>,
+ *     access_control?: list<array{ // Default: []
+ *         request_matcher?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         requires_channel?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Use the urldecoded format. // Default: null
+ *         host?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         port?: int|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: null
+ *         ips?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         attributes?: array<string, scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         route?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         methods?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         allow_if?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         roles?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *     }>,
+ *     role_hierarchy?: array<string, string|list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>>,
+ * }
+ * @psalm-type LexikJwtAuthenticationConfig = array{
+ *     public_key?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The key used to sign tokens (useless for HMAC). If not set, the key will be automatically computed from the secret key. // Default: null
+ *     additional_public_keys?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *     secret_key?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The key used to sign tokens. It can be a raw secret (for HMAC), a raw RSA/ECDSA key or the path to a file itself being plaintext or PEM. // Default: null
+ *     pass_phrase?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The key passphrase (useless for HMAC) // Default: ""
+ *     token_ttl?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 3600
+ *     allow_no_expiration?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Allow tokens without "exp" claim (i.e. indefinitely valid, no lifetime) to be considered valid. Caution: usage of this should be rare. // Default: false
+ *     clock_skew?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: 0
+ *     encoder?: array{
+ *         service?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "lexik_jwt_authentication.encoder.lcobucci"
+ *         signature_algorithm?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "RS256"
+ *     },
+ *     user_id_claim?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "username"
+ *     token_extractors?: array{
+ *         authorization_header?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: true
+ *             prefix?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "Bearer"
+ *             name?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "Authorization"
+ *         },
+ *         cookie?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             name?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "BEARER"
+ *         },
+ *         query_parameter?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             name?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "bearer"
+ *         },
+ *         split_cookie?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             cookies?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *         },
+ *     },
+ *     remove_token_from_body_when_cookies_used?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: true
+ *     set_cookies?: array<string, array{ // Default: []
+ *         lifetime?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The cookie lifetime. If null, the "token_ttl" option value will be used // Default: null
+ *         samesite?: "none"|"lax"|"strict"|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: "lax"
+ *         path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: "/"
+ *         domain?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: null
+ *         secure?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: true
+ *         httpOnly?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: true
+ *         partitioned?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Default: false
+ *         split?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *     }>,
+ *     api_platform?: bool|array{ // API Platform compatibility: add check_path in OpenAPI documentation.
+ *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         check_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The login check path to add in OpenAPI. // Default: null
+ *         username_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The path to the username in the JSON body. // Default: null
+ *         password_path?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The path to the password in the JSON body. // Default: null
+ *     },
+ *     access_token_issuance?: bool|array{
+ *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         signature?: array{
+ *             algorithm: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The algorithm use to sign the access tokens.
+ *             key: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The signature key. It shall be JWK encoded.
+ *         },
+ *         encryption?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             key_encryption_algorithm: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The key encryption algorithm is used to encrypt the token.
+ *             content_encryption_algorithm: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The key encryption algorithm is used to encrypt the token.
+ *             key: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The encryption key. It shall be JWK encoded.
+ *         },
+ *     },
+ *     access_token_verification?: bool|array{
+ *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         signature?: array{
+ *             header_checkers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             claim_checkers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             mandatory_claims?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             allowed_algorithms?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             keyset: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The signature keyset. It shall be JWKSet encoded.
+ *         },
+ *         encryption?: bool|array{
+ *             enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *             continue_on_decryption_failure?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // If enable, non-encrypted tokens or tokens that failed during decryption or verification processes are accepted. // Default: false
+ *             header_checkers?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             allowed_key_encryption_algorithms?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             allowed_content_encryption_algorithms?: list<scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null>,
+ *             keyset: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // The encryption keyset. It shall be JWKSet encoded.
+ *         },
+ *     },
+ *     blocklist_token?: bool|array{
+ *         enabled?: bool|\Symfony\Component\Config\Loader\ParamConfigurator, // Default: false
+ *         cache?: scalar|\Symfony\Component\Config\Loader\ParamConfigurator|null, // Storage to track blocked tokens // Default: "cache.app"
+ *     },
+ * }
  * @psalm-type ConfigType = array{
  *     imports?: ImportsConfig,
  *     parameters?: ParametersConfig,
@@ -977,6 +1380,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *     doctrine?: DoctrineConfig,
  *     doctrine_migrations?: DoctrineMigrationsConfig,
  *     nelmio_cors?: NelmioCorsConfig,
+ *     security?: SecurityConfig,
+ *     lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
  *     "when@prod"?: array{
  *         imports?: ImportsConfig,
  *         parameters?: ParametersConfig,
@@ -985,6 +1390,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         nelmio_cors?: NelmioCorsConfig,
+ *         security?: SecurityConfig,
+ *         lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
  *     },
  *     "when@test"?: array{
  *         imports?: ImportsConfig,
@@ -994,6 +1401,8 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
  *         doctrine?: DoctrineConfig,
  *         doctrine_migrations?: DoctrineMigrationsConfig,
  *         nelmio_cors?: NelmioCorsConfig,
+ *         security?: SecurityConfig,
+ *         lexik_jwt_authentication?: LexikJwtAuthenticationConfig,
  *     },
  *     ...<string, ExtensionType|array{ // extra keys must follow the when@%env% pattern or match an extension alias
  *         imports?: ImportsConfig,

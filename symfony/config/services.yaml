@@ -13,6 +13,16 @@ services:
     resource: '../src/Presentation/Http/Controller/'
     tags: ['controller.service_arguments']
 
+  App\Presentation\Http\Controller\Auth\LoginController:
+    arguments:
+      $cookieSecure: '%env(bool:COOKIE_SECURE)%'
+    tags: ['controller.service_arguments']
+
+  App\Presentation\Http\Controller\Auth\RefreshController:
+    arguments:
+      $cookieSecure: '%env(bool:COOKIE_SECURE)%'
+    tags: ['controller.service_arguments']
+
   # Ports -> Adapters (Clean Architecture)
   App\Application\Shared\Security\AuthorizationServiceInterface:
     class: App\Infrastructure\Security\AuthorizationService
@@ -40,4 +50,24 @@ services:
 
   App\Application\Offer\Port\OfferPublicReadRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineOfferPublicReadRepository
-    
+
+  # ----- Auth -----
+
+  App\Application\Auth\Port\UserAuthRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserAuthRepository
+
+  App\Application\Auth\Port\RefreshSessionRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRefreshSessionRepository
+
+  App\Application\Auth\Port\TokenBlacklistRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineTokenBlacklistRepository
+
+  App\Application\Auth\Port\PasswordHasherInterface:
+    class: App\Infrastructure\Security\SymfonyPasswordHasher
+
+  App\Application\Auth\Port\JwtTokenGeneratorInterface:
+    class: App\Infrastructure\Security\LexikJwtTokenGenerator
+
+  App\Infrastructure\Security\JWTSessionVersionListener:
+    tags:
+      - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
