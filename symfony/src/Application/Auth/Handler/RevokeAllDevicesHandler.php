@@ -19,7 +19,8 @@ final class RevokeAllDevicesHandler
 {
     public function __construct(
         private readonly RefreshSessionRepositoryInterface $sessions,
-    ) {}
+    ) {
+    }
 
     public function __invoke(RevokeAllDevicesCommand $cmd): void
     {

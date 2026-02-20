@@ -18,7 +18,8 @@ final class RevokeAllDevicesController extends AbstractController
 
     public function __construct(
         private readonly JWTTokenManagerInterface $jwtManager,
-    ) {}
+    ) {
+    }
 
     /**
      * Requires a valid JWT in Authorization: Bearer <token>.
@@ -37,7 +38,7 @@ final class RevokeAllDevicesController extends AbstractController
 
         try {
             $payload = $this->jwtManager->parse(substr($authHeader, 7));
-            $userId  = $payload['userId'] ?? null;
+            $userId = $payload['userId'] ?? null;
         } catch (\Throwable) {
             return $this->json(['error' => 'invalid_token'], 401);
         }

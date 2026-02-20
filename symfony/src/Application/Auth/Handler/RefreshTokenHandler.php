@@ -20,7 +20,8 @@ final class RefreshTokenHandler
         private readonly JwtTokenGeneratorInterface $jwt,
         private readonly RefreshSessionRepositoryInterface $sessions,
         private readonly TokenBlacklistRepositoryInterface $blacklist,
-    ) {}
+    ) {
+    }
 
     /** @throws \DomainException */
     public function __invoke(RefreshTokenCommand $cmd): AuthTokensDto
@@ -63,15 +64,15 @@ final class RefreshTokenHandler
         // 6. Rotate: blacklist old token, generate new one
         $this->blacklist->add($tokenHash, $userId, $session['expiresAt']);
 
-        $newRawToken  = bin2hex(random_bytes(64));
+        $newRawToken = bin2hex(random_bytes(64));
         $newTokenHash = hash('sha256', $newRawToken);
-        $now          = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $newExpiresAt = $now->modify(sprintf('+%d seconds', self::REFRESH_TTL_SECONDS));
 
         $this->sessions->rotateToken($session['id'], $newTokenHash, $newExpiresAt);
 
         $accessToken = $this->jwt->generate($userById->id, $userById->email, [
-            'sessionId'      => $session['id'],
+            'sessionId' => $session['id'],
             'sessionVersion' => $session['sessionVersion'],
         ]);
 

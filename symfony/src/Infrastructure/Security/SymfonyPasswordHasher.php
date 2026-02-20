@@ -9,7 +9,9 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class SymfonyPasswordHasher implements PasswordHasherInterface
 {
-    public function __construct(private readonly UserPasswordHasherInterface $hasher) {}
+    public function __construct(private readonly UserPasswordHasherInterface $hasher)
+    {
+    }
 
     public function hash(string $plainPassword): string
     {
@@ -19,7 +21,7 @@ final class SymfonyPasswordHasher implements PasswordHasherInterface
 
     public function verify(string $hashedPassword, string $plainPassword): bool
     {
-        $dummy           = new UserOrm();
+        $dummy = new UserOrm();
         $dummy->password = $hashedPassword;
         return $this->hasher->isPasswordValid($dummy, $plainPassword);
     }

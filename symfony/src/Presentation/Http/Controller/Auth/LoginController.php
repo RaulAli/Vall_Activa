@@ -18,7 +18,9 @@ final class LoginController extends AbstractController
 {
     private const COOKIE_NAME = 'refresh_token';
 
-    public function __construct(private readonly bool $cookieSecure) {}
+    public function __construct(private readonly bool $cookieSecure)
+    {
+    }
 
     #[Route('/api/auth/login', name: 'auth_login', methods: ['POST'])]
     public function __invoke(
@@ -47,8 +49,8 @@ final class LoginController extends AbstractController
 
         $response = $this->json([
             'accessToken' => $tokens->accessToken,
-            'userId'      => $tokens->userId,
-            'email'       => $tokens->email,
+            'userId' => $tokens->userId,
+            'email' => $tokens->email,
         ]);
 
         $response->headers->setCookie(

@@ -24,15 +24,9 @@ final class DoctrineCurrentUserProvider implements CurrentUserProviderInterface
             throw new UnauthorizedHttpException('Bearer', 'User not found or inactive.');
         }
 
-        $roles = [];
-        foreach (($orm->roles ?? []) as $r) {
-            $role = Role::tryFrom((string) $r);
-            if ($role !== null) {
-                $roles[] = $role;
-            }
-        }
+        $role = Role::tryFrom($orm->role);
+        $roles = $role !== null ? [$role] : [];
 
-        // Si no viene ningún rol, por seguridad lo dejamos sin permisos
         return new Actor($userId, $roles);
     }
 }

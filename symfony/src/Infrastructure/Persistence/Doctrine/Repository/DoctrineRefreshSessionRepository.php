@@ -9,23 +9,25 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class DoctrineRefreshSessionRepository implements RefreshSessionRepositoryInterface
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
+    }
 
     public function create(array $data): void
     {
         $now = new \DateTimeImmutable();
 
-        $orm                   = new RefreshSessionOrm();
-        $orm->id               = $data['id'];
-        $orm->userId           = $data['userId'];
-        $orm->deviceId         = $data['deviceId'];
-        $orm->familyId         = $data['familyId'];
+        $orm = new RefreshSessionOrm();
+        $orm->id = $data['id'];
+        $orm->userId = $data['userId'];
+        $orm->deviceId = $data['deviceId'];
+        $orm->familyId = $data['familyId'];
         $orm->currentTokenHash = $data['tokenHash'];
-        $orm->sessionVersion   = $data['sessionVersion'];
-        $orm->revoked          = false;
-        $orm->expiresAt        = $data['expiresAt'];
-        $orm->createdAt        = $now;
-        $orm->updatedAt        = $now;
+        $orm->sessionVersion = $data['sessionVersion'];
+        $orm->revoked = false;
+        $orm->expiresAt = $data['expiresAt'];
+        $orm->createdAt = $now;
+        $orm->updatedAt = $now;
 
         $this->em->persist($orm);
         $this->em->flush();
@@ -35,7 +37,7 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
     {
         $orm = $this->em->getRepository(RefreshSessionOrm::class)->findOneBy([
             'currentTokenHash' => $hash,
-            'revoked'          => false,
+            'revoked' => false,
         ]);
 
         if ($orm === null) {
@@ -43,12 +45,12 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
         }
 
         return [
-            'id'             => $orm->id,
-            'userId'         => $orm->userId,
-            'deviceId'       => $orm->deviceId,
-            'familyId'       => $orm->familyId,
+            'id' => $orm->id,
+            'userId' => $orm->userId,
+            'deviceId' => $orm->deviceId,
+            'familyId' => $orm->familyId,
             'sessionVersion' => $orm->sessionVersion,
-            'expiresAt'      => $orm->expiresAt,
+            'expiresAt' => $orm->expiresAt,
         ];
     }
 
@@ -60,8 +62,8 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
         }
 
         $orm->currentTokenHash = $newHash;
-        $orm->expiresAt        = $newExpiresAt;
-        $orm->updatedAt        = new \DateTimeImmutable();
+        $orm->expiresAt = $newExpiresAt;
+        $orm->updatedAt = new \DateTimeImmutable();
 
         $this->em->flush();
     }
@@ -73,8 +75,8 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
             return;
         }
 
-        $orm->revoked    = true;
-        $orm->updatedAt  = new \DateTimeImmutable();
+        $orm->revoked = true;
+        $orm->updatedAt = new \DateTimeImmutable();
 
         $this->em->flush();
     }
@@ -99,7 +101,7 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
     {
         $orm = $this->em->getRepository(RefreshSessionOrm::class)->findOneBy([
             'currentTokenHash' => $hash,
-            'revoked'          => true,
+            'revoked' => true,
         ]);
 
         if ($orm === null) {
@@ -107,8 +109,8 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
         }
 
         return [
-            'id'       => $orm->id,
-            'userId'   => $orm->userId,
+            'id' => $orm->id,
+            'userId' => $orm->userId,
             'familyId' => $orm->familyId,
         ];
     }
@@ -135,10 +137,10 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
         }
 
         return [
-            'id'             => $orm->id,
-            'userId'         => $orm->userId,
+            'id' => $orm->id,
+            'userId' => $orm->userId,
             'sessionVersion' => $orm->sessionVersion,
-            'revoked'        => $orm->revoked,
+            'revoked' => $orm->revoked,
         ];
     }
 

@@ -10,5 +10,6 @@ final class LoginCommand
         public readonly string $plainPassword,
         /** Optional identifier for the device (browser, app, etc.) - generated client-side or here */
         public readonly ?string $deviceId = null,
-    ) {}
+    ) {
+    }
 }

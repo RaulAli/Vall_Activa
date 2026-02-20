@@ -22,11 +22,8 @@ class UserOrm implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', length: 255)]
     public string $password;
 
-    #[ORM\Column(type: 'string', length: 255, unique: true)]
-    public string $slug;
-
-    #[ORM\Column(type: 'json')]
-    public array $roles = [];
+    #[ORM\Column(type: 'string', length: 50)]
+    public string $role = '';
 
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
@@ -47,12 +44,12 @@ class UserOrm implements UserInterface, PasswordAuthenticatedUserInterface
     /** @return list<string> */
     public function getRoles(): array
     {
-        $roles = array_map(fn($r) => (string) $r, $this->roles);
-        $roles[] = 'ROLE_USER';
-        return array_unique($roles);
+        return [$this->role];
     }
 
-    public function eraseCredentials(): void {}
+    public function eraseCredentials(): void
+    {
+    }
 
     // ----- PasswordAuthenticatedUserInterface -----
 

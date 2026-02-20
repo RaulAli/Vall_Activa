@@ -15,7 +15,9 @@ final class RefreshController extends AbstractController
 {
     private const COOKIE_NAME = 'refresh_token';
 
-    public function __construct(private readonly bool $cookieSecure) {}
+    public function __construct(private readonly bool $cookieSecure)
+    {
+    }
 
     #[Route('/api/auth/refresh', name: 'auth_refresh', methods: ['POST'])]
     public function __invoke(
@@ -39,8 +41,8 @@ final class RefreshController extends AbstractController
 
         $response = $this->json([
             'accessToken' => $tokens->accessToken,
-            'userId'      => $tokens->userId,
-            'email'       => $tokens->email,
+            'userId' => $tokens->userId,
+            'email' => $tokens->email,
         ]);
 
         $response->headers->setCookie(

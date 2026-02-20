@@ -13,13 +13,11 @@ interface UserAuthRepositoryInterface
 
     public function existsByEmail(string $email): bool;
 
-    public function existsBySlug(string $slug): bool;
-
     /** Persist a brand-new user (all fields pre-built by the caller). */
     public function createUser(
         string $id,
         string $email,
         string $hashedPassword,
-        string $slug,
+        string $role,
     ): void;
 }

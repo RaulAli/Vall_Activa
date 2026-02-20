@@ -23,13 +23,14 @@ final class LoginHandler
         private readonly JwtTokenGeneratorInterface $jwt,
         private readonly RefreshSessionRepositoryInterface $sessions,
         private readonly TokenBlacklistRepositoryInterface $blacklist,
-    ) {}
+    ) {
+    }
 
     /** @throws \DomainException */
     public function __invoke(LoginCommand $cmd): AuthTokensDto
     {
         $email = mb_strtolower(trim($cmd->email));
-        $user  = $this->users->findByEmail($email);
+        $user = $this->users->findByEmail($email);
 
         if ($user === null || !$user->isActive) {
             throw new \DomainException('invalid_credentials');
@@ -40,29 +41,29 @@ final class LoginHandler
         }
 
         // Generate a new raw refresh token
-        $rawToken  = bin2hex(random_bytes(64)); // 128-char hex
+        $rawToken = bin2hex(random_bytes(64)); // 128-char hex
         $tokenHash = hash('sha256', $rawToken);
 
-        $deviceId  = $cmd->deviceId ?? Uuid::v4()->value();
-        $familyId  = Uuid::v4()->value();
+        $deviceId = $cmd->deviceId ?? Uuid::v4()->value();
+        $familyId = Uuid::v4()->value();
         $sessionId = Uuid::v4()->value();
-        $now       = new \DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $expiresAt = $now->modify(sprintf('+%d seconds', self::REFRESH_TTL_SECONDS));
 
         $sessionVersion = 1;
 
         $this->sessions->create([
-            'id'             => $sessionId,
-            'userId'         => $user->id,
-            'deviceId'       => $deviceId,
-            'familyId'       => $familyId,
-            'tokenHash'      => $tokenHash,
+            'id' => $sessionId,
+            'userId' => $user->id,
+            'deviceId' => $deviceId,
+            'familyId' => $familyId,
+            'tokenHash' => $tokenHash,
             'sessionVersion' => $sessionVersion,
-            'expiresAt'      => $expiresAt,
+            'expiresAt' => $expiresAt,
         ]);
 
         $accessToken = $this->jwt->generate($user->id, $user->email, [
-            'sessionId'      => $sessionId,
+            'sessionId' => $sessionId,
             'sessionVersion' => $sessionVersion,
         ]);
 

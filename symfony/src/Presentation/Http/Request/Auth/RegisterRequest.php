@@ -17,6 +17,14 @@ final class RegisterRequest
     public string $password = '';
 
     #[Assert\NotBlank]
+    #[Assert\Choice(choices: ['ROLE_BUSINESS', 'ROLE_ATHLETE', 'ROLE_GUIDE'])]
+    public string $role = '';
+
+    #[Assert\NotBlank]
+    #[Assert\Length(min: 2, max: 255)]
+    public string $name = '';
+
+    #[Assert\NotBlank]
     #[Assert\Length(min: 3, max: 255)]
     #[Assert\Regex(pattern: '/^[a-z0-9\-_]+$/i', message: 'Slug may only contain letters, numbers, hyphens and underscores.')]
     public string $slug = '';

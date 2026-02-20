@@ -18,7 +18,8 @@ final class JWTSessionVersionListener
 {
     public function __construct(
         private readonly RefreshSessionRepositoryInterface $sessions,
-    ) {}
+    ) {
+    }
 
     public function onJWTDecoded(JWTDecodedEvent $event): void
     {

@@ -12,7 +12,8 @@ final class LogoutHandler
     public function __construct(
         private readonly RefreshSessionRepositoryInterface $sessions,
         private readonly TokenBlacklistRepositoryInterface $blacklist,
-    ) {}
+    ) {
+    }
 
     public function __invoke(LogoutCommand $cmd): void
     {

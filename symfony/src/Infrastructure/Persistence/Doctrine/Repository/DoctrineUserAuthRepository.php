@@ -10,7 +10,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class DoctrineUserAuthRepository implements UserAuthRepositoryInterface
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
+    }
 
     public function findByEmail(string $email): ?UserAuthData
     {
@@ -29,22 +31,16 @@ final class DoctrineUserAuthRepository implements UserAuthRepositoryInterface
         return $this->em->getRepository(UserOrm::class)->count(['email' => $email]) > 0;
     }
 
-    public function existsBySlug(string $slug): bool
-    {
-        return $this->em->getRepository(UserOrm::class)->count(['slug' => $slug]) > 0;
-    }
-
-    public function createUser(string $id, string $email, string $hashedPassword, string $slug): void
+    public function createUser(string $id, string $email, string $hashedPassword, string $role): void
     {
         $now = new \DateTimeImmutable();
 
-        $orm            = new UserOrm();
-        $orm->id        = $id;
-        $orm->email     = $email;
-        $orm->password  = $hashedPassword;
-        $orm->slug      = $slug;
-        $orm->roles     = [];
-        $orm->isActive  = true;
+        $orm = new UserOrm();
+        $orm->id = $id;
+        $orm->email = $email;
+        $orm->password = $hashedPassword;
+        $orm->role = $role;
+        $orm->isActive = true;
         $orm->createdAt = $now;
         $orm->updatedAt = $now;
 

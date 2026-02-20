@@ -10,5 +10,6 @@ final class UserAuthData
         public readonly string $email,
         public readonly string $hashedPassword,
         public readonly bool $isActive,
-    ) {}
+    ) {
+    }
 }

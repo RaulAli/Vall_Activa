@@ -20,7 +20,8 @@ final class LogoutController extends AbstractController
     public function __construct(
         private readonly TokenStorageInterface $tokenStorage,
         private readonly JWTTokenManagerInterface $jwtManager,
-    ) {}
+    ) {
+    }
 
     #[Route('/api/auth/logout', name: 'auth_logout', methods: ['POST'])]
     public function __invoke(
@@ -34,9 +35,9 @@ final class LogoutController extends AbstractController
         $authHeader = $request->headers->get('Authorization', '');
         if (str_starts_with($authHeader, 'Bearer ')) {
             try {
-                $token   = substr($authHeader, 7);
+                $token = substr($authHeader, 7);
                 $payload = $this->jwtManager->parse($token);
-                $userId  = $payload['userId'] ?? null;
+                $userId = $payload['userId'] ?? null;
             } catch (\Throwable) {
                 // ignore — still proceed to clear cookie
             }

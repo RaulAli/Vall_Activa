@@ -10,7 +10,9 @@ use Doctrine\ORM\EntityManagerInterface;
 
 final class DoctrineTokenBlacklistRepository implements TokenBlacklistRepositoryInterface
 {
-    public function __construct(private readonly EntityManagerInterface $em) {}
+    public function __construct(private readonly EntityManagerInterface $em)
+    {
+    }
 
     public function add(string $tokenHash, string $userId, \DateTimeImmutable $expiresAt): void
     {
@@ -22,11 +24,11 @@ final class DoctrineTokenBlacklistRepository implements TokenBlacklistRepository
             return;
         }
 
-        $orm                = new RefreshTokenBlacklistOrm();
-        $orm->id            = Uuid::v4()->value();
-        $orm->tokenHash     = $tokenHash;
-        $orm->userId        = $userId;
-        $orm->expiresAt     = $expiresAt;
+        $orm = new RefreshTokenBlacklistOrm();
+        $orm->id = Uuid::v4()->value();
+        $orm->tokenHash = $tokenHash;
+        $orm->userId = $userId;
+        $orm->expiresAt = $expiresAt;
         $orm->blacklistedAt = new \DateTimeImmutable();
 
         $this->em->persist($orm);

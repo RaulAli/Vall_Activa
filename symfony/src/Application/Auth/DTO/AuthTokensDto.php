@@ -12,5 +12,6 @@ final class AuthTokensDto
         public readonly int $refreshTtl,
         public readonly string $userId,
         public readonly string $email,
-    ) {}
+    ) {
+    }
 }

@@ -34,13 +34,15 @@ final class RegisterController extends AbstractController
             $id = $handler(new RegisterCommand(
                 email: $dto->email,
                 plainPassword: $dto->password,
+                role: $dto->role,
+                name: $dto->name,
                 slug: $dto->slug,
             ));
         } catch (\DomainException $e) {
             return match ($e->getMessage()) {
                 'email_already_taken' => $this->json(['error' => 'email_already_taken'], 409),
-                'slug_already_taken'  => $this->json(['error' => 'slug_already_taken'], 409),
-                default               => $this->json(['error' => $e->getMessage()], 400),
+                'slug_already_taken' => $this->json(['error' => 'slug_already_taken'], 409),
+                default => $this->json(['error' => $e->getMessage()], 400),
             };
         }
 
