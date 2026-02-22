@@ -6,6 +6,10 @@ export const endpoints = {
         refresh: "/api/auth/token/refresh",
         me: "/api/user/me",
     },
+    user: {
+        me: "/api/user/me",
+        password: "/api/user/me/password",
+    },
     offers: {
         list: "/api/public/offers",
         filters: "/api/public/offers/filters",

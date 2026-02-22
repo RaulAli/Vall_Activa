@@ -4,10 +4,14 @@ import { ShopPage } from "../../pages/ShopPage";
 import { RouteDetailPage } from "../../pages/RouteDetailPage";
 import { OfferDetailPage } from "../../pages/OfferDetailPage";
 import { AuthPage } from "../../pages/AuthPage";
+import { ProfilePage } from "../../pages/ProfilePage";
+import { SettingsPage } from "../../pages/SettingsPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
     { path: "/auth", element: <AuthPage /> },
+    { path: "/me", element: <ProfilePage /> },
+    { path: "/settings", element: <SettingsPage /> },
     { path: "/offers", element: <ShopPage /> },
     { path: "/routes", element: <ShopPage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },
