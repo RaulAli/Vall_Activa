@@ -7,6 +7,7 @@ import { AuthPage } from "../../pages/AuthPage";
 import { ProfilePage } from "../../pages/ProfilePage";
 import { PublicProfilePage } from "../../pages/PublicProfilePage";
 import { SettingsPage } from "../../pages/SettingsPage";
+import { CreateRoutePage } from "../../pages/CreateRoutePage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
     { path: "/profile/:slug", element: <PublicProfilePage /> },
     { path: "/offers", element: <ShopPage /> },
     { path: "/routes", element: <ShopPage /> },
+    { path: "/routes/new", element: <CreateRoutePage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },
     { path: "/offer/:slug", element: <OfferDetailPage /> },
 ]);

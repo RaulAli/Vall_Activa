@@ -137,6 +137,6 @@ final class DoctrineFollowRepository implements FollowRepositoryInterface
             $map[$g->userId] = ['slug' => $g->slug, 'name' => $g->name, 'avatar' => $g->avatar, 'role' => 'ROLE_GUIDE'];
         }
 
-        return array_values(array_filter(array_map(fn ($id) => $map[$id] ?? null, $userIds)));
+        return array_values(array_filter(array_map(fn($id) => $map[$id] ?? null, $userIds)));
     }
 }

@@ -140,6 +140,15 @@ export function Header() {
                                             <span className="material-symbols-outlined !text-base">settings</span>
                                             Settings
                                         </button>
+                                        {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
+                                            <button
+                                                onClick={() => { setUserMenuOpen(false); navigate("/routes/new"); }}
+                                                className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors"
+                                            >
+                                                <span className="material-symbols-outlined !text-base">upload</span>
+                                                Subir ruta
+                                            </button>
+                                        )}
                                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
                                         <button
                                             onClick={handleLogout}
@@ -198,6 +207,14 @@ export function Header() {
                                     <p className="text-xs text-slate-400">{user.role.replace("ROLE_", "")}</p>
                                 </div>
                             </div>
+                            {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
+                                <button
+                                    onClick={() => { setMobileMenuOpen(false); navigate("/routes/new"); }}
+                                    className="w-full py-3 text-center font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl"
+                                >
+                                    Subir ruta
+                                </button>
+                            )}
                             <button
                                 onClick={handleLogout}
                                 className="w-full py-3 text-center font-bold text-red-500 border border-red-200 dark:border-red-800 rounded-xl"

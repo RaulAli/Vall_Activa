@@ -16,14 +16,14 @@ const ROLE_LABEL: Record<string, string> = {
 
 const ROLE_COLOR: Record<string, string> = {
     ROLE_BUSINESS: "bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300",
-    ROLE_ATHLETE:  "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-    ROLE_GUIDE:    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    ROLE_ATHLETE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+    ROLE_GUIDE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
 };
 
 const ROLE_BG: Record<string, string> = {
     ROLE_BUSINESS: "from-violet-600 to-purple-800",
-    ROLE_ATHLETE:  "from-blue-600 to-sky-800",
-    ROLE_GUIDE:    "from-emerald-600 to-teal-800",
+    ROLE_ATHLETE: "from-blue-600 to-sky-800",
+    ROLE_GUIDE: "from-emerald-600 to-teal-800",
 };
 
 const SPORT_LABEL: Record<string, string> = {
@@ -120,11 +120,10 @@ export function PublicProfilePage() {
                                     <button
                                         onClick={() => isFollowing ? unfollow.mutate() : follow.mutate()}
                                         disabled={isBusy}
-                                        className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60 ${
-                                            isFollowing
+                                        className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60 ${isFollowing
                                                 ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700"
                                                 : "bg-primary text-white hover:bg-blue-700 shadow-primary/20"
-                                        }`}
+                                            }`}
                                     >
                                         {isBusy
                                             ? <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />

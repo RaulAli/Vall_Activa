@@ -21,6 +21,10 @@ export const endpoints = {
         filters: "/api/public/routes/filters",
         mapMarkers: "/api/public/routes/map-markers",
         details: (slug: string) => `/api/public/routes/${slug}`,
+        create: "/api/routes",
+    },
+    sports: {
+        list: "/api/public/sports",
     },
     profile: {
         get: (slug: string) => `/api/profile/${slug}`,
