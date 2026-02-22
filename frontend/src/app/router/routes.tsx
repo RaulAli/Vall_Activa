@@ -3,9 +3,11 @@ import { HomePage } from "../../pages/HomePage";
 import { ShopPage } from "../../pages/ShopPage";
 import { RouteDetailPage } from "../../pages/RouteDetailPage";
 import { OfferDetailPage } from "../../pages/OfferDetailPage";
+import { AuthPage } from "../../pages/AuthPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
+    { path: "/auth", element: <AuthPage /> },
     { path: "/offers", element: <ShopPage /> },
     { path: "/routes", element: <ShopPage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },

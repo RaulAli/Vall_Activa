@@ -1,4 +1,11 @@
 export const endpoints = {
+    auth: {
+        login: "/api/auth/login",
+        register: "/api/auth/register",
+        logout: "/api/auth/logout",
+        refresh: "/api/auth/token/refresh",
+        me: "/api/user/me",
+    },
     offers: {
         list: "/api/public/offers",
         filters: "/api/public/offers/filters",

@@ -33,10 +33,10 @@ final class GetPublicProfileController extends AbstractController
         }
 
         $base = [
-            'slug'           => $profile->slug,
-            'name'           => $profile->name,
-            'avatar'         => $profile->avatar,
-            'role'           => $profile->role,
+            'slug' => $profile->slug,
+            'name' => $profile->name,
+            'avatar' => $profile->avatar,
+            'role' => $profile->role,
             'followersCount' => $profile->followersCount,
             'isFollowedByMe' => $profile->isFollowedByMe,
         ];
@@ -47,14 +47,14 @@ final class GetPublicProfileController extends AbstractController
                 'lng' => $profile->lng,
             ],
             'ROLE_ATHLETE' => [
-                'city'      => $profile->city,
+                'city' => $profile->city,
                 'birthDate' => $profile->birthDate,
             ],
             'ROLE_GUIDE' => [
-                'bio'    => $profile->bio,
-                'city'   => $profile->city,
-                'lat'    => $profile->lat,
-                'lng'    => $profile->lng,
+                'bio' => $profile->bio,
+                'city' => $profile->city,
+                'lat' => $profile->lat,
+                'lng' => $profile->lng,
                 'sports' => $profile->sports,
             ],
             default => [],

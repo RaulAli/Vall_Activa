@@ -33,19 +33,19 @@ final class GetPublicProfileHandler
         }
 
         return new PublicProfileDto(
-            userId:         $data['userId'],
-            slug:           $data['slug'],
-            name:           $data['name'],
-            avatar:         $data['avatar'] ?? null,
-            role:           $data['role'],
+            userId: $data['userId'],
+            slug: $data['slug'],
+            name: $data['name'],
+            avatar: $data['avatar'] ?? null,
+            role: $data['role'],
             followersCount: $followersCount,
             isFollowedByMe: $isFollowedByMe,
-            lat:            $data['lat'] ?? null,
-            lng:            $data['lng'] ?? null,
-            city:           $data['city'] ?? null,
-            birthDate:      $data['birthDate'] ?? null,
-            bio:            $data['bio'] ?? null,
-            sports:         $data['sports'] ?? null,
+            lat: $data['lat'] ?? null,
+            lng: $data['lng'] ?? null,
+            city: $data['city'] ?? null,
+            birthDate: $data['birthDate'] ?? null,
+            bio: $data['bio'] ?? null,
+            sports: $data['sports'] ?? null,
         );
     }
 }

@@ -15,10 +15,10 @@ final class DoctrineFollowRepository implements FollowRepositoryInterface
 
     public function follow(string $followerId, string $followeeId): void
     {
-        $orm            = new FollowOrm();
+        $orm = new FollowOrm();
         $orm->followerId = $followerId;
         $orm->followeeId = $followeeId;
-        $orm->createdAt  = new \DateTimeImmutable();
+        $orm->createdAt = new \DateTimeImmutable();
 
         $this->em->persist($orm);
         $this->em->flush();

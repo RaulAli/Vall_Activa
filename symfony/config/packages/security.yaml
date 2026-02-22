@@ -21,6 +21,12 @@ security:
             stateless: true
             security: false
 
+        # Public endpoints — no JWT required
+        public:
+            pattern: ^/api/public/
+            stateless: true
+            security: false
+
         # All other /api endpoints require a valid JWT
         api:
             pattern: ^/api/
@@ -30,6 +36,8 @@ security:
 
     access_control:
         - { path: ^/api/auth/(register|login|refresh|logout)$, roles: PUBLIC_ACCESS }
+        - { path: ^/api/public/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/profile/, roles: PUBLIC_ACCESS, methods: [GET] }
         - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

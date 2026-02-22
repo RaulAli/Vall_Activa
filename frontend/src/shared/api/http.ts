@@ -2,6 +2,17 @@ import { env } from "../../app/config/env";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
+export class HttpError extends Error {
+    constructor(
+        public readonly status: number,
+        public readonly body: Record<string, unknown>,
+        message: string,
+    ) {
+        super(message);
+        this.name = "HttpError";
+    }
+}
+
 function buildUrl(path: string, query?: Record<string, string | number | boolean | null | undefined>) {
     const url = new URL(path, env.API_BASE_URL);
     if (query) {
@@ -20,6 +31,9 @@ export async function http<T>(
         query?: Record<string, string | number | boolean | null | undefined>;
         body?: unknown;
         signal?: AbortSignal;
+        headers?: Record<string, string>;
+        /** Send cookies with the request (needed for refresh-token cookie). Default: false */
+        withCredentials?: boolean;
     }
 ): Promise<T> {
     const url = buildUrl(path, opts?.query);
@@ -28,15 +42,22 @@ export async function http<T>(
         method,
         headers: {
             "Content-Type": "application/json",
+            ...opts?.headers,
         },
+        credentials: opts?.withCredentials ? "include" : "omit",
         body: opts?.body ? JSON.stringify(opts.body) : undefined,
         signal: opts?.signal,
     });
 
     if (!res.ok) {
-        const text = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status}: ${text || res.statusText}`);
+        let body: Record<string, unknown> = {};
+        try { body = await res.json(); } catch { /* empty */ }
+        throw new HttpError(res.status, body, `HTTP ${res.status}`);
     }
+
+    // 204 No Content
+    if (res.status === 204) return undefined as T;
 
     return (await res.json()) as T;
 }
+

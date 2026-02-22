@@ -27,7 +27,12 @@ final class RegisterController extends AbstractController
 
         $errors = $validator->validate($dto);
         if (count($errors) > 0) {
-            return $this->json(['error' => 'validation_failed', 'message' => (string) $errors], 422);
+            $fieldErrors = [];
+            foreach ($errors as $violation) {
+                $field = $violation->getPropertyPath();
+                $fieldErrors[$field][] = $violation->getMessage();
+            }
+            return $this->json(['error' => 'validation_failed', 'fields' => $fieldErrors], 422);
         }
 
         try {

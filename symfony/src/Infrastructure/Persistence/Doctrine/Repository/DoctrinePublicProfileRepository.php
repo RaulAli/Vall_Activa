@@ -22,12 +22,12 @@ final class DoctrinePublicProfileRepository implements PublicProfileRepositoryIn
         if ($p !== null) {
             return [
                 'userId' => $p->userId,
-                'slug'   => $p->slug,
-                'name'   => $p->name,
+                'slug' => $p->slug,
+                'name' => $p->name,
                 'avatar' => $p->profileIcon,
-                'role'   => 'ROLE_BUSINESS',
-                'lat'    => $p->lat,
-                'lng'    => $p->lng,
+                'role' => 'ROLE_BUSINESS',
+                'lat' => $p->lat,
+                'lng' => $p->lng,
             ];
         }
 
@@ -35,12 +35,12 @@ final class DoctrinePublicProfileRepository implements PublicProfileRepositoryIn
         $p = $this->em->getRepository(AthleteProfileOrm::class)->findOneBy(['slug' => $slug]);
         if ($p !== null) {
             return [
-                'userId'    => $p->userId,
-                'slug'      => $p->slug,
-                'name'      => $p->name,
-                'avatar'    => $p->avatar,
-                'role'      => 'ROLE_ATHLETE',
-                'city'      => $p->city,
+                'userId' => $p->userId,
+                'slug' => $p->slug,
+                'name' => $p->name,
+                'avatar' => $p->avatar,
+                'role' => 'ROLE_ATHLETE',
+                'city' => $p->city,
                 'birthDate' => $p->birthDate?->format('Y-m-d'),
             ];
         }
@@ -50,14 +50,14 @@ final class DoctrinePublicProfileRepository implements PublicProfileRepositoryIn
         if ($p !== null) {
             return [
                 'userId' => $p->userId,
-                'slug'   => $p->slug,
-                'name'   => $p->name,
+                'slug' => $p->slug,
+                'name' => $p->name,
                 'avatar' => $p->avatar,
-                'role'   => 'ROLE_GUIDE',
-                'bio'    => $p->bio,
-                'city'   => $p->city,
-                'lat'    => $p->lat,
-                'lng'    => $p->lng,
+                'role' => 'ROLE_GUIDE',
+                'bio' => $p->bio,
+                'city' => $p->city,
+                'lat' => $p->lat,
+                'lng' => $p->lng,
                 'sports' => $p->sports ?? [],
             ];
         }

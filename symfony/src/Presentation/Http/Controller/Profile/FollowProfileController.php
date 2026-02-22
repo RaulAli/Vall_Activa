@@ -34,9 +34,9 @@ final class FollowProfileController extends AbstractController
             ));
         } catch (\DomainException $e) {
             $code = match ($e->getMessage()) {
-                'profile_not_found'      => 404,
+                'profile_not_found' => 404,
                 'cannot_follow_yourself' => 422,
-                default                  => 400,
+                default => 400,
             };
             return $this->json(['error' => $e->getMessage()], $code);
         }

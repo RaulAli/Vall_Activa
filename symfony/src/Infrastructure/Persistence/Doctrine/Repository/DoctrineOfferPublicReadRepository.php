@@ -258,9 +258,8 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
 
         // SELECT agrupado
         $rows = $qb
-            ->select('b.userId AS businessUserId, b.name AS name, b.profileIcon AS profileIcon, b.lat AS lat, b.lng AS lng, u.slug AS slug, COUNT(o.id) AS offersCount')
-            ->innerJoin(\App\Infrastructure\Persistence\Doctrine\Entity\Identity\UserOrm::class, 'u', 'WITH', 'u.id = b.userId')
-            ->groupBy('b.userId, b.name, b.profileIcon, b.lat, b.lng, u.slug')
+            ->select('b.userId AS businessUserId, b.name AS name, b.profileIcon AS profileIcon, b.lat AS lat, b.lng AS lng, b.slug AS slug, COUNT(o.id) AS offersCount')
+            ->groupBy('b.userId, b.name, b.profileIcon, b.lat, b.lng, b.slug')
             ->getQuery()
             ->getArrayResult();
 
