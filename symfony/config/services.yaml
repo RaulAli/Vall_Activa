@@ -82,3 +82,10 @@ services:
 
   App\Application\User\Port\UserWriteRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserWriteRepository
+  # ----- Profile -----
+
+  App\Application\Profile\Port\PublicProfileRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrinePublicProfileRepository
+
+  App\Application\Profile\Port\FollowRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineFollowRepository
