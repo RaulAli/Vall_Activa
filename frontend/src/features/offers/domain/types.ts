@@ -13,6 +13,9 @@ export type OfferListItem = {
     pointsCost: number;
     isActive: boolean;
     createdAt: string;
+    businessName?: string | null;
+    businessSlug?: string | null;
+    businessAvatar?: string | null;
 };
 
 export type PaginatedResult<T> = {

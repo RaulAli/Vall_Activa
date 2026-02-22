@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useRouteDetailsQuery } from "../features/routes/queries/useRouteDetailsQuery";
 import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
@@ -9,6 +9,7 @@ import { DetailsMap } from "../shared/ui/DetailsMap";
 
 export function RouteDetailPage() {
     const { slug } = useParams<{ slug: string }>();
+    const navigate = useNavigate();
     const { data: route, isLoading, error } = useRouteDetailsQuery(slug || null);
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
@@ -43,18 +44,22 @@ export function RouteDetailPage() {
                                     {route.sportId.toUpperCase()}
                                 </span>
                                 <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight">{route.title}</h1>
-                                <div className="flex items-center gap-4 mt-4 text-white/90">
-                                    <div className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-yellow-400">star</span>
-                                        <span className="font-bold">4.9</span>
-                                        <span className="text-sm opacity-75">(128 reviews)</span>
-                                    </div>
-                                    <span className="opacity-50">•</span>
-                                    <div className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-sm">location_on</span>
-                                        <span className="text-sm">Location Info</span>
-                                    </div>
-                                </div>
+                                {(route.creatorName || route.creatorAvatar) && (
+                                    <button
+                                        onClick={() => route.creatorSlug && navigate(`/profile/${route.creatorSlug}`)}
+                                        disabled={!route.creatorSlug}
+                                        className="flex items-center gap-2 mt-4 text-white/90 hover:text-white transition-colors disabled:cursor-default group/creator"
+                                    >
+                                        <div className="size-7 rounded-full bg-white/20 overflow-hidden flex items-center justify-center shrink-0 group-hover/creator:ring-2 group-hover/creator:ring-white/50 transition-all">
+                                            {route.creatorAvatar
+                                                ? <img src={route.creatorAvatar} alt={route.creatorName ?? ""} className="w-full h-full object-cover" />
+                                                : <span className="text-[10px] font-extrabold text-white">{route.creatorName?.charAt(0)?.toUpperCase()}</span>
+                                            }
+                                        </div>
+                                        <span className="text-sm font-bold">{route.creatorName}</span>
+                                        {route.creatorSlug && <span className="material-symbols-outlined !text-sm opacity-70">arrow_forward</span>}
+                                    </button>
+                                )}
                             </div>
                             <div className="flex flex-wrap gap-3">
                                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
@@ -122,6 +127,38 @@ export function RouteDetailPage() {
                                 )}
                             </div>
                         </section>
+
+                        {/* Creator section */}
+                        {(route.creatorName || route.creatorAvatar) && (
+                            <section className="bg-slate-50 dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
+                                <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+                                    <span className="material-symbols-outlined text-primary">person</span>
+                                    Sobre el creador
+                                </h3>
+                                <div className="flex items-center gap-4 mb-5">
+                                    <div className="w-14 h-14 rounded-xl bg-primary/10 overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                                        {route.creatorAvatar
+                                            ? <img src={route.creatorAvatar} alt={route.creatorName ?? ""} className="w-full h-full object-cover" />
+                                            : <span className="text-xl font-black text-primary">{route.creatorName?.charAt(0)?.toUpperCase()}</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <p className="font-black text-slate-900 dark:text-white text-lg">{route.creatorName}</p>
+                                        {route.creatorSlug && (
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">@{route.creatorSlug}</p>
+                                        )}
+                                    </div>
+                                </div>
+                                {route.creatorSlug && (
+                                    <button
+                                        onClick={() => navigate(`/profile/${route.creatorSlug}`)}
+                                        className="flex items-center gap-2 text-primary font-bold hover:underline transition-all"
+                                    >
+                                        Ver perfil <span className="material-symbols-outlined !text-sm">arrow_forward</span>
+                                    </button>
+                                )}
+                            </section>
+                        )}
                     </div>
 
                     {/* Right Column: Sticky Sidebar */}
@@ -170,16 +207,36 @@ export function RouteDetailPage() {
                                     </div>
                                 </div>
                                 <div className="bg-primary/5 dark:bg-primary/10 p-6 border-t border-primary/10">
-                                    <div className="flex items-center gap-4">
-                                        <div className="size-12 rounded-full bg-slate-300 border-2 border-white dark:border-slate-800" />
-                                        <div>
-                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Verified Guide</p>
-                                            <p className="text-sm font-bold text-slate-900 dark:text-white">Marco Steiger</p>
+                                    {(route.creatorName || route.creatorAvatar) ? (
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-12 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                                                {route.creatorAvatar
+                                                    ? <img src={route.creatorAvatar} alt={route.creatorName ?? ""} className="w-full h-full object-cover" />
+                                                    : <span className="text-xl font-black text-primary">{route.creatorName?.charAt(0)?.toUpperCase()}</span>
+                                                }
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Creador</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{route.creatorName}</p>
+                                            </div>
+                                            {route.creatorSlug && (
+                                                <button
+                                                    onClick={() => navigate(`/profile/${route.creatorSlug}`)}
+                                                    className="ml-auto text-primary hover:text-blue-700 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined">open_in_new</span>
+                                                </button>
+                                            )}
                                         </div>
-                                        <button className="ml-auto text-primary hover:text-blue-700 transition-colors">
-                                            <span className="material-symbols-outlined">chat</span>
-                                        </button>
-                                    </div>
+                                    ) : (
+                                        <div className="flex items-center gap-4">
+                                            <div className="size-12 rounded-full bg-slate-300 border-2 border-white dark:border-slate-800" />
+                                            <div>
+                                                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">Creador</p>
+                                                <p className="text-sm font-bold text-slate-900 dark:text-white">Desconocido</p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 

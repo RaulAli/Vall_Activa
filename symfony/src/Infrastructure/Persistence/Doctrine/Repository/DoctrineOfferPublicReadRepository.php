@@ -100,7 +100,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
         // rows
         $rowsQb = clone $baseQb;
         $rows = $rowsQb
-            ->select('o.id, o.businessId, o.title, o.slug, o.description, o.price, o.currency, o.image, o.discountType, o.status, o.quantity, o.pointsCost, o.isActive, o.createdAt')
+            ->select('o.id, o.businessId, o.title, o.slug, o.description, o.price, o.currency, o.image, o.discountType, o.status, o.quantity, o.pointsCost, o.isActive, o.createdAt, b.name AS businessName, b.slug AS businessSlug, b.profileIcon AS businessAvatar')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -125,7 +125,10 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
                 quantity: (int) $r['quantity'],
                 pointsCost: (int) $r['pointsCost'],
                 isActive: (bool) $r['isActive'],
-                createdAt: $createdAtStr
+                createdAt: $createdAtStr,
+                businessName: isset($r['businessName']) ? (string) $r['businessName'] : null,
+                businessSlug: isset($r['businessSlug']) ? (string) $r['businessSlug'] : null,
+                businessAvatar: $r['businessAvatar'] ?? null,
             );
         }, $rows);
 
@@ -138,7 +141,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->select('o.id, o.businessId, o.title, o.slug, o.description,
                  o.price, o.currency, o.image, o.discountType,
                  o.quantity, o.pointsCost, o.status, o.isActive, o.createdAt,
-                 b.lat, b.lng')
+                 b.lat, b.lng, b.name AS businessName, b.slug AS businessSlug, b.profileIcon AS businessAvatar')
             ->from(\App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm::class, 'o')
             ->innerJoin(
                 \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
@@ -186,7 +189,10 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             lat: isset($row['lat']) ? (float) $row['lat'] : null,
             lng: isset($row['lng']) ? (float) $row['lng'] : null,
 
-            createdAt: $createdAtStr
+            createdAt: $createdAtStr,
+            businessName: isset($row['businessName']) ? (string) $row['businessName'] : null,
+            businessSlug: isset($row['businessSlug']) ? (string) $row['businessSlug'] : null,
+            businessAvatar: $row['businessAvatar'] ?? null,
         );
     }
 

@@ -15,6 +15,9 @@ export type RouteListItem = {
     isActive: boolean;
     createdAt: string;
     image: string | null;
+    creatorName?: string | null;
+    creatorSlug?: string | null;
+    creatorAvatar?: string | null;
 };
 
 export type PaginatedResult<T> = {

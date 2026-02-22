@@ -20,6 +20,9 @@ final class OfferPublicListItem
         public readonly int $pointsCost,
         public readonly bool $isActive,
         public readonly string $createdAt,
+        public readonly ?string $businessName = null,
+        public readonly ?string $businessSlug = null,
+        public readonly ?string $businessAvatar = null,
     ) {
     }
 }

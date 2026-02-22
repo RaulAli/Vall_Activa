@@ -15,6 +15,9 @@ export const OfferListItemSchema = z.object({
     pointsCost: z.number(),
     isActive: z.boolean(),
     createdAt: z.string(),
+    businessName: z.string().nullable().optional(),
+    businessSlug: z.string().nullable().optional(),
+    businessAvatar: z.string().nullable().optional(),
 });
 
 export const PaginatedSchema = <T extends z.ZodTypeAny>(item: T) =>

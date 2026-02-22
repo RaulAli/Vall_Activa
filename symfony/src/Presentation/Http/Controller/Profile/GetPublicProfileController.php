@@ -38,6 +38,7 @@ final class GetPublicProfileController extends AbstractController
             'avatar' => $profile->avatar,
             'role' => $profile->role,
             'followersCount' => $profile->followersCount,
+            'followingCount' => $profile->followingCount,
             'isFollowedByMe' => $profile->isFollowedByMe,
         ];
 

@@ -26,6 +26,7 @@ final class GetPublicProfileHandler
         }
 
         $followersCount = $this->follows->countFollowers($data['userId']);
+        $followingCount = $this->follows->countFollowing($data['userId']);
 
         $isFollowedByMe = false;
         if ($query->requestingUserId !== null) {
@@ -39,6 +40,7 @@ final class GetPublicProfileHandler
             avatar: $data['avatar'] ?? null,
             role: $data['role'],
             followersCount: $followersCount,
+            followingCount: $followingCount,
             isFollowedByMe: $isFollowedByMe,
             lat: $data['lat'] ?? null,
             lng: $data['lng'] ?? null,

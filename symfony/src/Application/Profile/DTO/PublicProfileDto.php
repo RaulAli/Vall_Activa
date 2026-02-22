@@ -12,6 +12,7 @@ final class PublicProfileDto
         public readonly ?string $avatar,
         public readonly string $role,
         public readonly int $followersCount,
+        public readonly int $followingCount,
         public readonly bool $isFollowedByMe,
         // Role-specific (null when irrelevant)
         public readonly ?float $lat = null,

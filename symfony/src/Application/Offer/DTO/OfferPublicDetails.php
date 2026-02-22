@@ -27,7 +27,10 @@ final class OfferPublicDetails
         public readonly ?float $lat = null,
         public readonly ?float $lng = null,
 
-        public readonly string $createdAt
+        public readonly string $createdAt,
+        public readonly ?string $businessName = null,
+        public readonly ?string $businessSlug = null,
+        public readonly ?string $businessAvatar = null,
     ) {
     }
 }

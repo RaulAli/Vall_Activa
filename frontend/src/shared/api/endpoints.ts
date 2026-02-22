@@ -22,4 +22,10 @@ export const endpoints = {
         mapMarkers: "/api/public/routes/map-markers",
         details: (slug: string) => `/api/public/routes/${slug}`,
     },
+    profile: {
+        get: (slug: string) => `/api/profile/${slug}`,
+        follow: (slug: string) => `/api/profile/${slug}/follow`,
+        myFollowers: "/api/me/followers",
+        myFollowing: "/api/me/following",
+    },
 };

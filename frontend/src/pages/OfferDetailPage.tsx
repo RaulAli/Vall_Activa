@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useOfferDetailsQuery } from "../features/offers/queries/useOfferDetailsQuery";
 import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
@@ -9,6 +9,7 @@ import { DetailsMap } from "../shared/ui/DetailsMap";
 
 export function OfferDetailPage() {
     const { slug } = useParams<{ slug: string }>();
+    const navigate = useNavigate();
     const { data: offer, isLoading, error } = useOfferDetailsQuery(slug || null);
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
@@ -43,13 +44,21 @@ export function OfferDetailPage() {
                                     {offer.discountType || "Oferta"}
                                 </span>
                                 <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight">{offer.title}</h1>
-                                {offer.business && (
-                                    <div className="flex items-center gap-2 mt-4 text-white/90">
-                                        <div className="size-6 rounded-full bg-white/20 overflow-hidden">
-                                            {offer.business.profileIcon && <img src={offer.business.profileIcon} alt={offer.business.name} />}
+                                {(offer.businessName || offer.businessAvatar) && (
+                                    <button
+                                        onClick={() => offer.businessSlug && navigate(`/profile/${offer.businessSlug}`)}
+                                        disabled={!offer.businessSlug}
+                                        className="flex items-center gap-2 mt-4 text-white/90 hover:text-white transition-colors disabled:cursor-default group/biz"
+                                    >
+                                        <div className="size-6 rounded-full bg-white/20 overflow-hidden flex items-center justify-center group-hover/biz:ring-2 group-hover/biz:ring-white/50 transition-all">
+                                            {offer.businessAvatar
+                                                ? <img src={offer.businessAvatar} alt={offer.businessName ?? ""} className="w-full h-full object-cover" />
+                                                : <span className="text-[9px] font-extrabold text-white">{offer.businessName?.charAt(0)?.toUpperCase()}</span>
+                                            }
                                         </div>
-                                        <span className="text-sm font-bold">{offer.business.name}</span>
-                                    </div>
+                                        <span className="text-sm font-bold">{offer.businessName}</span>
+                                        {offer.businessSlug && <span className="material-symbols-outlined !text-sm opacity-70">arrow_forward</span>}
+                                    </button>
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-3">
@@ -110,11 +119,15 @@ export function OfferDetailPage() {
 
                             {offer.lat && offer.lng && (
                                 <div className="w-full aspect-video rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner mb-6">
-                                    <DetailsMap marker={{ lat: offer.lat, lng: offer.lng, title: offer.business?.name }} />
+                                    <DetailsMap marker={{ lat: offer.lat, lng: offer.lng, title: offer.businessName ?? undefined }} />
                                 </div>
                             )}
 
-                            <button className="flex items-center gap-2 text-primary font-bold hover:underline transition-all">
+                            <button
+                                onClick={() => offer.businessSlug && navigate(`/profile/${offer.businessSlug}`)}
+                                disabled={!offer.businessSlug}
+                                className="flex items-center gap-2 text-primary font-bold hover:underline transition-all disabled:opacity-50 disabled:cursor-default"
+                            >
                                 Ver perfil del negocio <span className="material-symbols-outlined !text-sm">arrow_forward</span>
                             </button>
                         </section>

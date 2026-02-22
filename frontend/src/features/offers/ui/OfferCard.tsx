@@ -40,13 +40,24 @@ export function OfferCard({ item }: { item: OfferListItem }) {
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mb-3">
                     {item.description || "Sin descripción disponible"}
                 </p>
-                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter text-slate-400">
+                <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter text-slate-400 mb-3">
                     <div className="flex items-center gap-1">
                         <span className="material-symbols-outlined !text-[14px]">local_mall</span>
                         Stock: {item.quantity}
                     </div>
                     <button className="text-primary hover:underline transition-all">Ver más</button>
                 </div>
+                {(item.businessName || item.businessAvatar) && (
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                        <div className="w-6 h-6 rounded-full bg-primary/10 overflow-hidden flex items-center justify-center shrink-0">
+                            {item.businessAvatar
+                                ? <img src={item.businessAvatar} alt={item.businessName ?? ""} className="w-full h-full object-cover" />
+                                : <span className="text-[9px] font-extrabold text-primary">{item.businessName?.charAt(0)?.toUpperCase()}</span>
+                            }
+                        </div>
+                        <span className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 truncate">{item.businessName}</span>
+                    </div>
+                )}
             </div>
         </div>
     );

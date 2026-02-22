@@ -31,7 +31,10 @@ final class RoutePublicDetails
 
         public readonly ?string $polyline,
         public readonly string $createdAt,
-        public readonly ?string $image = null
+        public readonly ?string $image = null,
+        public readonly ?string $creatorName = null,
+        public readonly ?string $creatorSlug = null,
+        public readonly ?string $creatorAvatar = null,
     ) {
     }
 }

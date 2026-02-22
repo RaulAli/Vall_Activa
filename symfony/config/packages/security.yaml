@@ -27,6 +27,12 @@ security:
             stateless: true
             security: false
 
+        # Public profile GET — no JWT required (isFollowedByMe will be false for unauthenticated users)
+        profile_public:
+            pattern: ^/api/profile/[^/]+$
+            stateless: true
+            security: false
+
         # All other /api endpoints require a valid JWT
         api:
             pattern: ^/api/

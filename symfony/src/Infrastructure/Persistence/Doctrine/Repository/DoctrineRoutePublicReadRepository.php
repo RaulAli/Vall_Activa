@@ -8,6 +8,8 @@ use App\Application\Route\DTO\RoutePublicListItem;
 use App\Application\Route\Port\RoutePublicReadRepositoryInterface;
 use App\Application\Shared\DTO\PaginatedResult;
 use App\Infrastructure\Persistence\Doctrine\Entity\Route\RouteOrm;
+use App\Infrastructure\Persistence\Doctrine\Entity\Identity\AthleteProfileOrm;
+use App\Infrastructure\Persistence\Doctrine\Entity\Identity\GuideProfileOrm;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Application\Route\DTO\RoutePublicFilters;
 use App\Infrastructure\Persistence\Doctrine\Entity\Sport\SportOrm;
@@ -80,7 +82,9 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
 
         // list (SIN polyline)
         $rows = (clone $baseQb)
-            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.isActive, r.createdAt, r.image')
+            ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
+            ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
+            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.isActive, r.createdAt, r.image, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -103,7 +107,10 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                 elevationLossM: (int) $r['elevationLossM'],
                 isActive: (bool) $r['isActive'],
                 createdAt: $createdAtStr,
-                image: $r['image'] ?? null
+                image: $r['image'] ?? null,
+                creatorName: $r['athleteName'] ?? $r['guideName'] ?? null,
+                creatorSlug: $r['athleteSlug'] ?? $r['guideSlug'] ?? null,
+                creatorAvatar: $r['athleteAvatar'] ?? $r['guideAvatar'] ?? null,
             );
         }, $rows);
 
@@ -173,8 +180,12 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             ->select('r.id, r.sportId, r.title, r.slug, r.description, r.visibility, r.status,
                  r.startLat, r.startLng, r.endLat, r.endLng,
                  r.minLat, r.minLng, r.maxLat, r.maxLng,
-                 r.distanceM, r.elevationGainM, r.elevationLossM, r.polyline, r.createdAt, r.image')
+                 r.distanceM, r.elevationGainM, r.elevationLossM, r.polyline, r.createdAt, r.image,
+                 aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar,
+                 gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
             ->from(RouteOrm::class, 'r')
+            ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
+            ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
             ->andWhere('r.isActive = true')
             ->andWhere('r.visibility = :vis')
             ->andWhere('r.status = :status')
@@ -213,7 +224,10 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             elevationLossM: (int) $row['elevationLossM'],
             polyline: $row['polyline'] ?? null,
             createdAt: $createdAtStr,
-            image: $row['image'] ?? null
+            image: $row['image'] ?? null,
+            creatorName: $row['athleteName'] ?? $row['guideName'] ?? null,
+            creatorSlug: $row['athleteSlug'] ?? $row['guideSlug'] ?? null,
+            creatorAvatar: $row['athleteAvatar'] ?? $row['guideAvatar'] ?? null,
         );
     }
 

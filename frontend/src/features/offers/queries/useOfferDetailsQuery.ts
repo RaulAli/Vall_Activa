@@ -20,12 +20,9 @@ export const OfferDetailsSchema = z.object({
     createdAt: z.string(),
     lat: z.number().nullable().optional(),
     lng: z.number().nullable().optional(),
-    // Extended business info might be here in real API
-    business: z.object({
-        name: z.string(),
-        slug: z.string(),
-        profileIcon: z.string().nullable().optional(),
-    }).optional(),
+    businessName: z.string().nullable().optional(),
+    businessSlug: z.string().nullable().optional(),
+    businessAvatar: z.string().nullable().optional(),
 });
 
 export type OfferDetails = z.infer<typeof OfferDetailsSchema>;
