@@ -17,7 +17,8 @@ final class ParsedRouteData
         public readonly int $distanceM,
         public readonly int $elevationGainM,
         public readonly int $elevationLossM,
-        public readonly ?string $polyline
+        public readonly ?string $polyline,
+        public readonly ?int $durationSeconds = null,
     ) {
     }
 }

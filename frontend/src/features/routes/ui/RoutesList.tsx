@@ -3,6 +3,13 @@ import { useShopStore } from "../../../store/shopStore";
 import type { RouteListItem } from "../domain/types";
 import { getFallbackImage } from "../../../shared/utils/images";
 
+function formatDuration(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h === 0) return `${m} min`;
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
 type Props = {
     items: RouteListItem[];
 };
@@ -83,10 +90,12 @@ export function RoutesList({ items }: Props) {
                                         <span className="material-symbols-outlined !text-[14px]">distance</span>
                                         {(r.distanceM / 1000).toFixed(1)} km
                                     </div>
-                                    <div className="flex items-center gap-1">
-                                        <span className="material-symbols-outlined !text-[14px]">schedule</span>
-                                        3h 45m
-                                    </div>
+                                    {r.durationSeconds != null && (
+                                        <div className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined !text-[14px]">schedule</span>
+                                            {formatDuration(r.durationSeconds)}
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-1">
                                         <span className="material-symbols-outlined !text-[14px]">altitude</span>
                                         {r.elevationGainM}m

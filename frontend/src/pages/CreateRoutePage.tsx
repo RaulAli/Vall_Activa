@@ -187,8 +187,8 @@ export function CreateRoutePage() {
                             onDragLeave={() => setDragging(false)}
                             onDrop={onDrop}
                             className={`cursor-pointer rounded-xl border-2 border-dashed transition-all p-10 flex flex-col items-center gap-3 ${dragging
-                                    ? "border-primary bg-primary/5 dark:bg-primary/10"
-                                    : "border-slate-300 dark:border-slate-600 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                ? "border-primary bg-primary/5 dark:bg-primary/10"
+                                : "border-slate-300 dark:border-slate-600 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                 }`}
                         >
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
@@ -271,8 +271,8 @@ export function CreateRoutePage() {
                                             type="button"
                                             onClick={() => setSportCode(s.code)}
                                             className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border transition-all text-center ${active
-                                                    ? "bg-primary text-white border-primary shadow-sm"
-                                                    : "border-slate-200 dark:border-slate-700 hover:border-primary/50 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
+                                                ? "bg-primary text-white border-primary shadow-sm"
+                                                : "border-slate-200 dark:border-slate-700 hover:border-primary/50 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
                                                 }`}
                                         >
                                             {meta ? (
@@ -308,8 +308,8 @@ export function CreateRoutePage() {
                                     type="button"
                                     onClick={() => setVisibility(opt.value)}
                                     className={`flex-1 flex flex-col items-center gap-1 py-3 px-3 rounded-xl border transition-all min-w-[90px] ${visibility === opt.value
-                                            ? "bg-primary/10 dark:bg-primary/20 border-primary text-primary"
-                                            : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
+                                        ? "bg-primary/10 dark:bg-primary/20 border-primary text-primary"
+                                        : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
                                         }`}
                                 >
                                     <span className="material-symbols-outlined !text-base">{opt.icon}</span>

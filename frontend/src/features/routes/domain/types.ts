@@ -14,6 +14,7 @@ export type RouteListItem = {
 
     isActive: boolean;
     createdAt: string;
+    durationSeconds?: number | null;
     image: string | null;
     creatorName?: string | null;
     creatorSlug?: string | null;
@@ -56,6 +57,7 @@ export type MyRouteItem = {
     distanceM: number;
     elevationGainM: number;
     elevationLossM: number;
+    durationSeconds: number | null;
     image: string | null;
     createdAt: string;
     isActive: boolean;

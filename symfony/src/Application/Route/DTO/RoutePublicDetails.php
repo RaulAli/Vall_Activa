@@ -35,6 +35,7 @@ final class RoutePublicDetails
         public readonly ?string $creatorName = null,
         public readonly ?string $creatorSlug = null,
         public readonly ?string $creatorAvatar = null,
+        public readonly ?int $durationSeconds = null,
     ) {
     }
 }

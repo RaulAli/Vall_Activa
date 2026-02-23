@@ -61,6 +61,9 @@ final class GpxRouteParser implements RouteParserInterface
         $prevLng = null;
         $prevEle = null;
 
+        $startTime = null;
+        $endTime = null;
+
         $pointsForPolyline = [];
 
         foreach ($points as $i => $pt) {
@@ -76,6 +79,28 @@ final class GpxRouteParser implements RouteParserInterface
                 $eleNode = $pt->xpath('gpx:ele');
                 if ($eleNode && isset($eleNode[0])) {
                     $ele = (float) $eleNode[0];
+                }
+            }
+
+            // Extract timestamp from <time> element
+            $timeStr = null;
+            if (isset($pt->time)) {
+                $timeStr = trim((string) $pt->time);
+            } else {
+                $timeNode = $pt->xpath('gpx:time');
+                if ($timeNode && isset($timeNode[0])) {
+                    $timeStr = trim((string) $timeNode[0]);
+                }
+            }
+            if ($timeStr !== null && $timeStr !== '') {
+                try {
+                    $ts = new \DateTimeImmutable($timeStr);
+                    if ($i === 0) {
+                        $startTime = $ts;
+                    }
+                    $endTime = $ts;
+                } catch (\Throwable) {
+                    // ignore malformed time
                 }
             }
 
@@ -116,6 +141,11 @@ final class GpxRouteParser implements RouteParserInterface
 
         $polyline = $this->encodePolyline($pointsForPolyline);
 
+        $durationSeconds = null;
+        if ($startTime !== null && $endTime !== null && $endTime > $startTime) {
+            $durationSeconds = $endTime->getTimestamp() - $startTime->getTimestamp();
+        }
+
         return new ParsedRouteData(
             $startLat,
             $startLng,
@@ -128,7 +158,8 @@ final class GpxRouteParser implements RouteParserInterface
             (int) round($distance),
             (int) round($gain),
             (int) round($loss),
-            $polyline
+            $polyline,
+            $durationSeconds,
         );
     }
 

@@ -37,6 +37,7 @@ final class Route
         private int $elevationGainM,
         private int $elevationLossM,
         private bool $isActive,
+        private ?int $durationSeconds = null,
         private ?string $image = null
     ) {
     }
@@ -60,7 +61,8 @@ final class Route
         ?string $polyline,            // ✅ NUEVO
         int $distanceM,
         int $elevationGainM,
-        int $elevationLossM
+        int $elevationLossM,
+        ?int $durationSeconds = null,
     ): self {
         if ($distanceM < 0) {
             throw new \InvalidArgumentException('Distance cannot be negative.');
@@ -87,7 +89,8 @@ final class Route
             $distanceM,
             $elevationGainM,
             $elevationLossM,
-            true
+            true,
+            $durationSeconds,
         );
     }
 
@@ -181,6 +184,11 @@ final class Route
     public function isActive(): bool
     {
         return $this->isActive;
+    }
+
+    public function durationSeconds(): ?int
+    {
+        return $this->durationSeconds;
     }
 
     public function image(): ?string

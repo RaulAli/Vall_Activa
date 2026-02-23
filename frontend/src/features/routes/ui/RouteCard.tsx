@@ -2,6 +2,13 @@ import { useNavigate } from "react-router-dom";
 import type { RouteListItem } from "../domain/types";
 import { getFallbackImage } from "../../../shared/utils/images";
 
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h === 0) return `${m} min`;
+  return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
 export function RouteCard({ item }: { item: RouteListItem }) {
   const navigate = useNavigate();
   const km = (item.distanceM / 1000).toFixed(1);
@@ -43,6 +50,12 @@ export function RouteCard({ item }: { item: RouteListItem }) {
             <span className="material-symbols-outlined !text-[14px]">calendar_month</span>
             {new Date(item.createdAt).toLocaleDateString()}
           </div>
+          {item.durationSeconds != null && (
+            <div className="flex items-center gap-1">
+              <span className="material-symbols-outlined !text-[14px]">schedule</span>
+              {formatDuration(item.durationSeconds)}
+            </div>
+          )}
           <button className="text-primary hover:underline transition-all">Ver más</button>
         </div>
         {(item.creatorName || item.creatorAvatar) && (

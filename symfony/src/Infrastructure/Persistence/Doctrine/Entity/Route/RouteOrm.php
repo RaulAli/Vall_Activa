@@ -78,6 +78,9 @@ class RouteOrm
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     public ?string $image = null;
 
+    #[ORM\Column(name: 'duration_seconds', type: 'integer', nullable: true)]
+    public ?int $durationSeconds = null;
+
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 

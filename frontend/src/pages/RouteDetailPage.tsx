@@ -7,6 +7,13 @@ import { Footer } from "../widgets/layout/Footer";
 import { getFallbackImage } from "../shared/utils/images";
 import { DetailsMap } from "../shared/ui/DetailsMap";
 
+function formatDuration(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h === 0) return `${m} min`;
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
 export function RouteDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
@@ -67,13 +74,15 @@ export function RouteDetailPage() {
                                     <p className="text-white text-xl font-bold">{(route.distanceM / 1000).toFixed(1)} km</p>
                                 </div>
                                 <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
-                                    <p className="text-white/70 text-xs font-semibold uppercase">Elevation</p>
+                                    <p className="text-white/70 text-xs font-semibold uppercase">Elevación</p>
                                     <p className="text-white text-xl font-bold">{route.elevationGainM} m</p>
                                 </div>
-                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
-                                    <p className="text-white/70 text-xs font-semibold uppercase">Created At</p>
-                                    <p className="text-white text-lg font-bold">{new Date(route.createdAt).toLocaleDateString()}</p>
-                                </div>
+                                {route.durationSeconds != null && (
+                                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
+                                        <p className="text-white/70 text-xs font-semibold uppercase">Duración</p>
+                                        <p className="text-white text-xl font-bold">{formatDuration(route.durationSeconds)}</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -187,6 +196,15 @@ export function RouteDetailPage() {
                                             </div>
                                             <span className="text-sm font-bold text-slate-900 dark:text-white">One-way</span>
                                         </div>
+                                        {route.durationSeconds != null && (
+                                            <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-primary">schedule</span>
+                                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Duración</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{formatDuration(route.durationSeconds)}</span>
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                                             <div className="flex items-center gap-3">
                                                 <span className="material-symbols-outlined text-primary">height</span>

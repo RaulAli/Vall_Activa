@@ -79,7 +79,8 @@ final class CreateRouteFromSourceHandler
                 distanceM: $parsed->distanceM,
                 elevationGainM: $parsed->elevationGainM,
                 elevationLossM: $parsed->elevationLossM,
-                polyline: $parsed->polyline
+                polyline: $parsed->polyline,
+                durationSeconds: $parsed->durationSeconds,
             );
 
             $this->routes->save($route);

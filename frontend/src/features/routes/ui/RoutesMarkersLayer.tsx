@@ -1,5 +1,5 @@
 import MarkerClusterGroup from "react-leaflet-cluster";
-import { Marker, Popup } from "react-leaflet";
+import { Marker } from "react-leaflet";
 import type { RouteMapMarker } from "../domain/types";
 import { useShopStore } from "../../../store/shopStore";
 
@@ -9,6 +9,7 @@ export function RoutesMarkersLayer({ items }: { items: RouteMapMarker[] }) {
     return (
         <MarkerClusterGroup
             chunkedLoading
+            singleMarkerMode
             eventHandlers={{
                 clusterclick: (e: any) => {
                     const bounds = e.layer.getBounds();
@@ -34,15 +35,7 @@ export function RoutesMarkersLayer({ items }: { items: RouteMapMarker[] }) {
                                 maxLat: m.lat + 0.005,
                             }),
                     }}
-                >
-                    <Popup>
-                        <div style={{ fontWeight: 600 }}>{m.title}</div>
-                        <div style={{ opacity: 0.8 }}>{m.slug}</div>
-                        <div style={{ marginTop: 8, fontSize: 12, opacity: 0.8 }}>
-                            Click para modo foco
-                        </div>
-                    </Popup>
-                </Marker>
+                />
             ))}
         </MarkerClusterGroup>
     );

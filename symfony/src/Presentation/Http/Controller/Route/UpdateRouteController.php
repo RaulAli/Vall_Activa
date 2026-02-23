@@ -109,13 +109,13 @@ final class UpdateRouteController extends AbstractController
         $em->flush();
 
         return $this->json([
-            'id'          => $route->id,
-            'title'       => $route->title,
-            'slug'        => $route->slug,
+            'id' => $route->id,
+            'title' => $route->title,
+            'slug' => $route->slug,
             'description' => $route->description,
-            'visibility'  => $route->visibility,
-            'status'      => $route->status,
-            'sportId'     => $route->sportId,
+            'visibility' => $route->visibility,
+            'status' => $route->status,
+            'sportId' => $route->sportId,
         ]);
     }
 

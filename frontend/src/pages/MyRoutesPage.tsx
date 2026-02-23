@@ -9,6 +9,13 @@ import { http } from "../shared/api/http";
 import { endpoints } from "../shared/api/endpoints";
 import type { MyRouteItem } from "../features/routes/domain/types";
 
+function formatDuration(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h === 0) return `${m} min`;
+    return m > 0 ? `${h}h ${m}min` : `${h}h`;
+}
+
 type SportOption = { id: string; code: string; name: string };
 
 const SPORT_ICONS: Record<string, string> = {
@@ -138,8 +145,8 @@ export function MyRoutesPage() {
                             key={s.key}
                             onClick={() => setVisFilter(v => v === s.key ? "ALL" : s.key)}
                             className={`flex flex-col items-center gap-1 p-3 rounded-xl border transition-all ${visFilter === s.key
-                                    ? "bg-primary/5 border-primary/30 dark:bg-primary/10"
-                                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                ? "bg-primary/5 border-primary/30 dark:bg-primary/10"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                                 }`}
                         >
                             <span className={`material-symbols-outlined !text-lg ${s.color}`}>{s.icon}</span>
@@ -156,8 +163,8 @@ export function MyRoutesPage() {
                             key={f}
                             onClick={() => setVisFilter(f)}
                             className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${visFilter === f
-                                    ? "bg-primary text-white border-primary shadow-sm"
-                                    : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                ? "bg-primary text-white border-primary shadow-sm"
+                                : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                                 }`}
                         >
                             {f === "ALL" ? "Todas" : VISIBILITY_CONFIG[f].label}
@@ -306,6 +313,12 @@ function RouteRow({
                                     <span className="material-symbols-outlined !text-[13px]">trending_up</span>
                                     +{route.elevationGainM} m
                                 </span>
+                                {route.durationSeconds != null && (
+                                    <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+                                        <span className="material-symbols-outlined !text-[13px]">schedule</span>
+                                        {formatDuration(route.durationSeconds)}
+                                    </span>
+                                )}
                                 <span className="text-[11px] text-slate-400">
                                     {new Date(route.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
                                 </span>
@@ -348,7 +361,7 @@ function RouteRow({
                                 className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${editTab === tab
                                     ? "border-primary text-primary"
                                     : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-                                }`}
+                                    }`}
                             >
                                 <span className="material-symbols-outlined !text-sm">
                                     {tab === "actions" ? "toggle_on" : "edit_note"}
@@ -381,7 +394,7 @@ function RouteRow({
                                                 className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${route.visibility === v
                                                     ? `${cfg.bg} ${cfg.color} shadow-sm`
                                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                                }`}
+                                                    }`}
                                             >
                                                 <span className="material-symbols-outlined !text-[13px]">{cfg.icon}</span>
                                                 {cfg.label}
@@ -404,7 +417,7 @@ function RouteRow({
                                                 className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${route.status === s
                                                     ? "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 shadow-sm"
                                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                                }`}
+                                                    }`}
                                             >
                                                 <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
                                                 {cfg.label}
@@ -456,7 +469,7 @@ function RouteRow({
                                                 className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${formSport === s.code
                                                     ? "bg-primary/10 border-primary/40 text-primary shadow-sm"
                                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                                }`}
+                                                    }`}
                                             >
                                                 <span className="material-symbols-outlined !text-[13px]">
                                                     {SPORT_ICONS[s.code] ?? "route"}

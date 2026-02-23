@@ -31,7 +31,7 @@ final class GetMyRoutesController extends AbstractController
         $rows = $em->createQueryBuilder()
             ->select(
                 'r.id, r.title, r.slug, r.description, r.visibility, r.status, ' .
-                'r.distanceM, r.elevationGainM, r.elevationLossM, ' .
+                'r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, ' .
                 'r.image, r.createdAt, r.isActive, ' .
                 's.id AS sportId, s.code AS sportCode, s.name AS sportName'
             )
@@ -56,6 +56,7 @@ final class GetMyRoutesController extends AbstractController
                 'distanceM' => $r['distanceM'],
                 'elevationGainM' => $r['elevationGainM'],
                 'elevationLossM' => $r['elevationLossM'],
+                'durationSeconds' => isset($r['durationSeconds']) ? (int) $r['durationSeconds'] : null,
                 'image' => $r['image'],
                 'createdAt' => $createdAt->format(\DateTimeInterface::ATOM),
                 'isActive' => $r['isActive'],

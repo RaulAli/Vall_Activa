@@ -16,6 +16,7 @@ export const RouteListItemSchema = z.object({
 
     isActive: z.boolean(),
     createdAt: z.string(),
+    durationSeconds: z.number().nullable().optional(),
     image: z.string().nullable(),
     creatorName: z.string().nullable().optional(),
     creatorSlug: z.string().nullable().optional(),

@@ -26,6 +26,7 @@ export const RouteDetailsSchema = z.object({
     distanceM: z.number(),
     elevationGainM: z.number(),
     elevationLossM: z.number(),
+    durationSeconds: z.number().nullable().optional(),
 
     polyline: z.string().nullable(),
     createdAt: z.string(),
