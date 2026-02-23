@@ -22,6 +22,8 @@ export const endpoints = {
         mapMarkers: "/api/public/routes/map-markers",
         details: (slug: string) => `/api/public/routes/${slug}`,
         create: "/api/routes",
+        update: (id: string) => `/api/routes/${id}`,
+        mine: "/api/me/routes",
     },
     sports: {
         list: "/api/public/sports",

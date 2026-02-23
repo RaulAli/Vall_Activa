@@ -8,6 +8,7 @@ import { ProfilePage } from "../../pages/ProfilePage";
 import { PublicProfilePage } from "../../pages/PublicProfilePage";
 import { SettingsPage } from "../../pages/SettingsPage";
 import { CreateRoutePage } from "../../pages/CreateRoutePage";
+import { MyRoutesPage } from "../../pages/MyRoutesPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     { path: "/offers", element: <ShopPage /> },
     { path: "/routes", element: <ShopPage /> },
     { path: "/routes/new", element: <CreateRoutePage /> },
+    { path: "/me/routes", element: <MyRoutesPage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },
     { path: "/offer/:slug", element: <OfferDetailPage /> },
 ]);

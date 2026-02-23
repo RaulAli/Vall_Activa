@@ -1,6 +1,7 @@
 import { env } from "../../../app/config/env";
-import { HttpError } from "../../../shared/api/http";
+import { http, HttpError } from "../../../shared/api/http";
 import { endpoints } from "../../../shared/api/endpoints";
+import type { MyRouteItem } from "../domain/types";
 
 export interface CreateRoutePayload {
     title: string;
@@ -39,4 +40,21 @@ export async function createRoute(token: string, payload: CreateRoutePayload): P
 
     const data = await res.json() as { id: string };
     return data.id;
+}
+
+export async function getMyRoutes(token: string): Promise<MyRouteItem[]> {
+    return http<MyRouteItem[]>("GET", endpoints.routes.mine, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+}
+
+export async function updateRoute(
+    token: string,
+    id: string,
+    patch: { visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }
+): Promise<void> {
+    await http<unknown>("PATCH", endpoints.routes.update(id), {
+        headers: { Authorization: `Bearer ${token}` },
+        body: patch,
+    });
 }

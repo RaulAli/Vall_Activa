@@ -9,14 +9,14 @@ import { HttpError } from "../shared/api/http";
 
 // Icon + Spanish label per sport code (DB codes are uppercase; comparison is case-insensitive)
 const SPORT_META: Record<string, { label: string; icon: string }> = {
-    HIKE:  { label: "Senderismo",  icon: "hiking" },
-    BIKE:  { label: "Ciclismo",    icon: "directions_bike" },
-    RUN:   { label: "Running",     icon: "directions_run" },
-    SKI:   { label: "Esquí",       icon: "downhill_skiing" },
-    CLIMB: { label: "Escalada",    icon: "landscape" },
-    KAYAK: { label: "Kayak",       icon: "kayaking" },
-    SURF:  { label: "Surf",        icon: "surfing" },
-    SWIM:  { label: "Natación",    icon: "pool" },
+    HIKE: { label: "Senderismo", icon: "hiking" },
+    BIKE: { label: "Ciclismo", icon: "directions_bike" },
+    RUN: { label: "Running", icon: "directions_run" },
+    SKI: { label: "Esquí", icon: "downhill_skiing" },
+    CLIMB: { label: "Escalada", icon: "landscape" },
+    KAYAK: { label: "Kayak", icon: "kayaking" },
+    SURF: { label: "Surf", icon: "surfing" },
+    SWIM: { label: "Natación", icon: "pool" },
 };
 
 interface SportOption { code: string; name: string; }
@@ -186,11 +186,10 @@ export function CreateRoutePage() {
                             onDragOver={e => { e.preventDefault(); setDragging(true); }}
                             onDragLeave={() => setDragging(false)}
                             onDrop={onDrop}
-                            className={`cursor-pointer rounded-xl border-2 border-dashed transition-all p-10 flex flex-col items-center gap-3 ${
-                                dragging
+                            className={`cursor-pointer rounded-xl border-2 border-dashed transition-all p-10 flex flex-col items-center gap-3 ${dragging
                                     ? "border-primary bg-primary/5 dark:bg-primary/10"
                                     : "border-slate-300 dark:border-slate-600 hover:border-primary hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                            }`}
+                                }`}
                         >
                             <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                                 <span className="material-symbols-outlined !text-3xl text-primary">upload_file</span>
@@ -292,11 +291,10 @@ export function CreateRoutePage() {
                                             key={s.code}
                                             type="button"
                                             onClick={() => setSportCode(s.code)}
-                                            className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border transition-all text-center ${
-                                                active
+                                            className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border transition-all text-center ${active
                                                     ? "bg-primary text-white border-primary shadow-sm"
                                                     : "border-slate-200 dark:border-slate-700 hover:border-primary/50 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
-                                            }`}
+                                                }`}
                                         >
                                             {meta ? (
                                                 <span className={`material-symbols-outlined !text-xl ${active ? "text-white" : "text-primary"}`}>
@@ -322,19 +320,18 @@ export function CreateRoutePage() {
                         </label>
                         <div className="flex gap-2 flex-wrap">
                             {([
-                                { value: "PUBLIC",   label: "Pública",   icon: "public",     desc: "Visible para todos" },
-                                { value: "UNLISTED", label: "No listada", icon: "link",       desc: "Solo con enlace" },
-                                { value: "PRIVATE",  label: "Privada",   icon: "lock",       desc: "Solo tú" },
+                                { value: "PUBLIC", label: "Pública", icon: "public", desc: "Visible para todos" },
+                                { value: "UNLISTED", label: "No listada", icon: "link", desc: "Solo con enlace" },
+                                { value: "PRIVATE", label: "Privada", icon: "lock", desc: "Solo tú" },
                             ] as const).map(opt => (
                                 <button
                                     key={opt.value}
                                     type="button"
                                     onClick={() => setVisibility(opt.value)}
-                                    className={`flex-1 flex flex-col items-center gap-1 py-3 px-3 rounded-xl border transition-all min-w-[90px] ${
-                                        visibility === opt.value
+                                    className={`flex-1 flex flex-col items-center gap-1 py-3 px-3 rounded-xl border transition-all min-w-[90px] ${visibility === opt.value
                                             ? "bg-primary/10 dark:bg-primary/20 border-primary text-primary"
                                             : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
-                                    }`}
+                                        }`}
                                 >
                                     <span className="material-symbols-outlined !text-base">{opt.icon}</span>
                                     <span className="text-xs font-black">{opt.label}</span>

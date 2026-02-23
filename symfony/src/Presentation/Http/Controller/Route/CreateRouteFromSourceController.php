@@ -40,16 +40,16 @@ final class CreateRouteFromSourceController extends AbstractController
 
         // Read multipart fields
         $title = trim((string) $request->request->get('title', ''));
-        $slug  = trim((string) $request->request->get('slug', ''));
+        $slug = trim((string) $request->request->get('slug', ''));
         if ($title === '' || $slug === '') {
             return $this->json(['error' => 'bad_request', 'message' => 'title and slug are required'], 400);
         }
 
-        $description    = $request->request->get('description') ?: null;
-        $sportCode      = (string) $request->request->get('sportCode', 'hike');
-        $visibility     = (string) $request->request->get('visibility', 'PRIVATE');
-        $status         = (string) $request->request->get('status', 'PUBLISHED');
-        $sourceFormat   = strtoupper((string) $request->request->get('sourceFormat', 'GPX'));
+        $description = $request->request->get('description') ?: null;
+        $sportCode = (string) $request->request->get('sportCode', 'hike');
+        $visibility = (string) $request->request->get('visibility', 'PRIVATE');
+        $status = (string) $request->request->get('status', 'PUBLISHED');
+        $sourceFormat = strtoupper((string) $request->request->get('sourceFormat', 'GPX'));
 
         if (!in_array($visibility, ['PUBLIC', 'UNLISTED', 'PRIVATE'], true)) {
             $visibility = 'PUBLIC';

@@ -46,4 +46,20 @@ export type RouteMapMarkersResponse = {
     items: RouteMapMarker[];
 };
 
+export type MyRouteItem = {
+    id: string;
+    title: string;
+    slug: string;
+    visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    distanceM: number;
+    elevationGainM: number;
+    elevationLossM: number;
+    image: string | null;
+    createdAt: string;
+    isActive: boolean;
+    sportCode: string | null;
+    sportName: string | null;
+};
+
 
