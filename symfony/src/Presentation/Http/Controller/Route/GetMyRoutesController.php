@@ -30,10 +30,10 @@ final class GetMyRoutesController extends AbstractController
         /** @var array<int, array<string, mixed>> $rows */
         $rows = $em->createQueryBuilder()
             ->select(
-                'r.id, r.title, r.slug, r.visibility, r.status, ' .
+                'r.id, r.title, r.slug, r.description, r.visibility, r.status, ' .
                 'r.distanceM, r.elevationGainM, r.elevationLossM, ' .
                 'r.image, r.createdAt, r.isActive, ' .
-                's.code AS sportCode, s.name AS sportName'
+                's.id AS sportId, s.code AS sportCode, s.name AS sportName'
             )
             ->from(RouteOrm::class, 'r')
             ->leftJoin(SportOrm::class, 's', 'WITH', 'r.sportId = s.id')
@@ -50,6 +50,7 @@ final class GetMyRoutesController extends AbstractController
                 'id' => $r['id'],
                 'title' => $r['title'],
                 'slug' => $r['slug'],
+                'description' => $r['description'] ?? null,
                 'visibility' => $r['visibility'],
                 'status' => $r['status'],
                 'distanceM' => $r['distanceM'],
@@ -58,6 +59,7 @@ final class GetMyRoutesController extends AbstractController
                 'image' => $r['image'],
                 'createdAt' => $createdAt->format(\DateTimeInterface::ATOM),
                 'isActive' => $r['isActive'],
+                'sportId' => $r['sportId'] ?? null,
                 'sportCode' => $r['sportCode'] ?? null,
                 'sportName' => $r['sportName'] ?? null,
             ];

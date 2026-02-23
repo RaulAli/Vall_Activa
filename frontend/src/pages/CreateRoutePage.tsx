@@ -115,7 +115,7 @@ export function CreateRoutePage() {
         },
     });
 
-    const canSubmit = !!gpxFile && title.trim() !== "" && slug.trim() !== "" && sportCode !== "" && !mutation.isPending;
+    const canSubmit = !!gpxFile && title.trim() !== "" && sportCode !== "" && !mutation.isPending;
 
     const errorMsg = (() => {
         if (!mutation.error) return null;
@@ -234,27 +234,6 @@ export function CreateRoutePage() {
                             className={inputClass}
                             maxLength={120}
                         />
-                    </div>
-
-                    {/* Slug */}
-                    <div>
-                        <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">
-                            URL slug <span className="text-red-400">*</span>
-                        </label>
-                        <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-mono">/route/</span>
-                            <input
-                                type="text"
-                                value={slug}
-                                onChange={e => { setSlugTouched(true); setSlug(slugify(e.target.value)); }}
-                                placeholder="mi-ruta-por-la-sierra"
-                                className={`${inputClass} pl-16`}
-                                maxLength={60}
-                            />
-                        </div>
-                        <p className="text-[11px] text-slate-400 mt-1 font-mono">
-                            Se auto-genera desde el título. Solo letras, números y guiones.
-                        </p>
                     </div>
 
                     {/* Description */}

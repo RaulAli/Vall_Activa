@@ -51,7 +51,13 @@ export async function getMyRoutes(token: string): Promise<MyRouteItem[]> {
 export async function updateRoute(
     token: string,
     id: string,
-    patch: { visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }
+    patch: {
+        title?: string;
+        description?: string | null;
+        sportCode?: string;
+        visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE";
+        status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    }
 ): Promise<void> {
     await http<unknown>("PATCH", endpoints.routes.update(id), {
         headers: { Authorization: `Bearer ${token}` },

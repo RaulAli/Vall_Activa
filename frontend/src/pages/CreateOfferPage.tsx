@@ -29,8 +29,6 @@ export function CreateOfferPage() {
     const { token, user } = useAuthStore();
 
     const [title, setTitle] = useState("");
-    const [slug, setSlug] = useState("");
-    const [slugManual, setSlugManual] = useState(false);
     const [description, setDescription] = useState("");
     const [paymentType, setPaymentType] = useState<PaymentType>("MONEY");
     const [price, setPrice] = useState("0.00");
@@ -42,9 +40,10 @@ export function CreateOfferPage() {
     const [status, setStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
     const [error, setError] = useState<string | null>(null);
 
+    const [slug, setSlug] = useState("");
     const handleTitleChange = (v: string) => {
         setTitle(v);
-        if (!slugManual) setSlug(slugify(v));
+        setSlug(slugify(v));
     };
 
     const mutation = useMutation({
@@ -74,7 +73,6 @@ export function CreateOfferPage() {
 
     const canSubmit =
         title.trim() !== "" &&
-        slug.trim() !== "" &&
         (paymentType === "MONEY" ? /^\d+(\.\d{1,2})?$/.test(price) && parseFloat(price) > 0 : pointsCost > 0);
 
     if (!token || user?.role !== "ROLE_BUSINESS") {
@@ -149,22 +147,6 @@ export function CreateOfferPage() {
                             placeholder="Ej: Pack de escalada para principiantes"
                             className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                         />
-                    </div>
-
-                    {/* Slug */}
-                    <div>
-                        <label className="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">
-                            URL slug *
-                        </label>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-slate-400 shrink-0">/offer/</span>
-                            <input
-                                type="text"
-                                value={slug}
-                                onChange={e => { setSlug(e.target.value); setSlugManual(true); }}
-                                className="flex-1 px-4 py-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-mono text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
-                            />
-                        </div>
                     </div>
 
                     {/* Description */}

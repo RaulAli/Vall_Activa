@@ -5,7 +5,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
 import { getMyRoutes, updateRoute } from "../features/routes/api/routeApi";
 import { getFallbackImage } from "../shared/utils/images";
+import { http } from "../shared/api/http";
+import { endpoints } from "../shared/api/endpoints";
 import type { MyRouteItem } from "../features/routes/domain/types";
+
+type SportOption = { id: string; code: string; name: string };
 
 const SPORT_ICONS: Record<string, string> = {
     HIKE: "hiking",
@@ -40,17 +44,29 @@ export function MyRoutesPage() {
     const [visFilter, setVisFilter] = useState<VisibilityFilter>("ALL");
     const [editingId, setEditingId] = useState<string | null>(null);
 
+    const { data: sports = [] } = useQuery<SportOption[]>({
+        queryKey: ["sports"],
+        queryFn: () => http<SportOption[]>("GET", endpoints.sports.list),
+        staleTime: Infinity,
+    });
+
     const { data: routes = [], isLoading, isError } = useQuery({
         queryKey: ["me", "routes"],
         queryFn: () => getMyRoutes(token!),
         enabled: !!token,
     });
 
+    type RoutePatch = {
+        title?: string;
+        description?: string | null;
+        sportCode?: string;
+        visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE";
+        status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    };
+
     const updateMut = useMutation({
-        mutationFn: ({ id, patch }: {
-            id: string;
-            patch: { visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" };
-        }) => updateRoute(token!, id, patch),
+        mutationFn: ({ id, patch }: { id: string; patch: RoutePatch }) =>
+            updateRoute(token!, id, patch),
         onMutate: async ({ id, patch }) => {
             await queryClient.cancelQueries({ queryKey: ["me", "routes"] });
             const prev = queryClient.getQueryData<MyRouteItem[]>(["me", "routes"]);
@@ -188,10 +204,11 @@ export function MyRoutesPage() {
                             <RouteRow
                                 key={route.id}
                                 route={route}
+                                sports={sports}
                                 isEditing={editingId === route.id}
+                                isSaving={updateMut.isPending && updateMut.variables?.id === route.id}
                                 onToggleEdit={() => setEditingId(id => id === route.id ? null : route.id)}
-                                onVisibilityChange={(v) => updateMut.mutate({ id: route.id, patch: { visibility: v } })}
-                                onStatusChange={(s) => updateMut.mutate({ id: route.id, patch: { status: s } })}
+                                onPatch={(patch) => updateMut.mutate({ id: route.id, patch })}
                                 onView={() => navigate(`/route/${route.slug}`)}
                             />
                         ))}
@@ -204,19 +221,48 @@ export function MyRoutesPage() {
 
 function RouteRow({
     route,
+    sports,
     isEditing,
+    isSaving,
     onToggleEdit,
-    onVisibilityChange,
-    onStatusChange,
+    onPatch,
     onView,
 }: {
     route: MyRouteItem;
+    sports: SportOption[];
     isEditing: boolean;
+    isSaving: boolean;
     onToggleEdit: () => void;
-    onVisibilityChange: (v: "PUBLIC" | "UNLISTED" | "PRIVATE") => void;
-    onStatusChange: (s: "DRAFT" | "PUBLISHED" | "ARCHIVED") => void;
+    onPatch: (patch: { title?: string; description?: string | null; sportCode?: string; visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }) => void;
     onView: () => void;
 }) {
+    const [editTab, setEditTab] = useState<"actions" | "data">("actions");
+
+    // Local form state
+    const [formTitle, setFormTitle] = useState(route.title);
+    const [formDesc, setFormDesc] = useState(route.description ?? "");
+    const [formSport, setFormSport] = useState(route.sportCode ?? "");
+
+    const handleToggleEdit = () => {
+        // Reset form to current route values when opening
+        setFormTitle(route.title);
+        setFormDesc(route.description ?? "");
+        setFormSport(route.sportCode ?? "");
+        setEditTab("actions");
+        onToggleEdit();
+    };
+
+    const handleSaveData = () => {
+        onPatch({
+            title: formTitle.trim() || undefined,
+            description: formDesc.trim() || null,
+            sportCode: formSport || undefined,
+        });
+        onToggleEdit();
+    };
+
+    const canSave = formTitle.trim() !== "";
+
     const km = (route.distanceM / 1000).toFixed(1);
     const vis = VISIBILITY_CONFIG[route.visibility];
     const st = STATUS_CONFIG[route.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.DRAFT;
@@ -248,12 +294,10 @@ function RouteRow({
                                 {route.title}
                             </button>
                             <div className="flex items-center gap-2 mt-1 flex-wrap">
-                                {/* Sport chip */}
                                 <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-primary bg-primary/10 px-2 py-0.5 rounded">
                                     <span className="material-symbols-outlined !text-[12px]">{sportIcon}</span>
                                     {route.sportCode ?? "—"}
                                 </span>
-                                {/* Stats */}
                                 <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
                                     <span className="material-symbols-outlined !text-[13px]">straighten</span>
                                     {km} km
@@ -262,26 +306,23 @@ function RouteRow({
                                     <span className="material-symbols-outlined !text-[13px]">trending_up</span>
                                     +{route.elevationGainM} m
                                 </span>
-                                {/* Date */}
                                 <span className="text-[11px] text-slate-400">
                                     {new Date(route.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
                                 </span>
                             </div>
                         </div>
 
-                        {/* Edit toggle */}
                         <button
-                            onClick={onToggleEdit}
+                            onClick={handleToggleEdit}
                             className="shrink-0 p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                            title="Editar"
                         >
                             <span className="material-symbols-outlined !text-base">
-                                {isEditing ? "expand_less" : "tune"}
+                                {isEditing ? "expand_less" : "edit"}
                             </span>
                         </button>
                     </div>
 
-                    {/* Badges row */}
+                    {/* Badges */}
                     <div className="flex items-center gap-2 mt-2">
                         <span className={`flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold border rounded-full ${vis.bg} ${vis.color}`}>
                             <span className="material-symbols-outlined !text-[11px]">{vis.icon}</span>
@@ -297,65 +338,154 @@ function RouteRow({
 
             {/* Edit panel */}
             {isEditing && (
-                <div className="border-t border-slate-100 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-800/50">
-                    <div className="flex flex-wrap gap-4 items-center">
-                        {/* Visibility select */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Visibilidad</label>
-                            <div className="flex gap-1.5">
-                                {(["PUBLIC", "UNLISTED", "PRIVATE"] as const).map(v => {
-                                    const cfg = VISIBILITY_CONFIG[v];
-                                    const active = route.visibility === v;
-                                    return (
-                                        <button
-                                            key={v}
-                                            onClick={() => onVisibilityChange(v)}
-                                            className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${active
+                <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                    {/* Tabs */}
+                    <div className="flex border-b border-slate-100 dark:border-slate-800">
+                        {(["actions", "data"] as const).map(tab => (
+                            <button
+                                key={tab}
+                                onClick={() => setEditTab(tab)}
+                                className={`flex items-center gap-1.5 px-4 py-2.5 text-[11px] font-black uppercase tracking-widest border-b-2 transition-all ${editTab === tab
+                                    ? "border-primary text-primary"
+                                    : "border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                                }`}
+                            >
+                                <span className="material-symbols-outlined !text-sm">
+                                    {tab === "actions" ? "toggle_on" : "edit_note"}
+                                </span>
+                                {tab === "actions" ? "Acciones" : "Datos"}
+                            </button>
+                        ))}
+                        <button
+                            onClick={onView}
+                            className="ml-auto flex items-center gap-1 px-4 py-2.5 text-[11px] font-bold text-primary hover:bg-primary/5 transition-all"
+                        >
+                            <span className="material-symbols-outlined !text-sm">open_in_new</span>
+                            Ver
+                        </button>
+                    </div>
+
+                    {/* Acciones tab */}
+                    {editTab === "actions" && (
+                        <div className="flex flex-wrap gap-4 items-start px-4 py-3">
+                            {/* Visibility */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Visibilidad</label>
+                                <div className="flex gap-1.5">
+                                    {(["PUBLIC", "UNLISTED", "PRIVATE"] as const).map(v => {
+                                        const cfg = VISIBILITY_CONFIG[v];
+                                        return (
+                                            <button
+                                                key={v}
+                                                onClick={() => onPatch({ visibility: v })}
+                                                className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${route.visibility === v
                                                     ? `${cfg.bg} ${cfg.color} shadow-sm`
                                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                                                 }`}
-                                        >
-                                            <span className="material-symbols-outlined !text-[13px]">{cfg.icon}</span>
-                                            {cfg.label}
-                                        </button>
-                                    );
-                                })}
+                                            >
+                                                <span className="material-symbols-outlined !text-[13px]">{cfg.icon}</span>
+                                                {cfg.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Status select */}
-                        <div className="flex flex-col gap-1">
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estado</label>
-                            <div className="flex gap-1.5">
-                                {(["PUBLISHED", "DRAFT"] as const).map(s => {
-                                    const cfg = STATUS_CONFIG[s];
-                                    const active = route.status === s;
-                                    return (
-                                        <button
-                                            key={s}
-                                            onClick={() => onStatusChange(s)}
-                                            className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${active
+                            {/* Status */}
+                            <div className="flex flex-col gap-1">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estado</label>
+                                <div className="flex gap-1.5">
+                                    {(["PUBLISHED", "DRAFT", "ARCHIVED"] as const).map(s => {
+                                        const cfg = STATUS_CONFIG[s];
+                                        return (
+                                            <button
+                                                key={s}
+                                                onClick={() => onPatch({ status: s })}
+                                                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${route.status === s
                                                     ? "bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800 shadow-sm"
                                                     : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
                                                 }`}
-                                        >
-                                            <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
-                                            {cfg.label}
-                                        </button>
-                                    );
-                                })}
+                                            >
+                                                <span className={`w-1.5 h-1.5 rounded-full ${cfg.dot}`} />
+                                                {cfg.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
+                    )}
 
-                        {/* View link */}
-                        <button
-                            onClick={onView}
-                            className="ml-auto flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold text-primary hover:bg-primary/5 border border-primary/20 rounded-lg transition-all"
-                        >
-                            <span className="material-symbols-outlined !text-[13px]">open_in_new</span>
-                            Ver ruta
-                        </button>
-                    </div>
+                    {/* Datos tab */}
+                    {editTab === "data" && (
+                        <div className="px-4 py-4 flex flex-col gap-3">
+                            {/* Title */}
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Título *</label>
+                                <input
+                                    type="text"
+                                    value={formTitle}
+                                    onChange={e => setFormTitle(e.target.value)}
+                                    maxLength={120}
+                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                                />
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Descripción</label>
+                                <textarea
+                                    value={formDesc}
+                                    onChange={e => setFormDesc(e.target.value)}
+                                    rows={3}
+                                    maxLength={2000}
+                                    placeholder="Describe la ruta, puntos de interés, dificultad..."
+                                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-medium text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all resize-none"
+                                />
+                            </div>
+
+                            {/* Sport */}
+                            {sports.length > 0 && (
+                                <div>
+                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Deporte</label>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {sports.map(s => (
+                                            <button
+                                                key={s.code}
+                                                onClick={() => setFormSport(s.code)}
+                                                className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${formSport === s.code
+                                                    ? "bg-primary/10 border-primary/40 text-primary shadow-sm"
+                                                    : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                                }`}
+                                            >
+                                                <span className="material-symbols-outlined !text-[13px]">
+                                                    {SPORT_ICONS[s.code] ?? "route"}
+                                                </span>
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Save / Cancel */}
+                            <div className="flex gap-2 pt-1">
+                                <button
+                                    onClick={handleToggleEdit}
+                                    className="flex-1 py-2 text-[12px] font-bold text-slate-500 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    disabled={!canSave || isSaving}
+                                    onClick={handleSaveData}
+                                    className="flex-1 py-2 text-[12px] font-bold text-white bg-primary hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg shadow-sm shadow-primary/20 transition-all"
+                                >
+                                    {isSaving ? "Guardando..." : "Guardar cambios"}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

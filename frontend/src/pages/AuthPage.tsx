@@ -38,7 +38,6 @@ export function AuthPage() {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState<AuthRole>("ROLE_ATHLETE");
     const [slug, setSlug] = useState("");
-    const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
 
     // UI state
     const [showPassword, setShowPassword] = useState(false);
@@ -54,10 +53,10 @@ export function AuthPage() {
 
     // Auto-generate slug from name
     useEffect(() => {
-        if (!slugManuallyEdited && mode === "register") {
+        if (mode === "register") {
             setSlug(slugify(name));
         }
-    }, [name, mode, slugManuallyEdited]);
+    }, [name, mode]);
 
     const switchMode = (m: Mode) => {
         setMode(m);
@@ -68,7 +67,6 @@ export function AuthPage() {
         setEmail("");
         setPassword("");
         setSlug("");
-        setSlugManuallyEdited(false);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -84,7 +82,6 @@ export function AuthPage() {
             if (password.length < 8) fe.password = "Password must be at least 8 characters.";
             if (password.length > 72) fe.password = "Password cannot exceed 72 characters.";
             if (slug.trim().length < 3) fe.slug = "Slug must be at least 3 characters.";
-            if (!/^[a-z0-9\-_]+$/i.test(slug.trim())) fe.slug = "Slug can only contain letters, numbers, hyphens and underscores.";
             if (Object.keys(fe).length > 0) { setFieldErrors(fe); return; }
         }
 
@@ -110,7 +107,6 @@ export function AuthPage() {
                 setName("");
                 setPassword("");
                 setSlug("");
-                setSlugManuallyEdited(false);
                 setFieldErrors({});
                 setEmail(registeredEmail);
                 setSuccessMessage("Account created! Sign in to continue.");
@@ -337,37 +333,6 @@ export function AuthPage() {
                                                 </button>
                                             ))}
                                         </div>
-                                    </div>
-                                )}
-
-                                {/* Slug (register only) */}
-                                {mode === "register" && (
-                                    <div className="flex flex-col w-full">
-                                        <label className="text-sm font-semibold leading-normal pb-2">
-                                            Profile slug
-                                            <span className="ml-2 text-xs font-normal text-[#4c669a]">
-                                                your public URL
-                                            </span>
-                                        </label>
-                                        <div className="relative">
-                                            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4c669a] text-sm font-semibold select-none">
-                                                vallactiva.com/
-                                            </span>
-                                            <input
-                                                type="text"
-                                                value={slug}
-                                                onChange={(e) => {
-                                                    setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-_]/g, ""));
-                                                    setSlugManuallyEdited(true);
-                                                    setFieldErrors(p => ({ ...p, slug: "" }));
-                                                }}
-                                                placeholder="my-profile"
-                                                required
-                                                minLength={3}
-                                                className={`flex w-full rounded-xl border h-14 pl-[5.5rem] pr-4 text-base font-normal placeholder:text-[#4c669a] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#1a2333] ${fieldErrors.slug ? "border-red-400 focus:ring-red-300" : "border-[#cfd7e7] dark:border-[#2a3447] focus:ring-primary/50"}`}
-                                            />
-                                        </div>
-                                        {fieldErrors.slug && <p className="mt-1.5 text-xs text-red-500 font-semibold">{fieldErrors.slug}</p>}
                                     </div>
                                 )}
 

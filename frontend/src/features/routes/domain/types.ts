@@ -50,6 +50,7 @@ export type MyRouteItem = {
     id: string;
     title: string;
     slug: string;
+    description: string | null;
     visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     distanceM: number;
@@ -58,6 +59,7 @@ export type MyRouteItem = {
     image: string | null;
     createdAt: string;
     isActive: boolean;
+    sportId: string | null;
     sportCode: string | null;
     sportName: string | null;
 };

@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Presentation\Http\Controller\Route;
 
 use App\Infrastructure\Persistence\Doctrine\Entity\Route\RouteOrm;
+use App\Infrastructure\Persistence\Doctrine\Entity\Sport\SportOrm;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -29,7 +30,6 @@ final class UpdateRouteController extends AbstractController
             return $this->json(['error' => 'unauthorized'], 401);
         }
 
-        // Basic UUID format check
         if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i', $id)) {
             return $this->json(['error' => 'invalid_id'], 400);
         }
@@ -45,9 +45,62 @@ final class UpdateRouteController extends AbstractController
         /** @var array<string, mixed> $body */
         $body = json_decode($request->getContent(), true) ?? [];
 
+        // title — if changed, also auto-regenerate slug
+        if (isset($body['title']) && is_string($body['title'])) {
+            $title = trim($body['title']);
+            if ($title !== '') {
+                $route->title = mb_substr($title, 0, 255);
+
+                // Auto-generate slug from new title with uniqueness check
+                $newSlug = mb_strtolower(
+                    trim((string) preg_replace('/[^a-z0-9]+/i', '-', iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $title) ?: $title)),
+                    'UTF-8'
+                );
+                $newSlug = trim(mb_substr($newSlug, 0, 60), '-');
+                if ($newSlug !== '' && $newSlug !== $route->slug) {
+                    $conflict = $em->createQueryBuilder()
+                        ->select('COUNT(r.id)')
+                        ->from(RouteOrm::class, 'r')
+                        ->where('r.createdByUserId = :uid AND r.slug = :slug AND r.id != :rid')
+                        ->setParameter('uid', $userId)
+                        ->setParameter('slug', $newSlug)
+                        ->setParameter('rid', $id)
+                        ->getQuery()
+                        ->getSingleScalarResult();
+                    if ((int) $conflict === 0) {
+                        $route->slug = $newSlug;
+                    }
+                }
+            }
+        }
+
+        // description
+        if (array_key_exists('description', $body)) {
+            $route->description = is_string($body['description']) && trim($body['description']) !== ''
+                ? trim($body['description'])
+                : null;
+        }
+
+        // sportCode — look up the sport and update sportId
+        if (isset($body['sportCode']) && is_string($body['sportCode'])) {
+            $sport = $em->createQueryBuilder()
+                ->select('s')
+                ->from(SportOrm::class, 's')
+                ->where('s.code = :code')
+                ->setParameter('code', mb_strtoupper(trim($body['sportCode'])))
+                ->getQuery()
+                ->getOneOrNullResult();
+            if ($sport instanceof SportOrm) {
+                $route->sportId = $sport->id;
+            }
+        }
+
+        // visibility
         if (isset($body['visibility']) && in_array($body['visibility'], self::VISIBILITY_VALUES, true)) {
             $route->visibility = (string) $body['visibility'];
         }
+
+        // status
         if (isset($body['status']) && in_array($body['status'], self::STATUS_VALUES, true)) {
             $route->status = (string) $body['status'];
         }
@@ -56,9 +109,13 @@ final class UpdateRouteController extends AbstractController
         $em->flush();
 
         return $this->json([
-            'id' => $route->id,
-            'visibility' => $route->visibility,
-            'status' => $route->status,
+            'id'          => $route->id,
+            'title'       => $route->title,
+            'slug'        => $route->slug,
+            'description' => $route->description,
+            'visibility'  => $route->visibility,
+            'status'      => $route->status,
+            'sportId'     => $route->sportId,
         ]);
     }
 
