@@ -9,6 +9,8 @@ import { PublicProfilePage } from "../../pages/PublicProfilePage";
 import { SettingsPage } from "../../pages/SettingsPage";
 import { CreateRoutePage } from "../../pages/CreateRoutePage";
 import { MyRoutesPage } from "../../pages/MyRoutesPage";
+import { CreateOfferPage } from "../../pages/CreateOfferPage";
+import { MyOffersPage } from "../../pages/MyOffersPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
@@ -20,6 +22,8 @@ export const router = createBrowserRouter([
     { path: "/routes", element: <ShopPage /> },
     { path: "/routes/new", element: <CreateRoutePage /> },
     { path: "/me/routes", element: <MyRoutesPage /> },
+    { path: "/offers/new", element: <CreateOfferPage /> },
+    { path: "/me/offers", element: <MyOffersPage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },
     { path: "/offer/:slug", element: <OfferDetailPage /> },
 ]);

@@ -59,7 +59,7 @@ export function Header() {
                         <div className="size-8 sm:size-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shadow-sm">
                             <span className="material-symbols-outlined !text-2xl sm:!text-3xl font-bold">explore</span>
                         </div>
-                        <h1 className="text-lg sm:text-xl font-black tracking-tighter text-slate-900 dark:text-white">RouteFind</h1>
+                        <h1 className="text-lg sm:text-xl font-black tracking-tighter text-slate-900 dark:text-white">Vall Activa</h1>
                     </div>
 
                     {/* Desktop Nav */}
@@ -158,6 +158,31 @@ export function Header() {
                                                 </button>
                                             </>
                                         )}
+                                        {user.role === "ROLE_BUSINESS" && (
+                                            <>
+                                                <button
+                                                    onClick={() => { setUserMenuOpen(false); navigate("/me"); }}
+                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">store</span>
+                                                    Mi negocio
+                                                </button>
+                                                <button
+                                                    onClick={() => { setUserMenuOpen(false); navigate("/me/offers"); }}
+                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">sell</span>
+                                                    Mis ofertas
+                                                </button>
+                                                <button
+                                                    onClick={() => { setUserMenuOpen(false); navigate("/offers/new"); }}
+                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">add_circle</span>
+                                                    Nueva oferta
+                                                </button>
+                                            </>
+                                        )}
                                         <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
                                         <button
                                             onClick={handleLogout}
@@ -229,6 +254,28 @@ export function Header() {
                                         className="w-full py-3 text-center font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl"
                                     >
                                         Subir ruta
+                                    </button>
+                                </>
+                            )}
+                            {user.role === "ROLE_BUSINESS" && (
+                                <>
+                                    <button
+                                        onClick={() => { setMobileMenuOpen(false); navigate("/me"); }}
+                                        className="w-full py-3 text-center font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                                    >
+                                        Mi negocio
+                                    </button>
+                                    <button
+                                        onClick={() => { setMobileMenuOpen(false); navigate("/me/offers"); }}
+                                        className="w-full py-3 text-center font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"
+                                    >
+                                        Mis ofertas
+                                    </button>
+                                    <button
+                                        onClick={() => { setMobileMenuOpen(false); navigate("/offers/new"); }}
+                                        className="w-full py-3 text-center font-bold text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 rounded-xl"
+                                    >
+                                        Nueva oferta
                                     </button>
                                 </>
                             )}

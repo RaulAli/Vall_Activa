@@ -28,12 +28,12 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->andWhere('o.status = :status')
             ->setParameter('status', 'PUBLISHED');
 
-        // JOIN al perfil del business (para bbox + markers en futuro)
-        $baseQb->innerJoin(
+        // LEFT JOIN: offers from businesses without a profile are still visible
+        $baseQb->leftJoin(
             BusinessProfileOrm::class,
             'b',
             'WITH',
-            'b.userId = o.businessId AND b.isActive = true'
+            'b.userId = o.businessId'
         );
 
         // bbox por business.lat/lng
@@ -143,7 +143,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
                  o.quantity, o.pointsCost, o.status, o.isActive, o.createdAt,
                  b.lat, b.lng, b.name AS businessName, b.slug AS businessSlug, b.profileIcon AS businessAvatar')
             ->from(\App\Infrastructure\Persistence\Doctrine\Entity\Offer\OfferOrm::class, 'o')
-            ->innerJoin(
+            ->leftJoin(
                 \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
                 'b',
                 'WITH',
@@ -204,12 +204,12 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->andWhere('o.status = :status')
             ->setParameter('status', 'PUBLISHED');
 
-        // join business profile (para bbox + datos marker)
-        $qb->innerJoin(
+        // join business profile (para bbox + datos marker) — left join so offers without profile still exist in results
+        $qb->leftJoin(
             BusinessProfileOrm::class,
             'b',
             'WITH',
-            'b.userId = o.businessId AND b.isActive = true'
+            'b.userId = o.businessId'
         );
 
         // bbox
@@ -292,11 +292,11 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->setParameter('status', 'PUBLISHED');
 
         // join business profile (para bbox + bounds)
-        $baseQb->innerJoin(
+        $baseQb->leftJoin(
             \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
             'b',
             'WITH',
-            'b.userId = o.businessId AND b.isActive = true'
+            'b.userId = o.businessId'
         );
 
         // bbox (minLng,minLat,maxLng,maxLat)
@@ -402,11 +402,11 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->andWhere('o.isActive = true')
             ->andWhere('o.status = :status')
             ->setParameter('status', 'PUBLISHED')
-            ->innerJoin(
+            ->leftJoin(
                 \App\Infrastructure\Persistence\Doctrine\Entity\Business\BusinessProfileOrm::class,
                 'b',
                 'WITH',
-                'b.userId = o.businessId AND b.isActive = true'
+                'b.userId = o.businessId'
             );
 
         // copiar filtros excepto discountType

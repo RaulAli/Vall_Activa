@@ -47,19 +47,19 @@ final class GetMyRoutesController extends AbstractController
             /** @var \DateTimeInterface $createdAt */
             $createdAt = $r['createdAt'];
             return [
-                'id'             => $r['id'],
-                'title'          => $r['title'],
-                'slug'           => $r['slug'],
-                'visibility'     => $r['visibility'],
-                'status'         => $r['status'],
-                'distanceM'      => $r['distanceM'],
+                'id' => $r['id'],
+                'title' => $r['title'],
+                'slug' => $r['slug'],
+                'visibility' => $r['visibility'],
+                'status' => $r['status'],
+                'distanceM' => $r['distanceM'],
                 'elevationGainM' => $r['elevationGainM'],
                 'elevationLossM' => $r['elevationLossM'],
-                'image'          => $r['image'],
-                'createdAt'      => $createdAt->format(\DateTimeInterface::ATOM),
-                'isActive'       => $r['isActive'],
-                'sportCode'      => $r['sportCode'] ?? null,
-                'sportName'      => $r['sportName'] ?? null,
+                'image' => $r['image'],
+                'createdAt' => $createdAt->format(\DateTimeInterface::ATOM),
+                'isActive' => $r['isActive'],
+                'sportCode' => $r['sportCode'] ?? null,
+                'sportName' => $r['sportName'] ?? null,
             ];
         }, $rows);
 

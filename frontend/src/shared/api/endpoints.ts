@@ -15,6 +15,8 @@ export const endpoints = {
         filters: "/api/public/offers/filters",
         mapBusinesses: "/api/public/offers/map-businesses",
         details: (slug: string) => `/api/public/offers/${slug}`,
+        mine: "/api/business/me/offers",
+        update: (id: string) => `/api/business/me/offers/${id}`,
     },
     routes: {
         list: "/api/public/routes",
@@ -33,5 +35,8 @@ export const endpoints = {
         follow: (slug: string) => `/api/profile/${slug}/follow`,
         myFollowers: "/api/me/followers",
         myFollowing: "/api/me/following",
+    },
+    business: {
+        profile: "/api/business/me/profile",
     },
 };

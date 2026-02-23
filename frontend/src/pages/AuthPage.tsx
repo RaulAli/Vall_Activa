@@ -164,7 +164,7 @@ export function AuthPage() {
                         <div className="size-8 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300">
                             <span className="material-symbols-outlined !text-xl font-bold">explore</span>
                         </div>
-                        <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">VAMO</h2>
+                        <h2 className="text-lg font-bold leading-tight tracking-[-0.015em]">Vall Activa</h2>
                     </button>
                     <div className="hidden md:flex items-center gap-9">
                         <button onClick={() => navigate("/")} className="text-sm font-medium leading-normal hover:text-primary transition-colors">
@@ -211,7 +211,7 @@ export function AuthPage() {
                                 <p className="text-[#4c669a] dark:text-slate-400 text-base">
                                     {mode === "login"
                                         ? "Enter your details to access your account"
-                                        : "Join the VAMO community today"}
+                                        : "Join the Vall Activa community today"}
                                 </p>
                             </div>
 
@@ -351,7 +351,7 @@ export function AuthPage() {
                                         </label>
                                         <div className="relative">
                                             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#4c669a] text-sm font-semibold select-none">
-                                                vamo.com/
+                                                vallactiva.com/
                                             </span>
                                             <input
                                                 type="text"

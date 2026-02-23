@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Attribute\Route;
 final class UpdateRouteController extends AbstractController
 {
     private const VISIBILITY_VALUES = ['PUBLIC', 'UNLISTED', 'PRIVATE'];
-    private const STATUS_VALUES     = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+    private const STATUS_VALUES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
 
     public function __construct(
         private readonly JWTTokenManagerInterface $jwtManager,
@@ -56,9 +56,9 @@ final class UpdateRouteController extends AbstractController
         $em->flush();
 
         return $this->json([
-            'id'         => $route->id,
+            'id' => $route->id,
             'visibility' => $route->visibility,
-            'status'     => $route->status,
+            'status' => $route->status,
         ]);
     }
 

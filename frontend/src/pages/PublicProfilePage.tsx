@@ -121,8 +121,8 @@ export function PublicProfilePage() {
                                         onClick={() => isFollowing ? unfollow.mutate() : follow.mutate()}
                                         disabled={isBusy}
                                         className={`flex items-center gap-1.5 px-5 py-2 rounded-xl text-sm font-bold transition-all shadow-sm disabled:opacity-60 ${isFollowing
-                                                ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700"
-                                                : "bg-primary text-white hover:bg-blue-700 shadow-primary/20"
+                                            ? "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 dark:hover:text-red-400 border border-slate-200 dark:border-slate-700"
+                                            : "bg-primary text-white hover:bg-blue-700 shadow-primary/20"
                                             }`}
                                     >
                                         {isBusy
@@ -222,7 +222,7 @@ export function PublicProfilePage() {
                     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 mb-6">
                         <h2 className="text-sm font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Establecimiento</h2>
                         <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed">
-                            Este establecimiento colabora con VAMO para ofrecer las mejores experiencias y productos a la comunidad de deportistas.
+                            Este establecimiento colabora con Vall Activa para ofrecer las mejores experiencias y productos a la comunidad de deportistas.
                         </p>
                     </div>
                 )}

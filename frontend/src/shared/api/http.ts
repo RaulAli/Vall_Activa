@@ -52,6 +52,14 @@ export async function http<T>(
     if (!res.ok) {
         let body: Record<string, unknown> = {};
         try { body = await res.json(); } catch { /* empty */ }
+
+        // Auto-logout on 401: token expired or invalid
+        if (res.status === 401) {
+            const { useAuthStore } = await import("../../store/authStore");
+            useAuthStore.getState().clearAuth();
+            window.location.href = "/auth";
+        }
+
         throw new HttpError(res.status, body, `HTTP ${res.status}`);
     }
 

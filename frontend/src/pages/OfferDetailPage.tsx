@@ -87,7 +87,7 @@ export function OfferDetailPage() {
                             </h2>
                             <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 leading-relaxed">
                                 <p className="mb-4 text-lg">
-                                    {offer.description || "Esta es una oferta exclusiva disponible a través de VAMO. Aprovecha esta oportunidad única para disfrutar de servicios premium a precios reducidos o canjeando tus puntos de actividad."}
+                                    {offer.description || "Esta es una oferta exclusiva disponible a través de Vall Activa. Aprovecha esta oportunidad única para disfrutar de servicios premium a precios reducidos o canjeando tus puntos de actividad."}
                                 </p>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                                     <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -114,7 +114,7 @@ export function OfferDetailPage() {
                                 Sobre el establecimiento
                             </h3>
                             <p className="text-slate-600 dark:text-slate-400 mb-6">
-                                Este establecimiento colabora con VAMO para ofrecer las mejores experiencias y productos a nuestra comunidad de deportistas.
+                                Este establecimiento colabora con Vall Activa para ofrecer las mejores experiencias y productos a nuestra comunidad de deportistas.
                             </p>
 
                             {offer.lat && offer.lng && (

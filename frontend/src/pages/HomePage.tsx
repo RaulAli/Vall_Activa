@@ -316,7 +316,7 @@ export function HomePage() {
                         <div className="flex flex-col gap-8">
                             <div className="flex items-center gap-2">
                                 <span className="material-symbols-outlined text-primary text-4xl font-black">explore</span>
-                                <h2 className="text-3xl font-black tracking-tighter">RouteFind</h2>
+                                <h2 className="text-3xl font-black tracking-tighter">Vall Activa</h2>
                             </div>
                             <p className="text-slate-500 dark:text-slate-400 font-bold text-lg leading-relaxed">
                                 Curating the best adventures since 2024. Exploration starts here.
@@ -338,7 +338,7 @@ export function HomePage() {
                         ))}
                     </div>
                     <div className="pt-10 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-8">
-                        <p className="text-slate-400 font-black text-[12px] uppercase tracking-[0.2em]">© 2024 RouteFind Inc. All rights reserved.</p>
+                        <p className="text-slate-400 font-black text-[12px] uppercase tracking-[0.2em]">© 2026 Vall Activa. All rights reserved.</p>
                         <div className="flex gap-8 text-slate-400">
                             <a href="#" className="hover:text-primary transition-all hover:scale-110"><span className="material-symbols-outlined !text-3xl">public</span></a>
                             <a href="#" className="hover:text-primary transition-all hover:scale-110"><span className="material-symbols-outlined !text-3xl">mail</span></a>

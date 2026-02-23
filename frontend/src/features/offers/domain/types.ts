@@ -42,3 +42,33 @@ export type BusinessMapMarker = {
     profileIcon: string | null;
     offersCount: number;
 };
+
+export type MyOfferItem = {
+    id: string;
+    title: string;
+    slug: string;
+    description: string | null;
+    price: string;
+    currency: string;
+    image: string | null;
+    discountType: "AMOUNT" | "PERCENT" | "NONE";
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    quantity: number;
+    pointsCost: number;
+    isActive: boolean;
+    createdAt: string;
+};
+
+export interface CreateOfferPayload {
+    title: string;
+    slug: string;
+    description?: string;
+    price: string;
+    currency: string;
+    isActive: boolean;
+    quantity: number;
+    pointsCost: number;
+    image?: string;
+    discountType: "AMOUNT" | "PERCENT" | "NONE";
+    status: "DRAFT" | "PUBLISHED";
+}
