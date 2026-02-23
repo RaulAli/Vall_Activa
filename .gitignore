@@ -1,3 +1,6 @@
+### Project context (sensitive, local only) ###
+CONTEXT.md
+
 ### OS ###
 .DS_Store
 Thumbs.db
