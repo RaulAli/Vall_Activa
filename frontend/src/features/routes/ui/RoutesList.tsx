@@ -10,6 +10,17 @@ function formatDuration(seconds: number): string {
     return m > 0 ? `${h}h ${m}min` : `${h}h`;
 }
 
+const DIFFICULTY_BADGE: Record<string, { label: string; cls: string }> = {
+    EASY: { label: "Fácil", cls: "bg-emerald-500/90 text-white" },
+    MODERATE: { label: "Moderada", cls: "bg-amber-500/90 text-white" },
+    HARD: { label: "Difícil", cls: "bg-orange-500/90 text-white" },
+    EXPERT: { label: "Experto", cls: "bg-red-600/90 text-white" },
+};
+const ROUTE_TYPE_BADGE: Record<string, { label: string; icon: string; cls: string }> = {
+    CIRCULAR: { label: "Circular", icon: "loop", cls: "bg-white/90 dark:bg-slate-900/90 text-blue-600" },
+    LINEAR: { label: "Lineal", icon: "trending_flat", cls: "bg-white/90 dark:bg-slate-900/90 text-amber-600" },
+    ROUND_TRIP: { label: "Ida y vuelta", icon: "sync_alt", cls: "bg-white/90 dark:bg-slate-900/90 text-teal-600" },
+};
 type Props = {
     items: RouteListItem[];
 };
@@ -56,7 +67,17 @@ export function RoutesList({ items }: Props) {
                                     alt={r.title}
                                 />
                                 <div className="absolute top-3 left-3 flex gap-2">
-                                    <span className="px-2 py-1 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded text-[10px] font-bold uppercase tracking-widest text-primary">Moderate</span>
+                                    {r.difficulty && DIFFICULTY_BADGE[r.difficulty] ? (
+                                        <span className={`px-2 py-1 backdrop-blur rounded text-[10px] font-bold uppercase tracking-widest shadow-sm ${DIFFICULTY_BADGE[r.difficulty].cls}`}>
+                                            {DIFFICULTY_BADGE[r.difficulty].label}
+                                        </span>
+                                    ) : null}
+                                    {r.routeType && ROUTE_TYPE_BADGE[r.routeType] ? (
+                                        <span className={`flex items-center gap-1 px-2 py-1 backdrop-blur rounded text-[10px] font-bold shadow-sm ${ROUTE_TYPE_BADGE[r.routeType].cls}`}>
+                                            <span className="material-symbols-outlined !text-[12px]">{ROUTE_TYPE_BADGE[r.routeType].icon}</span>
+                                            {ROUTE_TYPE_BADGE[r.routeType].label}
+                                        </span>
+                                    ) : null}
                                 </div>
                                 <div className="absolute top-3 right-3 flex gap-2">
                                     {/* Map Toggle (Only show if needed or simplify) */}
@@ -83,7 +104,6 @@ export function RoutesList({ items }: Props) {
                             <div className="p-4">
                                 <div className="flex justify-between items-start mb-2">
                                     <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate pr-2">{r.title}</h4>
-                                    <span className="font-extrabold text-primary text-sm tracking-tight">$5.00</span>
                                 </div>
                                 <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                                     <div className="flex items-center gap-1">

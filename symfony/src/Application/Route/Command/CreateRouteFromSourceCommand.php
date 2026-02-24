@@ -24,7 +24,9 @@ final class CreateRouteFromSourceCommand
         public readonly ?string $originalFilename = null,
         public readonly ?string $mimeType = null,
         public readonly ?int $fileSize = null,
-        public readonly ?string $sha256 = null
+        public readonly ?string $sha256 = null,
+        public readonly ?string $difficulty = null,
+        public readonly ?string $routeType = null,
     ) {
     }
 }

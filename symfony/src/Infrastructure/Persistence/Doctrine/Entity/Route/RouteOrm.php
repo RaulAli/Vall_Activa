@@ -81,6 +81,12 @@ class RouteOrm
     #[ORM\Column(name: 'duration_seconds', type: 'integer', nullable: true)]
     public ?int $durationSeconds = null;
 
+    #[ORM\Column(type: 'string', length: 20, nullable: true)]
+    public ?string $difficulty = null;
+
+    #[ORM\Column(name: 'route_type', type: 'string', length: 20, nullable: true)]
+    public ?string $routeType = null;
+
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 

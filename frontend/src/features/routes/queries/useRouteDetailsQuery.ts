@@ -27,6 +27,9 @@ export const RouteDetailsSchema = z.object({
     elevationGainM: z.number(),
     elevationLossM: z.number(),
     durationSeconds: z.number().nullable().optional(),
+    difficulty: z.string().nullable().optional(),
+    routeType: z.string().nullable().optional(),
+    sportCode: z.string().nullable().optional(),
 
     polyline: z.string().nullable(),
     createdAt: z.string(),

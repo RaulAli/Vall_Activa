@@ -84,7 +84,8 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
         $rows = (clone $baseQb)
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
-            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.isActive, r.createdAt, r.image, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
+            ->leftJoin(SportOrm::class, 'sp', 'WITH', 'sp.id = r.sportId')
+            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.isActive, r.createdAt, r.image, sp.code AS sportCode, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -112,6 +113,9 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                 creatorSlug: $r['athleteSlug'] ?? $r['guideSlug'] ?? null,
                 creatorAvatar: $r['athleteAvatar'] ?? $r['guideAvatar'] ?? null,
                 durationSeconds: isset($r['durationSeconds']) ? (int) $r['durationSeconds'] : null,
+                difficulty: $r['difficulty'] ?? null,
+                routeType: $r['routeType'] ?? null,
+                sportCode: isset($r['sportCode']) ? strtoupper((string) $r['sportCode']) : null,
             );
         }, $rows);
 
@@ -181,12 +185,14 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             ->select('r.id, r.sportId, r.title, r.slug, r.description, r.visibility, r.status,
                  r.startLat, r.startLng, r.endLat, r.endLng,
                  r.minLat, r.minLng, r.maxLat, r.maxLng,
-                 r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.polyline, r.createdAt, r.image,
+                 r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.polyline, r.createdAt, r.image,
+                 sp.code AS sportCode,
                  aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar,
                  gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
             ->from(RouteOrm::class, 'r')
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
+            ->leftJoin(SportOrm::class, 'sp', 'WITH', 'sp.id = r.sportId')
             ->andWhere('r.isActive = true')
             ->andWhere('r.visibility = :vis')
             ->andWhere('r.status = :status')
@@ -230,6 +236,9 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             creatorSlug: $row['athleteSlug'] ?? $row['guideSlug'] ?? null,
             creatorAvatar: $row['athleteAvatar'] ?? $row['guideAvatar'] ?? null,
             durationSeconds: isset($row['durationSeconds']) ? (int) $row['durationSeconds'] : null,
+            difficulty: $row['difficulty'] ?? null,
+            routeType: $row['routeType'] ?? null,
+            sportCode: isset($row['sportCode']) ? strtoupper((string) $row['sportCode']) : null,
         );
     }
 

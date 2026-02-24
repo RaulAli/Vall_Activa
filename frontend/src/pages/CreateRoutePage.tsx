@@ -75,6 +75,8 @@ export function CreateRoutePage() {
     const [slugTouched, setSlugTouched] = useState(false);
     const [description, setDescription] = useState("");
     const [visibility, setVisibility] = useState<"PUBLIC" | "UNLISTED" | "PRIVATE">("PUBLIC");
+    const [difficulty, setDifficulty] = useState<"EASY" | "MODERATE" | "HARD" | "EXPERT">("MODERATE");
+    const [routeType, setRouteType] = useState<"CIRCULAR" | "LINEAR" | "ROUND_TRIP" | "">("CIRCULAR");
 
     // Auto-slug from title unless manually edited
     useEffect(() => {
@@ -107,6 +109,8 @@ export function CreateRoutePage() {
                 sportCode,
                 visibility,
                 status: "PUBLISHED",
+                difficulty,
+                routeType: routeType || undefined,
                 file: gpxFile,
             });
         },
@@ -290,6 +294,74 @@ export function CreateRoutePage() {
                                 })}
                             </div>
                         )}
+                    </div>
+
+                    {/* Difficulty */}
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            Dificultad
+                        </label>
+                        <div className="flex gap-2 flex-wrap">
+                            {([
+                                { value: "EASY", label: "Fácil", icon: "sentiment_satisfied" },
+                                { value: "MODERATE", label: "Moderada", icon: "sentiment_neutral" },
+                                { value: "HARD", label: "Difícil", icon: "sentiment_dissatisfied" },
+                                { value: "EXPERT", label: "Experto", icon: "local_fire_department" },
+                            ] as const).map(opt => {
+                                const activeClass =
+                                    opt.value === "EASY" ? "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-500 text-emerald-600 dark:text-emerald-400"
+                                        : opt.value === "MODERATE" ? "bg-amber-50 dark:bg-amber-950/30 border-amber-500 text-amber-600 dark:text-amber-400"
+                                            : opt.value === "HARD" ? "bg-orange-50 dark:bg-orange-950/30 border-orange-500 text-orange-600 dark:text-orange-400"
+                                                : "bg-red-50 dark:bg-red-950/30 border-red-600 text-red-600 dark:text-red-400";
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setDifficulty(opt.value)}
+                                        className={`flex-1 flex flex-col items-center gap-1 py-3 px-3 rounded-xl border transition-all min-w-[75px] ${difficulty === opt.value
+                                                ? activeClass
+                                                : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
+                                            }`}
+                                    >
+                                        <span className="material-symbols-outlined !text-base">{opt.icon}</span>
+                                        <span className="text-xs font-black">{opt.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Tipo de ruta */}
+                    <div>
+                        <label className="block text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
+                            Tipo de ruta
+                        </label>
+                        <div className="flex gap-2 flex-wrap">
+                            {([
+                                { value: "CIRCULAR", label: "Circular", icon: "loop" },
+                                { value: "LINEAR", label: "Lineal", icon: "trending_flat" },
+                                { value: "ROUND_TRIP", label: "Ida y vuelta", icon: "sync_alt" },
+                            ] as const).map(opt => {
+                                const activeClass =
+                                    opt.value === "CIRCULAR" ? "bg-blue-50 dark:bg-blue-950/30 border-blue-500 text-blue-600 dark:text-blue-400"
+                                        : opt.value === "LINEAR" ? "bg-amber-50 dark:bg-amber-950/30 border-amber-500 text-amber-600 dark:text-amber-400"
+                                            : "bg-teal-50 dark:bg-teal-950/30 border-teal-500 text-teal-600 dark:text-teal-400";
+                                return (
+                                    <button
+                                        key={opt.value}
+                                        type="button"
+                                        onClick={() => setRouteType(routeType === opt.value ? "" : opt.value)}
+                                        className={`flex-1 flex flex-col items-center gap-1 py-3 px-3 rounded-xl border transition-all min-w-[90px] ${routeType === opt.value
+                                                ? activeClass
+                                                : "border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800/50"
+                                            }`}
+                                    >
+                                        <span className="material-symbols-outlined !text-base">{opt.icon}</span>
+                                        <span className="text-xs font-black">{opt.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     {/* Visibility */}

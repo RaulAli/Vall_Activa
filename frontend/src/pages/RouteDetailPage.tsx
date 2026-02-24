@@ -48,7 +48,9 @@ export function RouteDetailPage() {
                         <div className="absolute bottom-0 left-0 p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
                             <div>
                                 <span className="inline-block px-3 py-1 rounded-full bg-primary text-white text-xs font-bold uppercase tracking-wider mb-3">
-                                    {route.sportId.toUpperCase()}
+                                    {route.sportCode
+                                        ? ({ HIKE: "Senderismo", BIKE: "Ciclismo", RUN: "Running", SKI: "Esqu\u00ed", CLIMB: "Escalada", KAYAK: "Kayak", SURF: "Surf", SWIM: "Nataci\u00f3n" }[route.sportCode] ?? route.sportCode)
+                                        : null}
                                 </span>
                                 <h1 className="text-white text-4xl md:text-5xl font-extrabold tracking-tight">{route.title}</h1>
                                 {(route.creatorName || route.creatorAvatar) && (
@@ -83,7 +85,17 @@ export function RouteDetailPage() {
                                         <p className="text-white text-xl font-bold">{formatDuration(route.durationSeconds)}</p>
                                     </div>
                                 )}
-                            </div>
+                                {route.difficulty && (
+                                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
+                                        <p className="text-white/70 text-xs font-semibold uppercase">Dificultad</p>
+                                        <p className="text-white text-xl font-bold">{{ EASY: 'Fácil', MODERATE: 'Moderada', HARD: 'Difícil', EXPERT: 'Experto' }[route.difficulty] ?? route.difficulty}</p>
+                                    </div>
+                                )}                                {route.routeType && (
+                                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
+                                        <p className="text-white/70 text-xs font-semibold uppercase">Tipo</p>
+                                        <p className="text-white text-xl font-bold">{{ CIRCULAR: 'Circular', LINEAR: 'Lineal', ROUND_TRIP: 'Ida y vuelta' }[route.routeType] ?? route.routeType}</p>
+                                    </div>
+                                )}                            </div>
                         </div>
                     </div>
                 </section>
@@ -189,13 +201,17 @@ export function RouteDetailPage() {
                                         </div>
                                     </div>
                                     <div className="space-y-4 mb-8">
-                                        <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                                            <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-primary">hiking</span>
-                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Route Type</span>
+                                        {route.routeType && (
+                                            <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-primary">loop</span>
+                                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Tipo</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                                    {{ CIRCULAR: 'Circular', LINEAR: 'Lineal', ROUND_TRIP: 'Ida y vuelta' }[route.routeType] ?? route.routeType}
+                                                </span>
                                             </div>
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white">One-way</span>
-                                        </div>
+                                        )}
                                         {route.durationSeconds != null && (
                                             <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                                                 <div className="flex items-center gap-3">
@@ -205,12 +221,23 @@ export function RouteDetailPage() {
                                                 <span className="text-sm font-bold text-slate-900 dark:text-white">{formatDuration(route.durationSeconds)}</span>
                                             </div>
                                         )}
+                                        {route.difficulty && (
+                                            <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-primary">signal_cellular_alt</span>
+                                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Dificultad</span>
+                                                </div>
+                                                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${{ EASY: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400', MODERATE: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400', HARD: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400', EXPERT: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' }[route.difficulty] ?? 'bg-slate-100 text-slate-600'}`}>
+                                                    {{ EASY: 'Fácil', MODERATE: 'Moderada', HARD: 'Difícil', EXPERT: 'Experto' }[route.difficulty] ?? route.difficulty}
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                                             <div className="flex items-center gap-3">
-                                                <span className="material-symbols-outlined text-primary">height</span>
-                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Max Elevation</span>
+                                                <span className="material-symbols-outlined text-primary">trending_up</span>
+                                                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Desnivel +</span>
                                             </div>
-                                            <span className="text-sm font-bold text-slate-900 dark:text-white">2,450 m</span>
+                                            <span className="text-sm font-bold text-slate-900 dark:text-white">+{route.elevationGainM} m</span>
                                         </div>
                                     </div>
                                     <div className="space-y-3">

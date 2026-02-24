@@ -16,6 +16,8 @@ final class UpdateRouteController extends AbstractController
 {
     private const VISIBILITY_VALUES = ['PUBLIC', 'UNLISTED', 'PRIVATE'];
     private const STATUS_VALUES = ['DRAFT', 'PUBLISHED', 'ARCHIVED'];
+    private const DIFFICULTY_VALUES = ['EASY', 'MODERATE', 'HARD', 'EXPERT'];
+    private const ROUTE_TYPE_VALUES = ['CIRCULAR', 'LINEAR', 'ROUND_TRIP'];
 
     public function __construct(
         private readonly JWTTokenManagerInterface $jwtManager,
@@ -105,6 +107,20 @@ final class UpdateRouteController extends AbstractController
             $route->status = (string) $body['status'];
         }
 
+        // difficulty
+        if (array_key_exists('difficulty', $body)) {
+            $route->difficulty = (isset($body['difficulty']) && in_array($body['difficulty'], self::DIFFICULTY_VALUES, true))
+                ? (string) $body['difficulty']
+                : null;
+        }
+
+        // routeType
+        if (array_key_exists('routeType', $body)) {
+            $route->routeType = (isset($body['routeType']) && in_array($body['routeType'], self::ROUTE_TYPE_VALUES, true))
+                ? (string) $body['routeType']
+                : null;
+        }
+
         $route->updatedAt = new \DateTimeImmutable();
         $em->flush();
 
@@ -116,6 +132,8 @@ final class UpdateRouteController extends AbstractController
             'visibility' => $route->visibility,
             'status' => $route->status,
             'sportId' => $route->sportId,
+            'difficulty' => $route->difficulty,
+            'routeType' => $route->routeType,
         ]);
     }
 

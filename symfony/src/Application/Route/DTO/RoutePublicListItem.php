@@ -25,6 +25,9 @@ final class RoutePublicListItem
         public readonly ?string $creatorSlug = null,
         public readonly ?string $creatorAvatar = null,
         public readonly ?int $durationSeconds = null,
+        public readonly ?string $difficulty = null,
+        public readonly ?string $routeType = null,
+        public readonly ?string $sportCode = null,
     ) {
     }
 }

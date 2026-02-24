@@ -58,6 +58,16 @@ final class CreateRouteFromSourceController extends AbstractController
             $status = 'PUBLISHED';
         }
 
+        $difficulty = strtoupper((string) $request->request->get('difficulty', ''));
+        if (!in_array($difficulty, ['EASY', 'MODERATE', 'HARD', 'EXPERT'], true)) {
+            $difficulty = null;
+        }
+
+        $routeType = strtoupper((string) $request->request->get('routeType', ''));
+        if (!in_array($routeType, ['CIRCULAR', 'LINEAR', 'ROUND_TRIP'], true)) {
+            $routeType = null;
+        }
+
         // Handle uploaded file
         $file = $request->files->get('file');
         if ($file === null) {
@@ -89,6 +99,8 @@ final class CreateRouteFromSourceController extends AbstractController
                 mimeType: $mimeType,
                 fileSize: (int) filesize($tmpPath),
                 sha256: hash_file('sha256', $tmpPath) ?: null,
+                difficulty: $difficulty,
+                routeType: $routeType,
             ));
         } catch (\InvalidArgumentException $e) {
             @unlink($tmpPath);

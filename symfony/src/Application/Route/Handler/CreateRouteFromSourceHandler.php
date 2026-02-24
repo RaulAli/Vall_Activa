@@ -81,6 +81,8 @@ final class CreateRouteFromSourceHandler
                 elevationLossM: $parsed->elevationLossM,
                 polyline: $parsed->polyline,
                 durationSeconds: $parsed->durationSeconds,
+                difficulty: $cmd->difficulty,
+                routeType: $cmd->routeType,
             );
 
             $this->routes->save($route);

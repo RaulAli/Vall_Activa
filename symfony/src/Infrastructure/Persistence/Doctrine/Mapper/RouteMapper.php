@@ -38,6 +38,8 @@ final class RouteMapper
         $orm->elevationGainM = $route->elevationGainM();
         $orm->elevationLossM = $route->elevationLossM();
         $orm->durationSeconds = $route->durationSeconds();
+        $orm->difficulty = $route->difficulty();
+        $orm->routeType = $route->routeType();
 
         $orm->isActive = $route->isActive();
 

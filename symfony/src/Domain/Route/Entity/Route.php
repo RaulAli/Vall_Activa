@@ -38,6 +38,8 @@ final class Route
         private int $elevationLossM,
         private bool $isActive,
         private ?int $durationSeconds = null,
+        private ?string $difficulty = null,
+        private ?string $routeType = null,
         private ?string $image = null
     ) {
     }
@@ -63,6 +65,8 @@ final class Route
         int $elevationGainM,
         int $elevationLossM,
         ?int $durationSeconds = null,
+        ?string $difficulty = null,
+        ?string $routeType = null,
     ): self {
         if ($distanceM < 0) {
             throw new \InvalidArgumentException('Distance cannot be negative.');
@@ -91,6 +95,8 @@ final class Route
             $elevationLossM,
             true,
             $durationSeconds,
+            $difficulty,
+            $routeType,
         );
     }
 
@@ -189,6 +195,16 @@ final class Route
     public function durationSeconds(): ?int
     {
         return $this->durationSeconds;
+    }
+
+    public function difficulty(): ?string
+    {
+        return $this->difficulty;
+    }
+
+    public function routeType(): ?string
+    {
+        return $this->routeType;
     }
 
     public function image(): ?string

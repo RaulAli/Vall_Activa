@@ -41,6 +41,22 @@ const STATUS_CONFIG = {
     ARCHIVED: { label: "Archivada", color: "text-slate-400", dot: "bg-slate-300" },
 } as const;
 
+const DIFFICULTY_CONFIG = {
+    EASY: { label: "Fácil", icon: "signal_cellular_1_bar", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" },
+    MODERATE: { label: "Moderada", icon: "signal_cellular_2_bar", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800" },
+    HARD: { label: "Difícil", icon: "signal_cellular_3_bar", color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30 border-orange-200 dark:border-orange-800" },
+    EXPERT: { label: "Experto", icon: "signal_cellular_4_bar", color: "text-red-600 dark:text-red-400", bg: "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800" },
+} as const;
+
+type DifficultyKey = keyof typeof DIFFICULTY_CONFIG;
+
+const ROUTE_TYPE_CONFIG = {
+    CIRCULAR: { label: "Circular", icon: "loop", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800" },
+    LINEAR: { label: "Lineal", icon: "trending_flat", color: "text-amber-600 dark:text-amber-400", bg: "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800" },
+    ROUND_TRIP: { label: "Ida y vuelta", icon: "sync_alt", color: "text-teal-600 dark:text-teal-400", bg: "bg-teal-50 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800" },
+} as const;
+type RouteTypeKey = keyof typeof ROUTE_TYPE_CONFIG;
+
 type VisibilityFilter = "ALL" | "PUBLIC" | "UNLISTED" | "PRIVATE";
 
 export function MyRoutesPage() {
@@ -69,6 +85,8 @@ export function MyRoutesPage() {
         sportCode?: string;
         visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE";
         status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+        difficulty?: "EASY" | "MODERATE" | "HARD" | "EXPERT" | null;
+        routeType?: "CIRCULAR" | "LINEAR" | "ROUND_TRIP" | null;
     };
 
     const updateMut = useMutation({
@@ -240,7 +258,7 @@ function RouteRow({
     isEditing: boolean;
     isSaving: boolean;
     onToggleEdit: () => void;
-    onPatch: (patch: { title?: string; description?: string | null; sportCode?: string; visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED" }) => void;
+    onPatch: (patch: { title?: string; description?: string | null; sportCode?: string; visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE"; status?: "DRAFT" | "PUBLISHED" | "ARCHIVED"; difficulty?: "EASY" | "MODERATE" | "HARD" | "EXPERT" | null; routeType?: "CIRCULAR" | "LINEAR" | "ROUND_TRIP" | null }) => void;
     onView: () => void;
 }) {
     const [editTab, setEditTab] = useState<"actions" | "data">("actions");
@@ -249,12 +267,16 @@ function RouteRow({
     const [formTitle, setFormTitle] = useState(route.title);
     const [formDesc, setFormDesc] = useState(route.description ?? "");
     const [formSport, setFormSport] = useState(route.sportCode ?? "");
+    const [formDifficulty, setFormDifficulty] = useState<DifficultyKey | "">(route.difficulty as DifficultyKey ?? "");
+    const [formRouteType, setFormRouteType] = useState<RouteTypeKey | "">(route.routeType as RouteTypeKey ?? "");
 
     const handleToggleEdit = () => {
         // Reset form to current route values when opening
         setFormTitle(route.title);
         setFormDesc(route.description ?? "");
         setFormSport(route.sportCode ?? "");
+        setFormDifficulty(route.difficulty as DifficultyKey ?? "");
+        setFormRouteType(route.routeType as RouteTypeKey ?? "");
         setEditTab("actions");
         onToggleEdit();
     };
@@ -264,6 +286,8 @@ function RouteRow({
             title: formTitle.trim() || undefined,
             description: formDesc.trim() || null,
             sportCode: formSport || undefined,
+            difficulty: (formDifficulty as "EASY" | "MODERATE" | "HARD" | "EXPERT") || null,
+            routeType: (formRouteType as "CIRCULAR" | "LINEAR" | "ROUND_TRIP") || null,
         });
         onToggleEdit();
     };
@@ -317,6 +341,17 @@ function RouteRow({
                                     <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
                                         <span className="material-symbols-outlined !text-[13px]">schedule</span>
                                         {formatDuration(route.durationSeconds)}
+                                    </span>
+                                )}
+                                {route.difficulty && DIFFICULTY_CONFIG[route.difficulty as DifficultyKey] && (
+                                    <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${DIFFICULTY_CONFIG[route.difficulty as DifficultyKey].bg} ${DIFFICULTY_CONFIG[route.difficulty as DifficultyKey].color}`}>
+                                        {DIFFICULTY_CONFIG[route.difficulty as DifficultyKey].label}
+                                    </span>
+                                )}
+                                {route.routeType && ROUTE_TYPE_CONFIG[route.routeType as RouteTypeKey] && (
+                                    <span className={`flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded border ${ROUTE_TYPE_CONFIG[route.routeType as RouteTypeKey].bg} ${ROUTE_TYPE_CONFIG[route.routeType as RouteTypeKey].color}`}>
+                                        <span className="material-symbols-outlined !text-[11px]">{ROUTE_TYPE_CONFIG[route.routeType as RouteTypeKey].icon}</span>
+                                        {ROUTE_TYPE_CONFIG[route.routeType as RouteTypeKey].label}
                                     </span>
                                 )}
                                 <span className="text-[11px] text-slate-400">
@@ -480,6 +515,46 @@ function RouteRow({
                                     </div>
                                 </div>
                             )}
+
+                            {/* Difficulty */}
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Dificultad</label>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {(Object.entries(DIFFICULTY_CONFIG) as [DifficultyKey, typeof DIFFICULTY_CONFIG[DifficultyKey]][]).map(([key, cfg]) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => setFormDifficulty(formDifficulty === key ? "" : key)}
+                                            className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${formDifficulty === key
+                                                ? `${cfg.bg} ${cfg.color} shadow-sm`
+                                                : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                                }`}
+                                        >
+                                            <span className="material-symbols-outlined !text-[13px]">{cfg.icon}</span>
+                                            {cfg.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Tipo de ruta */}
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Tipo de ruta</label>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {(Object.entries(ROUTE_TYPE_CONFIG) as [RouteTypeKey, typeof ROUTE_TYPE_CONFIG[RouteTypeKey]][]).map(([key, cfg]) => (
+                                        <button
+                                            key={key}
+                                            onClick={() => setFormRouteType(formRouteType === key ? "" : key)}
+                                            className={`flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-bold border rounded-lg transition-all ${formRouteType === key
+                                                ? `${cfg.bg} ${cfg.color} shadow-sm`
+                                                : "bg-white dark:bg-slate-900 text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                                }`}
+                                        >
+                                            <span className="material-symbols-outlined !text-[13px]">{cfg.icon}</span>
+                                            {cfg.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
 
                             {/* Save / Cancel */}
                             <div className="flex gap-2 pt-1">

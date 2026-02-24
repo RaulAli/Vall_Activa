@@ -10,6 +10,8 @@ export interface CreateRoutePayload {
     sportCode: string;
     visibility: "PUBLIC" | "UNLISTED" | "PRIVATE";
     status: "DRAFT" | "PUBLISHED";
+    difficulty?: "EASY" | "MODERATE" | "HARD" | "EXPERT" | null;
+    routeType?: "CIRCULAR" | "LINEAR" | "ROUND_TRIP" | null;
     file: File;
 }
 
@@ -23,6 +25,8 @@ export async function createRoute(token: string, payload: CreateRoutePayload): P
     form.append("sourceFormat", "GPX");
     form.append("file", payload.file);
     if (payload.description) form.append("description", payload.description);
+    if (payload.difficulty) form.append("difficulty", payload.difficulty);
+    if (payload.routeType) form.append("routeType", payload.routeType);
 
     const url = new URL(endpoints.routes.create, env.API_BASE_URL).toString();
 
@@ -57,6 +61,8 @@ export async function updateRoute(
         sportCode?: string;
         visibility?: "PUBLIC" | "UNLISTED" | "PRIVATE";
         status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+        difficulty?: "EASY" | "MODERATE" | "HARD" | "EXPERT" | null;
+        routeType?: "CIRCULAR" | "LINEAR" | "ROUND_TRIP" | null;
     }
 ): Promise<void> {
     await http<unknown>("PATCH", endpoints.routes.update(id), {
