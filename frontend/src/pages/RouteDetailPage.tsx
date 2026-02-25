@@ -85,17 +85,7 @@ export function RouteDetailPage() {
                                         <p className="text-white text-xl font-bold">{formatDuration(route.durationSeconds)}</p>
                                     </div>
                                 )}
-                                {route.difficulty && (
-                                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
-                                        <p className="text-white/70 text-xs font-semibold uppercase">Dificultad</p>
-                                        <p className="text-white text-xl font-bold">{{ EASY: 'Fácil', MODERATE: 'Moderada', HARD: 'Difícil', EXPERT: 'Experto' }[route.difficulty] ?? route.difficulty}</p>
-                                    </div>
-                                )}                                {route.routeType && (
-                                    <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px]">
-                                        <p className="text-white/70 text-xs font-semibold uppercase">Tipo</p>
-                                        <p className="text-white text-xl font-bold">{{ CIRCULAR: 'Circular', LINEAR: 'Lineal', ROUND_TRIP: 'Ida y vuelta' }[route.routeType] ?? route.routeType}</p>
-                                    </div>
-                                )}                            </div>
+                            </div>
                         </div>
                     </div>
                 </section>
@@ -134,9 +124,6 @@ export function RouteDetailPage() {
                                     <span className="material-symbols-outlined text-primary">map</span>
                                     Mapa de la ruta
                                 </h3>
-                                <button className="text-sm font-bold text-primary hover:underline flex items-center gap-1 transition-all">
-                                    Pantalla completa <span className="material-symbols-outlined !text-sm">open_in_full</span>
-                                </button>
                             </div>
                             <div className="relative w-full aspect-video rounded-xl bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 overflow-hidden group shadow-inner">
                                 {route.polyline ? (

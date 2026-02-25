@@ -1,9 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { endpoints } from "../../../shared/api/endpoints";
 import { http } from "../../../shared/api/http";
 import { bboxToParam, type Bbox } from "../../../shared/utils/bbox";
 import { PaginatedSchema, RouteListItemSchema } from "../domain/schemas";
 import type { PaginatedResult, RouteListItem } from "../domain/types";
+
+const LIMIT = 10;
 
 export type RoutesListParams = {
     bbox: Bbox | null;
@@ -27,16 +29,12 @@ export type RoutesListParams = {
     sort: "recent" | "distance" | "gain";
     order: "asc" | "desc";
 
-    page: number;
-    limit: number;
     enabled?: boolean;
 };
 
 export function useRoutesListQuery(params: RoutesListParams) {
     const geoParam = params.focusBbox ? bboxToParam(params.focusBbox) : bboxToParam(params.bbox);
 
-    // ⚠️ queryKey: NO metas el objeto params entero (cambia por referencia y dispara refetch)
-    // Creamos una key estable con valores primitivos
     const key = [
         "routes",
         "list",
@@ -53,16 +51,14 @@ export function useRoutesListQuery(params: RoutesListParams) {
         params.durationMax ?? "",
         params.sort,
         params.order,
-        params.page,
-        params.limit,
     ] as const;
 
-    return useQuery({
+    return useInfiniteQuery({
         queryKey: key,
-        queryFn: async () => {
+        initialPageParam: 1,
+        queryFn: async ({ pageParam }) => {
             const data = await http<unknown>("GET", endpoints.routes.list, {
                 query: {
-                    // 👇 prioridad: focusBbox si existe
                     bbox: geoParam,
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
@@ -76,15 +72,18 @@ export function useRoutesListQuery(params: RoutesListParams) {
                     durationMax: params.durationMax ?? null,
                     sort: params.sort,
                     order: params.order,
-                    page: params.page,
-                    limit: params.limit,
+                    page: pageParam,
+                    limit: LIMIT,
                 },
             });
 
             return PaginatedSchema(RouteListItemSchema).parse(data) as PaginatedResult<RouteListItem>;
         },
+        getNextPageParam: (lastPage) => {
+            const loaded = lastPage.page * LIMIT;
+            return loaded < lastPage.total ? lastPage.page + 1 : undefined;
+        },
         enabled: params.enabled ?? !!geoParam,
-        placeholderData: (prev) => prev,
         staleTime: 3_000,
     });
 }

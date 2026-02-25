@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useDebounce } from "../../../shared/hooks/useDebounce";
 import { Loader } from "../../../shared/ui/Loader";
 import { ErrorState } from "../../../shared/ui/ErrorState";
@@ -34,6 +34,9 @@ export function RoutesSidebarPanel() {
 
     const [showFilters, setShowFilters] = useState(false);
 
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const sentinelRef = useRef<HTMLDivElement>(null);
+
     const qDebounced = useDebounce(routes.q, 250);
 
     const filtersQuery = useRoutesFiltersQuery({
@@ -66,11 +69,38 @@ export function RoutesSidebarPanel() {
         durationMax: routes.durationMax,
         sort: routes.sort,
         order: routes.order,
-        page: routes.page,
-        limit: 20,
     });
 
     const hasGeo = !!bbox || !!routes.focusBbox;
+
+    // Scroll to top cuando cambian los filtros
+    useEffect(() => {
+        scrollRef.current?.scrollTo({ top: 0 });
+    }, [
+        qDebounced, routes.sportCode, routes.difficulty, routes.routeType,
+        routes.distanceMin, routes.distanceMax, routes.gainMin, routes.gainMax,
+        routes.durationMin, routes.durationMax, routes.sort, routes.order,
+    ]);
+
+    // IntersectionObserver para cargar la siguiente página
+    useEffect(() => {
+        const sentinel = sentinelRef.current;
+        if (!sentinel) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && listQuery.hasNextPage && !listQuery.isFetchingNextPage) {
+                    listQuery.fetchNextPage();
+                }
+            },
+            { threshold: 0.1 }
+        );
+        observer.observe(sentinel);
+        return () => observer.disconnect();
+    }, [listQuery.hasNextPage, listQuery.isFetchingNextPage, listQuery.fetchNextPage]);
+
+    // Aplanar todas las páginas en un único array
+    const allItems = listQuery.data?.pages.flatMap((p) => p.items) ?? [];
+    const total = listQuery.data?.pages[0]?.total ?? 0;
 
     // Badge en el botón de filtros avanzados (excluye q y sportCode que son siempre visibles)
     const advancedFiltersCount = [
@@ -300,7 +330,7 @@ export function RoutesSidebarPanel() {
             </div>
 
             {/* ── SCROLLABLE RESULTS ──────────────────────────────────── */}
-            <div className="flex-1 overflow-y-auto p-3 md:p-4 hide-scrollbar">
+            <div ref={scrollRef} className="flex-1 overflow-y-auto p-3 md:p-4 hide-scrollbar">
                 {!hasGeo ? (
                     <div className="flex flex-col items-center justify-center h-full text-center opacity-50 py-20">
                         <span className="material-symbols-outlined !text-4xl mb-2 text-primary">map_location_dot</span>
@@ -311,17 +341,35 @@ export function RoutesSidebarPanel() {
                 ) : listQuery.error ? (
                     <ErrorState message="Error al cargar las rutas" />
                 ) : (
-                    <div className="pb-10">
+                    <div className="pb-4">
                         <div className="flex justify-between items-center mb-3">
                             <h3 className="text-sm font-bold flex items-center gap-1.5 text-slate-900 dark:text-white leading-tight">
                                 <span className="material-symbols-outlined text-primary !text-[16px]">local_fire_department</span>
                                 {routes.q ? `"${routes.q}"` : "Rutas destacadas"}
                             </h3>
                             <span className="text-[9px] text-slate-400 font-extrabold uppercase tracking-widest whitespace-nowrap">
-                                {listQuery.data?.total ?? 0} encontradas
+                                {allItems.length} / {total}
                             </span>
                         </div>
-                        <RoutesList items={listQuery.data?.items ?? []} />
+
+                        <RoutesList items={allItems} />
+
+                        {/* Sentinel — cuando es visible se carga la siguiente página */}
+                        <div ref={sentinelRef} className="h-px" />
+
+                        {/* Spinner de carga de siguiente página */}
+                        {listQuery.isFetchingNextPage && (
+                            <div className="flex justify-center py-6">
+                                <Loader />
+                            </div>
+                        )}
+
+                        {/* Fin de resultados */}
+                        {!listQuery.hasNextPage && allItems.length > 0 && (
+                            <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest py-6">
+                                — {total} rutas cargadas —
+                            </p>
+                        )}
                     </div>
                 )}
             </div>
