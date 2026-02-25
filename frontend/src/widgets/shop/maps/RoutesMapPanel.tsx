@@ -25,6 +25,10 @@ export function RoutesMapPanel() {
         distanceMax: routes.distanceMax,
         gainMin: routes.gainMin,
         gainMax: routes.gainMax,
+        difficulty: routes.difficulty,
+        routeType: routes.routeType,
+        durationMin: routes.durationMin,
+        durationMax: routes.durationMax,
     });
 
     // Details para polyline seleccionada (solo si hay selected)

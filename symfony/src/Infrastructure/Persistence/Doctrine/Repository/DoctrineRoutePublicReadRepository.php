@@ -56,6 +56,24 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             $baseQb->andWhere('r.elevationGainM <= :gainMax')->setParameter('gainMax', $filters->gainMax);
         }
 
+        // difficulty
+        if ($filters->difficulty !== null && $filters->difficulty !== '') {
+            $baseQb->andWhere('r.difficulty = :difficulty')->setParameter('difficulty', $filters->difficulty);
+        }
+
+        // routeType
+        if ($filters->routeType !== null && $filters->routeType !== '') {
+            $baseQb->andWhere('r.routeType = :routeType')->setParameter('routeType', $filters->routeType);
+        }
+
+        // duration
+        if ($filters->durationMin !== null) {
+            $baseQb->andWhere('r.durationSeconds >= :durMin')->setParameter('durMin', $filters->durationMin);
+        }
+        if ($filters->durationMax !== null) {
+            $baseQb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
+        }
+
         // GEO: focus > bbox
         $this->applyGeoFilter($baseQb, $filters);
 
@@ -153,6 +171,15 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             $qb->andWhere('r.elevationGainM >= :gainMin')->setParameter('gainMin', $filters->gainMin);
         if ($filters->gainMax !== null)
             $qb->andWhere('r.elevationGainM <= :gainMax')->setParameter('gainMax', $filters->gainMax);
+
+        if ($filters->difficulty !== null && $filters->difficulty !== '')
+            $qb->andWhere('r.difficulty = :difficulty')->setParameter('difficulty', $filters->difficulty);
+        if ($filters->routeType !== null && $filters->routeType !== '')
+            $qb->andWhere('r.routeType = :routeType')->setParameter('routeType', $filters->routeType);
+        if ($filters->durationMin !== null)
+            $qb->andWhere('r.durationSeconds >= :durMin')->setParameter('durMin', $filters->durationMin);
+        if ($filters->durationMax !== null)
+            $qb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
 
         $this->applyGeoFilter($qb, $filters);
 

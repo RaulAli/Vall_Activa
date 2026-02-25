@@ -18,6 +18,12 @@ export type RoutesFiltersParams = {
 
     gainMin: number | null;
     gainMax: number | null;
+
+    difficulty: string | null;
+    routeType: string | null;
+
+    durationMin: number | null;
+    durationMax: number | null;
 };
 
 export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
@@ -36,6 +42,10 @@ export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,
                     gainMax: params.gainMax ?? null,
+                    difficulty: params.difficulty ?? null,
+                    routeType: params.routeType ?? null,
+                    durationMin: params.durationMin ?? null,
+                    durationMax: params.durationMax ?? null,
                 },
             });
 

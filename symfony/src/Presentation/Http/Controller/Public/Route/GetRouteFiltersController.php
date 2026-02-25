@@ -22,6 +22,12 @@ final class GetRouteFiltersController extends AbstractController
         $gainMin = $this->intOrNull($request->query->get('gainMin'));
         $gainMax = $this->intOrNull($request->query->get('gainMax'));
         $q = $this->stringOrNull($request->query->get('q'));
+        $difficulty = $this->stringOrNull($request->query->get('difficulty'));
+        $difficulty = $difficulty !== null ? strtoupper($difficulty) : null;
+        $routeType = $this->stringOrNull($request->query->get('routeType'));
+        $routeType = $routeType !== null ? strtoupper($routeType) : null;
+        $durationMin = $this->intOrNull($request->query->get('durationMin'));
+        $durationMax = $this->intOrNull($request->query->get('durationMax'));
 
         // focus tiene prioridad
         [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
@@ -54,6 +60,10 @@ final class GetRouteFiltersController extends AbstractController
             focusLat: $focusLat,
             focusRadiusM: $focusRadiusM,
             q: $q,
+            difficulty: $difficulty,
+            routeType: $routeType,
+            durationMin: $durationMin,
+            durationMax: $durationMax,
         );
 
         $meta = $handler(new GetRouteFiltersQuery($filters));

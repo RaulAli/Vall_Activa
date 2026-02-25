@@ -28,6 +28,12 @@ export type RoutesUiState = {
     gainMin: number | null;
     gainMax: number | null;
 
+    difficulty: string | null;
+    routeType: string | null;
+
+    durationMin: number | null;
+    durationMax: number | null;
+
     sort: "recent" | "distance" | "gain";
     order: "asc" | "desc";
 
@@ -89,6 +95,10 @@ const defaultRoutes: RoutesUiState = {
     distanceMax: null,
     gainMin: null,
     gainMax: null,
+    difficulty: null,
+    routeType: null,
+    durationMin: null,
+    durationMax: null,
     sort: "recent",
     order: "desc",
     page: 1,

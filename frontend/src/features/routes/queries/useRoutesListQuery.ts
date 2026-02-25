@@ -18,6 +18,12 @@ export type RoutesListParams = {
     gainMin: number | null;
     gainMax: number | null;
 
+    difficulty: string | null;
+    routeType: string | null;
+
+    durationMin: number | null;
+    durationMax: number | null;
+
     sort: "recent" | "distance" | "gain";
     order: "asc" | "desc";
 
@@ -41,6 +47,10 @@ export function useRoutesListQuery(params: RoutesListParams) {
         params.distanceMax ?? "",
         params.gainMin ?? "",
         params.gainMax ?? "",
+        params.difficulty ?? "",
+        params.routeType ?? "",
+        params.durationMin ?? "",
+        params.durationMax ?? "",
         params.sort,
         params.order,
         params.page,
@@ -60,6 +70,10 @@ export function useRoutesListQuery(params: RoutesListParams) {
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,
                     gainMax: params.gainMax ?? null,
+                    difficulty: params.difficulty ?? null,
+                    routeType: params.routeType ?? null,
+                    durationMin: params.durationMin ?? null,
+                    durationMax: params.durationMax ?? null,
                     sort: params.sort,
                     order: params.order,
                     page: params.page,

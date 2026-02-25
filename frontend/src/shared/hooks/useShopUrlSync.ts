@@ -63,6 +63,10 @@ export function useShopUrlSync() {
             if (params.has("distanceMax")) patch.distanceMax = Number(params.get("distanceMax"));
             if (params.has("gainMin")) patch.gainMin = Number(params.get("gainMin"));
             if (params.has("gainMax")) patch.gainMax = Number(params.get("gainMax"));
+            if (params.has("difficulty")) patch.difficulty = params.get("difficulty");
+            if (params.has("routeType")) patch.routeType = params.get("routeType");
+            if (params.has("durationMin")) patch.durationMin = Number(params.get("durationMin"));
+            if (params.has("durationMax")) patch.durationMax = Number(params.get("durationMax"));
             if (params.has("sort")) patch.sort = params.get("sort");
             if (params.has("order")) patch.order = params.get("order");
             if (params.has("page")) patch.page = Number(params.get("page"));
@@ -102,6 +106,10 @@ export function useShopUrlSync() {
             if (r.distanceMax !== null) params.set("distanceMax", r.distanceMax.toString());
             if (r.gainMin !== null) params.set("gainMin", r.gainMin.toString());
             if (r.gainMax !== null) params.set("gainMax", r.gainMax.toString());
+            if (r.difficulty) params.set("difficulty", r.difficulty);
+            if (r.routeType) params.set("routeType", r.routeType);
+            if (r.durationMin !== null) params.set("durationMin", r.durationMin.toString());
+            if (r.durationMax !== null) params.set("durationMax", r.durationMax.toString());
         }
 
         const queryString = params.toString();

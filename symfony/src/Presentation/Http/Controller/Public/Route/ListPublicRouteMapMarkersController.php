@@ -22,6 +22,12 @@ final class ListPublicRouteMapMarkersController extends AbstractController
         $gainMin = $this->intOrNull($request->query->get('gainMin'));
         $gainMax = $this->intOrNull($request->query->get('gainMax'));
         $q = $this->stringOrNull($request->query->get('q'));
+        $difficulty = $this->stringOrNull($request->query->get('difficulty'));
+        $difficulty = $difficulty !== null ? strtoupper($difficulty) : null;
+        $routeType = $this->stringOrNull($request->query->get('routeType'));
+        $routeType = $routeType !== null ? strtoupper($routeType) : null;
+        $durationMin = $this->intOrNull($request->query->get('durationMin'));
+        $durationMax = $this->intOrNull($request->query->get('durationMax'));
 
         [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
         [$minLng, $minLat, $maxLng, $maxLat] = $this->parseBbox($request->query->get('bbox'));
@@ -47,7 +53,11 @@ final class ListPublicRouteMapMarkersController extends AbstractController
             focusLng: $focusLng,
             focusLat: $focusLat,
             focusRadiusM: $focusRadiusM,
-            q: $q
+            q: $q,
+            difficulty: $difficulty,
+            routeType: $routeType,
+            durationMin: $durationMin,
+            durationMax: $durationMax,
         );
 
         $limit = (int) $request->query->get('limit', 5000);

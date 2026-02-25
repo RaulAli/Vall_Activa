@@ -23,7 +23,12 @@ final class RoutePublicFilters
         public readonly ?float $focusLat = null,
         public readonly ?int $focusRadiusM = null,
 
-        public readonly ?string $q = null
+        public readonly ?string $q = null,
+
+        public readonly ?string $difficulty = null,
+        public readonly ?string $routeType = null,
+        public readonly ?int $durationMin = null,
+        public readonly ?int $durationMax = null,
     ) {
     }
 

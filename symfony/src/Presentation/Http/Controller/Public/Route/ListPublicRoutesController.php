@@ -30,6 +30,15 @@ final class ListPublicRoutesController extends AbstractController
         $gainMin = $this->intOrNull($request->query->get('gainMin'));
         $gainMax = $this->intOrNull($request->query->get('gainMax'));
 
+        $difficulty = $request->query->get('difficulty');
+        $difficulty = is_string($difficulty) && trim($difficulty) !== '' ? strtoupper(trim($difficulty)) : null;
+
+        $routeType = $request->query->get('routeType');
+        $routeType = is_string($routeType) && trim($routeType) !== '' ? strtoupper(trim($routeType)) : null;
+
+        $durationMin = $this->intOrNull($request->query->get('durationMin'));
+        $durationMax = $this->intOrNull($request->query->get('durationMax'));
+
         $q = $request->query->get('q');
         $q = is_string($q) && trim($q) !== '' ? trim($q) : null;
 
@@ -65,7 +74,11 @@ final class ListPublicRoutesController extends AbstractController
             focusLng: $focusLng,
             focusLat: $focusLat,
             focusRadiusM: $focusRadiusM,
-            q: $q
+            q: $q,
+            difficulty: $difficulty,
+            routeType: $routeType,
+            durationMin: $durationMin,
+            durationMax: $durationMax,
         );
 
         $result = $handler(new ListPublicRoutesQuery(

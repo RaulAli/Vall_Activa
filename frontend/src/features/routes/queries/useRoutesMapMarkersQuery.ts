@@ -29,6 +29,12 @@ export type RoutesMapMarkersParams = {
 
     gainMin: number | null;
     gainMax: number | null;
+
+    difficulty: string | null;
+    routeType: string | null;
+
+    durationMin: number | null;
+    durationMax: number | null;
 };
 
 export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
@@ -44,6 +50,10 @@ export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
         params.distanceMax ?? "",
         params.gainMin ?? "",
         params.gainMax ?? "",
+        params.difficulty ?? "",
+        params.routeType ?? "",
+        params.durationMin ?? "",
+        params.durationMax ?? "",
     ] as const;
 
     return useQuery({
@@ -58,6 +68,10 @@ export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,
                     gainMax: params.gainMax ?? null,
+                    difficulty: params.difficulty ?? null,
+                    routeType: params.routeType ?? null,
+                    durationMin: params.durationMin ?? null,
+                    durationMax: params.durationMax ?? null,
                 },
             });
 
