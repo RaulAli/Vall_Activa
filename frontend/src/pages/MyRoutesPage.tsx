@@ -64,8 +64,31 @@ export function MyRoutesPage() {
     const { token } = useAuthStore();
     const queryClient = useQueryClient();
 
+    const PAGE_SIZE = 10;
+
     const [visFilter, setVisFilter] = useState<VisibilityFilter>("ALL");
     const [editingId, setEditingId] = useState<string | null>(null);
+    const [page, setPage] = useState(1);
+
+    // ── Filters ──
+    const [q, setQ] = useState("");
+    const [sportFilter, setSportFilter] = useState<string | null>(null);
+    const [difficultyFilter, setDifficultyFilter] = useState<string | null>(null);
+    const [routeTypeFilter, setRouteTypeFilter] = useState<string | null>(null);
+    const [distanceMin, setDistanceMin] = useState("");
+    const [distanceMax, setDistanceMax] = useState("");
+    const [gainMin, setGainMin] = useState("");
+    const [gainMax, setGainMax] = useState("");
+    const [durationMin, setDurationMin] = useState("");
+    const [durationMax, setDurationMax] = useState("");
+    const [sort, setSort] = useState<"recent" | "distance" | "gain" | "duration">("recent");
+    const [showFilters, setShowFilters] = useState(false);
+
+    function resetFilters() {
+        setQ(""); setSportFilter(null); setDifficultyFilter(null); setRouteTypeFilter(null);
+        setDistanceMin(""); setDistanceMax(""); setGainMin(""); setGainMax("");
+        setDurationMin(""); setDurationMax(""); setSort("recent"); setVisFilter("ALL"); setPage(1);
+    }
 
     const { data: sports = [] } = useQuery<SportOption[]>({
         queryKey: ["sports"],
@@ -106,7 +129,31 @@ export function MyRoutesPage() {
         onSettled: () => queryClient.invalidateQueries({ queryKey: ["me", "routes"] }),
     });
 
-    const filtered = visFilter === "ALL" ? routes : routes.filter(r => r.visibility === visFilter);
+    const filtered = routes.filter(r => {
+        if (visFilter !== "ALL" && r.visibility !== visFilter) return false;
+        if (q.trim() && !r.title.toLowerCase().includes(q.trim().toLowerCase())) return false;
+        if (sportFilter && r.sportCode !== sportFilter) return false;
+        if (difficultyFilter && r.difficulty !== difficultyFilter) return false;
+        if (routeTypeFilter && r.routeType !== routeTypeFilter) return false;
+        if (distanceMin && r.distanceM < Number(distanceMin) * 1000) return false;
+        if (distanceMax && r.distanceM > Number(distanceMax) * 1000) return false;
+        if (gainMin && r.elevationGainM < Number(gainMin)) return false;
+        if (gainMax && r.elevationGainM > Number(gainMax)) return false;
+        if (durationMin && (r.durationSeconds ?? 0) < Number(durationMin) * 60) return false;
+        if (durationMax && (r.durationSeconds ?? Infinity) > Number(durationMax) * 60) return false;
+        return true;
+    }).sort((a, b) => {
+        if (sort === "distance") return b.distanceM - a.distanceM;
+        if (sort === "gain") return b.elevationGainM - a.elevationGainM;
+        if (sort === "duration") return (b.durationSeconds ?? 0) - (a.durationSeconds ?? 0);
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    const advancedFiltersCount = [sportFilter, difficultyFilter, routeTypeFilter, distanceMin, distanceMax, gainMin, gainMax, durationMin, durationMax].filter(Boolean).length;
+    const anyFilter = advancedFiltersCount > 0 || q.trim() || visFilter !== "ALL";
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const safePage = Math.min(page, totalPages);
+    const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
     const stats = {
         total: routes.length,
@@ -174,12 +221,48 @@ export function MyRoutesPage() {
                     ))}
                 </div>
 
-                {/* Filter chips */}
-                <div className="flex gap-2 mb-4 flex-wrap">
+                {/* Search + filter toggle */}
+                <div className="flex items-center gap-2 mb-3">
+                    <div className="relative flex-1">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined !text-base text-slate-400">search</span>
+                        <input
+                            type="text"
+                            value={q}
+                            onChange={e => { setQ(e.target.value); setPage(1); }}
+                            placeholder="Buscar mis rutas…"
+                            className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/30"
+                        />
+                    </div>
+                    <button
+                        onClick={() => setShowFilters(v => !v)}
+                        className={`relative p-2 rounded-xl border transition-all ${
+                            showFilters
+                                ? "bg-primary/10 border-primary/30 text-primary"
+                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300"
+                        }`}
+                    >
+                        <span className="material-symbols-outlined !text-xl">tune</span>
+                        {advancedFiltersCount > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center">{advancedFiltersCount}</span>
+                        )}
+                    </button>
+                    {anyFilter && (
+                        <button
+                            onClick={resetFilters}
+                            className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-400 hover:text-red-500 hover:border-red-300 transition-all"
+                            title="Limpiar filtros"
+                        >
+                            <span className="material-symbols-outlined !text-xl">filter_alt_off</span>
+                        </button>
+                    )}
+                </div>
+
+                {/* Visibility chips */}
+                <div className="flex gap-2 mb-3 flex-wrap">
                     {(["ALL", "PUBLIC", "UNLISTED", "PRIVATE"] as VisibilityFilter[]).map(f => (
                         <button
                             key={f}
-                            onClick={() => setVisFilter(f)}
+                            onClick={() => { setVisFilter(f); setPage(1); }}
                             className={`px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${visFilter === f
                                 ? "bg-primary text-white border-primary shadow-sm"
                                 : "bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:border-slate-300"
@@ -189,6 +272,131 @@ export function MyRoutesPage() {
                         </button>
                     ))}
                 </div>
+
+                {/* Sort tabs */}
+                <div className="flex gap-1 mb-3 bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                    {(["recent", "distance", "gain", "duration"] as const).map(s => (
+                        <button
+                            key={s}
+                            onClick={() => { setSort(s); setPage(1); }}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                                sort === s
+                                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                            }`}
+                        >
+                            {{ recent: "Recientes", distance: "Distancia", gain: "Desnivel", duration: "Duración" }[s]}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Collapsible advanced filters */}
+                {showFilters && (
+                    <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 mb-4 space-y-4">
+                        {/* Sport */}
+                        {sports.length > 0 && (
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Deporte</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {sports.map(s => (
+                                        <button
+                                            key={s.code}
+                                            onClick={() => { setSportFilter(sp => sp === s.code ? null : s.code); setPage(1); }}
+                                            className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                                                sportFilter === s.code
+                                                    ? "bg-primary text-white border-primary shadow-sm"
+                                                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                            }`}
+                                        >
+                                            {s.name}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Difficulty */}
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Dificultad</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {(Object.entries(DIFFICULTY_CONFIG) as [DifficultyKey, typeof DIFFICULTY_CONFIG[DifficultyKey]][]).map(([key, cfg]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => { setDifficultyFilter(d => d === key ? null : key); setPage(1); }}
+                                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                                            difficultyFilter === key
+                                                ? `${cfg.bg} ${cfg.color} shadow-sm`
+                                                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined !text-[12px] ${difficultyFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
+                                        {cfg.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Route type */}
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Tipo de ruta</p>
+                            <div className="flex flex-wrap gap-1.5">
+                                {(Object.entries(ROUTE_TYPE_CONFIG) as [RouteTypeKey, typeof ROUTE_TYPE_CONFIG[RouteTypeKey]][]).map(([key, cfg]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => { setRouteTypeFilter(t => t === key ? null : key); setPage(1); }}
+                                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
+                                            routeTypeFilter === key
+                                                ? `${cfg.bg} ${cfg.color} shadow-sm`
+                                                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                        }`}
+                                    >
+                                        <span className={`material-symbols-outlined !text-[12px] ${routeTypeFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
+                                        {cfg.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Duration */}
+                        <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Duración (min)</p>
+                            <div className="flex gap-2">
+                                <input type="number" min="0" placeholder="Mín" value={durationMin}
+                                    onChange={e => { setDurationMin(e.target.value); setPage(1); }}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                                <input type="number" min="0" placeholder="Máx" value={durationMax}
+                                    onChange={e => { setDurationMax(e.target.value); setPage(1); }}
+                                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                            </div>
+                        </div>
+
+                        {/* Distance & Gain */}
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Distancia (km)</p>
+                                <div className="flex gap-2">
+                                    <input type="number" min="0" placeholder="Mín" value={distanceMin}
+                                        onChange={e => { setDistanceMin(e.target.value); setPage(1); }}
+                                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                                    <input type="number" min="0" placeholder="Máx" value={distanceMax}
+                                        onChange={e => { setDistanceMax(e.target.value); setPage(1); }}
+                                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                                </div>
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Desnivel (m)</p>
+                                <div className="flex gap-2">
+                                    <input type="number" min="0" placeholder="Mín" value={gainMin}
+                                        onChange={e => { setGainMin(e.target.value); setPage(1); }}
+                                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                                    <input type="number" min="0" placeholder="Máx" value={gainMax}
+                                        onChange={e => { setGainMax(e.target.value); setPage(1); }}
+                                        className="w-full px-2 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/30" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Content */}
                 {isLoading && (
@@ -210,34 +418,77 @@ export function MyRoutesPage() {
                     <div className="text-center py-16">
                         <span className="material-symbols-outlined !text-5xl text-slate-300 dark:text-slate-600 mb-3 block">route</span>
                         <p className="font-bold text-slate-500 dark:text-slate-400">
-                            {visFilter === "ALL" ? "Todavía no has subido ninguna ruta" : `No tienes rutas ${VISIBILITY_CONFIG[visFilter].label.toLowerCase()}s`}
+                            {routes.length === 0 ? "Todavía no has subido ninguna ruta" : "No hay rutas que coincidan con los filtros"}
                         </p>
-                        {visFilter === "ALL" && (
+                        {routes.length === 0 ? (
                             <button
                                 onClick={() => navigate("/routes/new")}
                                 className="mt-4 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl shadow-lg shadow-primary/20"
                             >
                                 Subir primera ruta
                             </button>
+                        ) : (
+                            <button onClick={resetFilters} className="mt-4 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-sm font-bold rounded-xl">
+                                Limpiar filtros
+                            </button>
                         )}
                     </div>
                 )}
 
                 {!isLoading && !isError && filtered.length > 0 && (
-                    <div className="flex flex-col gap-3">
-                        {filtered.map(route => (
-                            <RouteRow
-                                key={route.id}
-                                route={route}
-                                sports={sports}
-                                isEditing={editingId === route.id}
-                                isSaving={updateMut.isPending && updateMut.variables?.id === route.id}
-                                onToggleEdit={() => setEditingId(id => id === route.id ? null : route.id)}
-                                onPatch={(patch) => updateMut.mutate({ id: route.id, patch })}
-                                onView={() => navigate(`/route/${route.slug}`)}
-                            />
-                        ))}
-                    </div>
+                    <>
+                        <div className="flex flex-col gap-3">
+                            {paginated.map(route => (
+                                <RouteRow
+                                    key={route.id}
+                                    route={route}
+                                    sports={sports}
+                                    isEditing={editingId === route.id}
+                                    isSaving={updateMut.isPending && updateMut.variables?.id === route.id}
+                                    onToggleEdit={() => setEditingId(id => id === route.id ? null : route.id)}
+                                    onPatch={(patch) => updateMut.mutate({ id: route.id, patch })}
+                                    onView={() => navigate(`/route/${route.slug}`)}
+                                />
+                            ))}
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+                                <button
+                                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                                    disabled={safePage === 1}
+                                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    <span className="material-symbols-outlined !text-base">chevron_left</span>
+                                    Anterior
+                                </button>
+                                <div className="flex items-center gap-1.5">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setPage(p)}
+                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${
+                                                p === safePage
+                                                    ? "bg-primary text-white shadow-sm shadow-primary/30"
+                                                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                            }`}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button
+                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                                    disabled={safePage === totalPages}
+                                    className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Siguiente
+                                    <span className="material-symbols-outlined !text-base">chevron_right</span>
+                                </button>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </>

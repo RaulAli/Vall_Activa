@@ -9,7 +9,6 @@ export function HomePage() {
     const navigate = useNavigate();
 
     const routesQuery = useRoutesListQuery({
-        // ... routes params
         bbox: { minLng: -10, minLat: 35, maxLng: 5, maxLat: 45 },
         focusBbox: null,
         q: "",
@@ -18,10 +17,12 @@ export function HomePage() {
         distanceMax: null,
         gainMin: null,
         gainMax: null,
+        difficulty: null,
+        routeType: null,
+        durationMin: null,
+        durationMax: null,
         sort: "recent",
         order: "desc",
-        page: 1,
-        limit: 12,
         enabled: true
     });
 
@@ -42,11 +43,12 @@ export function HomePage() {
     });
 
     const displayRoutes = useMemo(() => {
-        if (!routesQuery.data?.items || routesQuery.data.items.length === 0) return [];
-        return [...routesQuery.data.items]
+        const items = routesQuery.data?.pages.flatMap(p => p.items) ?? [];
+        if (items.length === 0) return [];
+        return [...items]
             .sort(() => 0.5 - Math.random())
             .slice(0, 4);
-    }, [routesQuery.data?.items]);
+    }, [routesQuery.data?.pages]);
 
     const displayOffers = useMemo(() => {
         if (!offersQuery.data?.items || offersQuery.data.items.length === 0) return [];
