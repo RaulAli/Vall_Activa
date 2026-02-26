@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Application\Auth\Handler;
 
+use App\Application\Auth\AuthConfig;
 use App\Application\Auth\Command\LoginCommand;
 use App\Application\Auth\DTO\AuthTokensDto;
 use App\Application\Auth\Port\JwtTokenGeneratorInterface;
@@ -14,8 +15,6 @@ use App\Domain\Shared\ValueObject\Uuid;
 
 final class LoginHandler
 {
-    /** Refresh token lives 30 days */
-    private const REFRESH_TTL_SECONDS = 30 * 24 * 60 * 60;
 
     public function __construct(
         private readonly UserAuthRepositoryInterface $users,
@@ -41,14 +40,14 @@ final class LoginHandler
         }
 
         // Generate a new raw refresh token
-        $rawToken = bin2hex(random_bytes(64)); // 128-char hex
+        $rawToken = bin2hex(random_bytes(64));
         $tokenHash = hash('sha256', $rawToken);
 
         $deviceId = $cmd->deviceId ?? Uuid::v4()->value();
         $familyId = Uuid::v4()->value();
         $sessionId = Uuid::v4()->value();
         $now = new \DateTimeImmutable();
-        $expiresAt = $now->modify(sprintf('+%d seconds', self::REFRESH_TTL_SECONDS));
+        $expiresAt = $now->modify(sprintf('+%d seconds', AuthConfig::REFRESH_TTL_SECONDS));
 
         $sessionVersion = 1;
 
@@ -70,7 +69,7 @@ final class LoginHandler
         return new AuthTokensDto(
             accessToken: $accessToken,
             rawRefreshToken: $rawToken,
-            refreshTtl: self::REFRESH_TTL_SECONDS,
+            refreshTtl: AuthConfig::REFRESH_TTL_SECONDS,
             userId: $user->id,
             email: $user->email,
         );

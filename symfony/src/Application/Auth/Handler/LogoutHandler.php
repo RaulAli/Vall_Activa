@@ -19,16 +19,11 @@ final class LogoutHandler
     {
         $tokenHash = hash('sha256', $cmd->rawRefreshToken);
 
-        // Look up the session to get its expiry (needed for blacklist TTL)
         $session = $this->sessions->findActiveByTokenHash($tokenHash);
 
         if ($session !== null) {
-            // Blacklist the token so it can't be reused even before DB commit
-            $this->blacklist->add($tokenHash, $cmd->userId, $session['expiresAt']);
-            // Revoke the specific session by device
+            $this->blacklist->add($tokenHash, $session['userId'], $session['expiresAt']);
             $this->sessions->revoke($session['id']);
         }
-        // If session already gone / token already used — silently succeed
-        // (idempotent logout: already logged out is still "logged out")
     }
 }

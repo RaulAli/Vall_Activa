@@ -6,10 +6,12 @@ interface AuthState {
     token: string | null;
     user: AuthUser | null;
     isAuthenticated: boolean;
+    isInitializing: boolean;
 
     setAuth: (token: string, user: AuthUser) => void;
     setUser: (user: AuthUser) => void;
     clearAuth: () => void;
+    setInitializing: (value: boolean) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -18,6 +20,7 @@ export const useAuthStore = create<AuthState>()(
             token: null,
             user: null,
             isAuthenticated: false,
+            isInitializing: true,
 
             setAuth: (token, user) =>
                 set({ token, user, isAuthenticated: true }),
@@ -26,13 +29,14 @@ export const useAuthStore = create<AuthState>()(
 
             clearAuth: () =>
                 set({ token: null, user: null, isAuthenticated: false }),
+
+            setInitializing: (value) => set({ isInitializing: value }),
         }),
         {
             name: "vamo-auth",
+            // token stays in memory; only user profile is persisted
             partialize: (state) => ({
-                token: state.token,
                 user: state.user,
-                isAuthenticated: state.isAuthenticated,
             }),
         }
     )

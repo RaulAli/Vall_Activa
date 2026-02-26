@@ -8,7 +8,6 @@ final class LogoutCommand
     public function __construct(
         /** Raw refresh token from httpOnly cookie */
         public readonly string $rawRefreshToken,
-        public readonly string $userId,
     ) {
     }
 }
