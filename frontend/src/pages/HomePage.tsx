@@ -108,10 +108,10 @@ export function HomePage() {
                         {/* Quick tags */}
                         <div className="flex flex-wrap justify-center gap-3">
                             {[
-                                { label: "Running", sportCode: "RUN" },
-                                { label: "Hiking", sportCode: "HIKE" },
-                                { label: "Surfing", sportCode: "SURF" },
-                                { label: "Kayaking", sportCode: "KAYAK" },
+                                { label: "Running", sportCode: "run" },
+                                { label: "Hiking", sportCode: "hike" },
+                                { label: "Surfing", sportCode: "surf" },
+                                { label: "Kayaking", sportCode: "kayak" },
                             ].map(tag => (
                                 <button
                                     key={tag.label}
@@ -170,28 +170,28 @@ export function HomePage() {
                             {[
                                 {
                                     label: "Running",
-                                    sportCode: "RUN",
+                                    sportCode: "run",
                                     image: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=800",
                                     icon: "directions_run",
                                     color: "from-orange-900/80",
                                 },
                                 {
                                     label: "Hiking",
-                                    sportCode: "HIKE",
+                                    sportCode: "hike",
                                     image: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800",
                                     icon: "hiking",
                                     color: "from-emerald-900/80",
                                 },
                                 {
                                     label: "Surfing",
-                                    sportCode: "SURF",
+                                    sportCode: "surf",
                                     image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&q=80&w=800",
                                     icon: "surfing",
                                     color: "from-cyan-900/80",
                                 },
                                 {
                                     label: "Kayaking",
-                                    sportCode: "KAYAK",
+                                    sportCode: "kayak",
                                     image: "https://images.unsplash.com/photo-1472745942893-4b9f730c7668?auto=format&fit=crop&q=80&w=800",
                                     icon: "rowing",
                                     color: "from-blue-900/80",

@@ -1,5 +1,6 @@
 import { http } from "../../../shared/api/http";
 import { endpoints } from "../../../shared/api/endpoints";
+import { broadcastAuth } from "../../../shared/utils/authChannel";
 import type {
     LoginRequest,
     RegisterRequest,
@@ -25,6 +26,7 @@ export async function logout(token: string): Promise<void> {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
     });
+    broadcastAuth("logout");
 }
 
 export async function getMe(token: string): Promise<AuthUser> {
@@ -36,4 +38,3 @@ export async function getMe(token: string): Promise<AuthUser> {
 export async function refreshToken(): Promise<AuthResponse> {
     return http<AuthResponse>("POST", endpoints.auth.refresh, { withCredentials: true });
 }
-

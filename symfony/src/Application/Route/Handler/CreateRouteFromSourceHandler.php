@@ -88,19 +88,19 @@ final class CreateRouteFromSourceHandler
 
             $now = new \DateTimeImmutable();
             $this->routeSources->save([
-                'id'               => Uuid::v4()->value(),
-                'routeId'          => $route->id()->value(),
-                'format'           => $format->value,
+                'id' => Uuid::v4()->value(),
+                'routeId' => $route->id()->value(),
+                'format' => $format->value,
                 'originalFilename' => $cmd->originalFilename,
-                'mimeType'         => $cmd->mimeType,
-                'filePath'         => $cmd->sourcePath,
-                'fileSize'         => $cmd->fileSize,
-                'sha256'           => $cmd->sha256,
-                'uploadedAt'       => $now,
-                'parsedAt'         => $now,
-                'parseStatus'      => 'OK',
-                'parseError'       => null,
-                'parserVersion'    => 'v1',
+                'mimeType' => $cmd->mimeType,
+                'filePath' => $cmd->sourcePath,
+                'fileSize' => $cmd->fileSize,
+                'sha256' => $cmd->sha256,
+                'uploadedAt' => $now,
+                'parsedAt' => $now,
+                'parseStatus' => 'OK',
+                'parseError' => null,
+                'parserVersion' => 'v1',
             ]);
 
             return $route->id()->value();

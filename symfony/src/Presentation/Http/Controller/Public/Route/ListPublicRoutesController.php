@@ -23,7 +23,7 @@ final class ListPublicRoutesController extends AbstractController
         $order = (string) $request->query->get('order', 'desc');
 
         $sportCode = $request->query->get('sportCode');
-        $sportCode = is_string($sportCode) && trim($sportCode) !== '' ? trim($sportCode) : null;
+        $sportCode = is_string($sportCode) && trim($sportCode) !== '' ? mb_strtolower(trim($sportCode)) : null;
 
         $distanceMin = $this->intOrNull($request->query->get('distanceMin'));
         $distanceMax = $this->intOrNull($request->query->get('distanceMax'));

@@ -56,6 +56,7 @@ final class DoctrineProfileCreator implements ProfileCreatorInterface
         $orm->userId = $userId;
         $orm->name = $name;
         $orm->slug = $slug;
+        $orm->profileIcon = 'https://robohash.org/' . urlencode($slug) . '.png';
         $orm->isActive = true;
         $orm->createdAt = $now;
         $orm->updatedAt = $now;
@@ -70,6 +71,7 @@ final class DoctrineProfileCreator implements ProfileCreatorInterface
         $orm->userId = $userId;
         $orm->name = $name;
         $orm->slug = $slug;
+        $orm->avatar = 'https://robohash.org/' . urlencode($slug) . '.png';
         $orm->isActive = true;
         $orm->createdAt = $now;
         $orm->updatedAt = $now;
@@ -84,6 +86,7 @@ final class DoctrineProfileCreator implements ProfileCreatorInterface
         $orm->userId = $userId;
         $orm->name = $name;
         $orm->slug = $slug;
+        $orm->avatar = 'https://robohash.org/' . urlencode($slug) . '.png';
         $orm->sports = [];
         $orm->isActive = true;
         $orm->createdAt = $now;
