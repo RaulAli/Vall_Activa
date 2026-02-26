@@ -50,3 +50,5 @@ DOCKER_PERFORMANCE.txt
 ### Testing ###
 .phpunit.result.cache
 coverage/
+
+info.md

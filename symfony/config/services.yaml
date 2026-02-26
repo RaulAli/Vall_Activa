@@ -45,6 +45,9 @@ services:
   App\Application\Route\Port\RouteParserInterface:
     class: App\Infrastructure\Route\Parser\GpxRouteParser
 
+  App\Application\Route\Port\RouteSourceRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRouteSourceRepository
+
   App\Application\Route\Port\RoutePublicReadRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineRoutePublicReadRepository
 
