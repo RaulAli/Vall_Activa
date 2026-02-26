@@ -44,6 +44,7 @@ security:
         - { path: ^/api/auth/(register|login|refresh|logout)$, roles: PUBLIC_ACCESS }
         - { path: ^/api/public/, roles: PUBLIC_ACCESS }
         - { path: ^/api/profile/, roles: PUBLIC_ACCESS, methods: [GET] }
+        - { path: ^/api/admin/, roles: ROLE_ADMIN }
         - { path: ^/api/, roles: IS_AUTHENTICATED_FULLY }
 
 when@test:

@@ -25,6 +25,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             ->select('o')
             ->from(OfferOrm::class, 'o')
             ->andWhere('o.isActive = true')
+            ->andWhere('o.adminDisabled = false')
             ->andWhere('o.status = :status')
             ->setParameter('status', 'PUBLISHED');
 
@@ -35,6 +36,8 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             'WITH',
             'b.userId = o.businessId'
         );
+        // hide offers from admin-deactivated businesses
+        $baseQb->andWhere('b.userId IS NULL OR b.isActive = true');
 
         // bbox por business.lat/lng
         $hasBbox =
@@ -150,6 +153,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
                 'b.userId = o.businessId'
             )
             ->andWhere('o.isActive = true')
+            ->andWhere('o.adminDisabled = false')
             ->andWhere('o.status = :status')
             ->andWhere('o.slug = :slug')
             ->setParameter('status', 'PUBLISHED')
@@ -201,6 +205,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
         $qb = $this->em->createQueryBuilder()
             ->from(OfferOrm::class, 'o')
             ->andWhere('o.isActive = true')
+            ->andWhere('o.adminDisabled = false')
             ->andWhere('o.status = :status')
             ->setParameter('status', 'PUBLISHED');
 
@@ -211,6 +216,7 @@ final class DoctrineOfferPublicReadRepository implements OfferPublicReadReposito
             'WITH',
             'b.userId = o.businessId'
         );
+        $qb->andWhere('b.userId IS NULL OR b.isActive = true');
 
         // bbox
         $hasBbox =

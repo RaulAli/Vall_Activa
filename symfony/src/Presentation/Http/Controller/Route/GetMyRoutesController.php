@@ -38,6 +38,7 @@ final class GetMyRoutesController extends AbstractController
             ->from(RouteOrm::class, 'r')
             ->leftJoin(SportOrm::class, 's', 'WITH', 'r.sportId = s.id')
             ->where('r.createdByUserId = :uid')
+            ->andWhere('r.adminDisabled = false')
             ->setParameter('uid', $userId)
             ->orderBy('r.createdAt', 'DESC')
             ->getQuery()

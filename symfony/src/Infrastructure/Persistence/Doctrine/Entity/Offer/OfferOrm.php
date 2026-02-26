@@ -58,4 +58,7 @@ class OfferOrm
 
     #[ORM\Column(type: 'string', length: 30)]
     public string $status;
+
+    #[ORM\Column(name: 'admin_disabled', type: 'boolean', options: ['default' => false])]
+    public bool $adminDisabled = false;
 }

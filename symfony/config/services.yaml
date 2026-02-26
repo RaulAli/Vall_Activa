@@ -71,10 +71,6 @@ services:
   App\Application\Auth\Port\ProfileCreatorInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineProfileCreator
 
-  App\Infrastructure\Security\JWTSessionVersionListener:
-    tags:
-      - { name: kernel.event_listener, event: lexik_jwt_authentication.on_jwt_decoded, method: onJWTDecoded }
-
   # ----- User -----
 
   App\Application\User\Port\UserReadRepositoryInterface:

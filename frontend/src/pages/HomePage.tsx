@@ -107,10 +107,19 @@ export function HomePage() {
                         </div>
                         {/* Quick tags */}
                         <div className="flex flex-wrap justify-center gap-3">
-                            {["Hiking", "Cycling", "Road Trip", "Mountaineering"].map(tag => (
-                                <span key={tag} className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white text-[11px] font-black uppercase tracking-widest cursor-pointer border border-white/20 transition-all hover:scale-105 active:scale-95">
-                                    {tag}
-                                </span>
+                            {[
+                                { label: "Running", sportCode: "RUN" },
+                                { label: "Hiking", sportCode: "HIKE" },
+                                { label: "Surfing", sportCode: "SURF" },
+                                { label: "Kayaking", sportCode: "KAYAK" },
+                            ].map(tag => (
+                                <button
+                                    key={tag.label}
+                                    onClick={() => navigate(`/routes?sportCode=${tag.sportCode}`)}
+                                    className="px-5 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white text-[11px] font-black uppercase tracking-widest border border-white/20 transition-all hover:scale-105 active:scale-95"
+                                >
+                                    {tag.label}
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -125,19 +134,91 @@ export function HomePage() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
                             {[
-                                { icon: "map", title: "Discover", desc: "Search for a destination anywhere in the world and browse curated paths." },
-                                { icon: "calendar_month", title: "Book", desc: "Choose a verified local guide or download a self-guided route pack." },
-                                { icon: "hiking", title: "Explore", desc: "Pack your bags, sync your maps offline, and start your next adventure." }
+                                { icon: "map", title: "Discover", desc: "Search for a destination anywhere in the world and browse curated paths.", href: "/routes", cta: "Browse routes" },
+                                { icon: "storefront", title: "Gear Up", desc: "Get premium gear, discounts and exclusive rewards redeemable with your points.", href: "/offers", cta: "Shop offers" },
+                                { icon: "hiking", title: "Explore", desc: "Pack your bags, sync your maps offline, and start your next adventure.", href: "/routes", cta: "Start exploring" }
                             ].map((step, i) => (
-                                <div key={i} className="group flex flex-col bg-slate-50/50 dark:bg-slate-900/50 p-12 rounded-[3rem] border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2">
+                                <button
+                                    key={i}
+                                    onClick={() => navigate(step.href)}
+                                    className="group flex flex-col bg-slate-50/50 dark:bg-slate-900/50 p-12 rounded-[3rem] border border-slate-100 dark:border-slate-800 hover:border-primary/50 transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 text-left"
+                                >
                                     <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mb-10 group-hover:bg-primary group-hover:text-white transition-all duration-500 group-hover:rotate-6">
                                         <span className="material-symbols-outlined !text-5xl">{step.icon}</span>
                                     </div>
                                     <h3 className="text-3xl font-black mb-4 tracking-tight">{step.title}</h3>
-                                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-semibold text-lg">
+                                    <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-semibold text-lg flex-1">
                                         {step.desc}
                                     </p>
-                                </div>
+                                    <div className="mt-8 flex items-center gap-2 text-primary font-black text-sm uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {step.cta} <span className="material-symbols-outlined !text-base group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </section>
+
+                {/* Categories Section */}
+                <section className="py-20 px-4 bg-slate-50 dark:bg-[#080c14]">
+                    <div className="max-w-[1280px] mx-auto">
+                        <div className="text-center mb-12">
+                            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white mb-3">Explore by Category</h2>
+                            <p className="text-slate-500 dark:text-slate-400 font-semibold text-lg">Find the adventure style that fits you best.</p>
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                            {[
+                                {
+                                    label: "Running",
+                                    sportCode: "RUN",
+                                    image: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=800",
+                                    icon: "directions_run",
+                                    color: "from-orange-900/80",
+                                },
+                                {
+                                    label: "Hiking",
+                                    sportCode: "HIKE",
+                                    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800",
+                                    icon: "hiking",
+                                    color: "from-emerald-900/80",
+                                },
+                                {
+                                    label: "Surfing",
+                                    sportCode: "SURF",
+                                    image: "https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&q=80&w=800",
+                                    icon: "surfing",
+                                    color: "from-cyan-900/80",
+                                },
+                                {
+                                    label: "Kayaking",
+                                    sportCode: "KAYAK",
+                                    image: "https://images.unsplash.com/photo-1472745942893-4b9f730c7668?auto=format&fit=crop&q=80&w=800",
+                                    icon: "rowing",
+                                    color: "from-blue-900/80",
+                                },
+                            ].map((cat) => (
+                                <button
+                                    key={cat.label}
+                                    onClick={() => navigate(`/routes?sportCode=${cat.sportCode}`)}
+                                    className="group relative overflow-hidden rounded-3xl aspect-[3/4] md:aspect-[2/3] shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1"
+                                >
+                                    <img
+                                        src={cat.image}
+                                        alt={cat.label}
+                                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    />
+                                    <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} via-transparent to-transparent opacity-80`} />
+                                    <div className="absolute inset-0 flex flex-col justify-end p-5 md:p-7 text-left">
+                                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center mb-3 border border-white/30 group-hover:bg-white/30 transition-all">
+                                            <span className="material-symbols-outlined !text-xl md:!text-2xl text-white">{cat.icon}</span>
+                                        </div>
+                                        <h3 className="text-white font-black text-xl md:text-2xl tracking-tight leading-tight">{cat.label}</h3>
+                                        <div className="flex items-center gap-1 mt-2 text-white/70 text-xs font-bold uppercase tracking-widest">
+                                            Explorar rutas
+                                            <span className="material-symbols-outlined !text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                                        </div>
+                                    </div>
+                                </button>
                             ))}
                         </div>
                     </div>
@@ -243,7 +324,7 @@ export function HomePage() {
                                 </>
                             )}
 
-                            {!offersQuery.isLoading && displayOffers.map((offer, i) => {
+                            {!offersQuery.isLoading && displayOffers.map((offer) => {
                                 const img = offer.image || getFallbackImage(offer.id, "offer");
 
                                 return (

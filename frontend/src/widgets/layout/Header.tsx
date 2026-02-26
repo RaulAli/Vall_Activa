@@ -140,6 +140,18 @@ export function Header() {
                                             <span className="material-symbols-outlined !text-base">settings</span>
                                             Settings
                                         </button>
+                                        {user.role === "ROLE_ADMIN" && (
+                                            <>
+                                                <div className="h-px bg-slate-100 dark:bg-slate-800 my-1" />
+                                                <button
+                                                    onClick={() => { setUserMenuOpen(false); navigate("/admin"); }}
+                                                    className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">admin_panel_settings</span>
+                                                    Admin Dashboard
+                                                </button>
+                                            </>
+                                        )}
                                         {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
                                             <>
                                                 <button
@@ -241,6 +253,14 @@ export function Header() {
                                     <p className="text-xs text-slate-400">{user.role.replace("ROLE_", "")}</p>
                                 </div>
                             </div>
+                            {user.role === "ROLE_ADMIN" && (
+                                <button
+                                    onClick={() => { setMobileMenuOpen(false); navigate("/admin"); }}
+                                    className="w-full py-3 text-center font-bold text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800 rounded-xl"
+                                >
+                                    Admin Dashboard
+                                </button>
+                            )}
                             {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
                                 <>
                                     <button

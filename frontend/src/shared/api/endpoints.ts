@@ -3,7 +3,7 @@ export const endpoints = {
         login: "/api/auth/login",
         register: "/api/auth/register",
         logout: "/api/auth/logout",
-        refresh: "/api/auth/token/refresh",
+        refresh: "/api/auth/refresh",
         me: "/api/user/me",
     },
     user: {
@@ -38,5 +38,23 @@ export const endpoints = {
     },
     business: {
         profile: "/api/business/me/profile",
+    },
+    admin: {
+        stats: "/api/admin/stats",
+        users: "/api/admin/users",
+        toggleUser: (id: string) => `/api/admin/users/${id}/toggle`,
+        deleteUser: (id: string) => `/api/admin/users/${id}`,
+        routes: "/api/admin/routes",
+        toggleRoute: (id: string) => `/api/admin/routes/${id}/toggle`,
+        deleteRoute: (id: string) => `/api/admin/routes/${id}`,
+        offers: "/api/admin/offers",
+        toggleOffer: (id: string) => `/api/admin/offers/${id}/toggle`,
+        deleteOffer: (id: string) => `/api/admin/offers/${id}`,
+        businesses: "/api/admin/businesses",
+        toggleBusiness: (id: string) => `/api/admin/businesses/${id}/toggle`,
+        sports: "/api/admin/sports",
+        createSport: "/api/admin/sports",
+        updateSport: (id: string) => `/api/admin/sports/${id}`,
+        toggleSport: (id: string) => `/api/admin/sports/${id}/toggle`,
     },
 };

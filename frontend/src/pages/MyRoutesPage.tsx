@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "../widgets/layout/Header";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -90,17 +90,38 @@ export function MyRoutesPage() {
         setDurationMin(""); setDurationMax(""); setSort("recent"); setVisFilter("ALL"); setPage(1);
     }
 
+    const { data: routes = [], isLoading, isError } = useQuery({
+        queryKey: ["me", "routes"],
+        queryFn: () => getMyRoutes(token!),
+        enabled: !!token,
+    });
+
+    // All sports from API — used in RouteRow edit form
     const { data: sports = [] } = useQuery<SportOption[]>({
         queryKey: ["sports"],
         queryFn: () => http<SportOption[]>("GET", endpoints.sports.list),
         staleTime: Infinity,
     });
 
-    const { data: routes = [], isLoading, isError } = useQuery({
-        queryKey: ["me", "routes"],
-        queryFn: () => getMyRoutes(token!),
-        enabled: !!token,
-    });
+    // ── Dynamic filter options derived from user's own routes ──
+    const availableSports = useMemo(() => {
+        const seen = new Map<string, string>();
+        routes.forEach(r => {
+            if (r.sportCode && r.sportName && !seen.has(r.sportCode))
+                seen.set(r.sportCode, r.sportName);
+        });
+        return Array.from(seen.entries()).map(([code, name]) => ({ code, name }));
+    }, [routes]);
+
+    const availableDifficulties = useMemo(() =>
+        (Object.keys(DIFFICULTY_CONFIG) as DifficultyKey[]).filter(k =>
+            routes.some(r => r.difficulty === k)
+        ), [routes]);
+
+    const availableRouteTypes = useMemo(() =>
+        (Object.keys(ROUTE_TYPE_CONFIG) as RouteTypeKey[]).filter(k =>
+            routes.some(r => r.routeType === k)
+        ), [routes]);
 
     type RoutePatch = {
         title?: string;
@@ -235,11 +256,10 @@ export function MyRoutesPage() {
                     </div>
                     <button
                         onClick={() => setShowFilters(v => !v)}
-                        className={`relative p-2 rounded-xl border transition-all ${
-                            showFilters
-                                ? "bg-primary/10 border-primary/30 text-primary"
-                                : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300"
-                        }`}
+                        className={`relative p-2 rounded-xl border transition-all ${showFilters
+                            ? "bg-primary/10 border-primary/30 text-primary"
+                            : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-500 hover:border-slate-300"
+                            }`}
                     >
                         <span className="material-symbols-outlined !text-xl">tune</span>
                         {advancedFiltersCount > 0 && (
@@ -279,11 +299,10 @@ export function MyRoutesPage() {
                         <button
                             key={s}
                             onClick={() => { setSort(s); setPage(1); }}
-                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                                sort === s
-                                    ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
-                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
-                            }`}
+                            className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${sort === s
+                                ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm"
+                                : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                                }`}
                         >
                             {{ recent: "Recientes", distance: "Distancia", gain: "Desnivel", duration: "Duración" }[s]}
                         </button>
@@ -294,19 +313,18 @@ export function MyRoutesPage() {
                 {showFilters && (
                     <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 mb-4 space-y-4">
                         {/* Sport */}
-                        {sports.length > 0 && (
+                        {availableSports.length > 0 && (
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Deporte</p>
                                 <div className="flex flex-wrap gap-1.5">
-                                    {sports.map(s => (
+                                    {availableSports.map(s => (
                                         <button
                                             key={s.code}
                                             onClick={() => { setSportFilter(sp => sp === s.code ? null : s.code); setPage(1); }}
-                                            className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                                                sportFilter === s.code
-                                                    ? "bg-primary text-white border-primary shadow-sm"
-                                                    : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                            }`}
+                                            className={`px-3 py-1 rounded-full text-xs font-bold border transition-all ${sportFilter === s.code
+                                                ? "bg-primary text-white border-primary shadow-sm"
+                                                : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
+                                                }`}
                                         >
                                             {s.name}
                                         </button>
@@ -319,20 +337,22 @@ export function MyRoutesPage() {
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Dificultad</p>
                             <div className="flex flex-wrap gap-1.5">
-                                {(Object.entries(DIFFICULTY_CONFIG) as [DifficultyKey, typeof DIFFICULTY_CONFIG[DifficultyKey]][]).map(([key, cfg]) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => { setDifficultyFilter(d => d === key ? null : key); setPage(1); }}
-                                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                                            difficultyFilter === key
+                                {availableDifficulties.map(key => {
+                                    const cfg = DIFFICULTY_CONFIG[key];
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => { setDifficultyFilter(d => d === key ? null : key); setPage(1); }}
+                                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${difficultyFilter === key
                                                 ? `${cfg.bg} ${cfg.color} shadow-sm`
                                                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <span className={`material-symbols-outlined !text-[12px] ${difficultyFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
-                                        {cfg.label}
-                                    </button>
-                                ))}
+                                                }`}
+                                        >
+                                            <span className={`material-symbols-outlined !text-[12px] ${difficultyFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
+                                            {cfg.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -340,20 +360,22 @@ export function MyRoutesPage() {
                         <div>
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Tipo de ruta</p>
                             <div className="flex flex-wrap gap-1.5">
-                                {(Object.entries(ROUTE_TYPE_CONFIG) as [RouteTypeKey, typeof ROUTE_TYPE_CONFIG[RouteTypeKey]][]).map(([key, cfg]) => (
-                                    <button
-                                        key={key}
-                                        onClick={() => { setRouteTypeFilter(t => t === key ? null : key); setPage(1); }}
-                                        className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${
-                                            routeTypeFilter === key
+                                {availableRouteTypes.map(key => {
+                                    const cfg = ROUTE_TYPE_CONFIG[key];
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => { setRouteTypeFilter(t => t === key ? null : key); setPage(1); }}
+                                            className={`flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border transition-all ${routeTypeFilter === key
                                                 ? `${cfg.bg} ${cfg.color} shadow-sm`
                                                 : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300"
-                                        }`}
-                                    >
-                                        <span className={`material-symbols-outlined !text-[12px] ${routeTypeFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
-                                        {cfg.label}
-                                    </button>
-                                ))}
+                                                }`}
+                                        >
+                                            <span className={`material-symbols-outlined !text-[12px] ${routeTypeFilter === key ? cfg.color : ""}`}>{cfg.icon}</span>
+                                            {cfg.label}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -468,11 +490,10 @@ export function MyRoutesPage() {
                                         <button
                                             key={p}
                                             onClick={() => setPage(p)}
-                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${
-                                                p === safePage
-                                                    ? "bg-primary text-white shadow-sm shadow-primary/30"
-                                                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                                            }`}
+                                            className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${p === safePage
+                                                ? "bg-primary text-white shadow-sm shadow-primary/30"
+                                                : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                                }`}
                                         >
                                             {p}
                                         </button>

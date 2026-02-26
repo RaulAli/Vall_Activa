@@ -11,6 +11,7 @@ import { CreateRoutePage } from "../../pages/CreateRoutePage";
 import { MyRoutesPage } from "../../pages/MyRoutesPage";
 import { CreateOfferPage } from "../../pages/CreateOfferPage";
 import { MyOffersPage } from "../../pages/MyOffersPage";
+import { AdminPage } from "../../pages/AdminPage";
 
 export const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
@@ -26,4 +27,5 @@ export const router = createBrowserRouter([
     { path: "/me/offers", element: <MyOffersPage /> },
     { path: "/route/:slug", element: <RouteDetailPage /> },
     { path: "/offer/:slug", element: <OfferDetailPage /> },
+    { path: "/admin", element: <AdminPage /> },
 ]);

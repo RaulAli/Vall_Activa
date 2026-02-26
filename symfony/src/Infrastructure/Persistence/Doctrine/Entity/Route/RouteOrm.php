@@ -90,6 +90,9 @@ class RouteOrm
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 
+    #[ORM\Column(name: 'admin_disabled', type: 'boolean', options: ['default' => false])]
+    public bool $adminDisabled = false;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     public \DateTimeImmutable $createdAt;
 
