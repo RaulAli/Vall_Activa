@@ -57,6 +57,7 @@ final class GetPublicProfileController extends AbstractController
                 'lat' => $profile->lat,
                 'lng' => $profile->lng,
                 'sports' => $profile->sports,
+                'isVerified' => $profile->isVerified,
             ],
             default => [],
         };

@@ -21,6 +21,7 @@ final class PublicProfileDto
         public readonly ?string $birthDate = null,
         public readonly ?string $bio = null,
         public readonly ?array $sports = null,
+        public readonly ?bool $isVerified = null,
     ) {
     }
 }

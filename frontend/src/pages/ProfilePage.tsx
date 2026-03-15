@@ -255,6 +255,17 @@ export function ProfilePage() {
                             <span className="text-sm text-slate-500 dark:text-slate-400">Rol</span>
                             <span className={`text-xs font-black px-2.5 py-1 rounded-full ${ROLE_COLOR[role] ?? ""}`}>{ROLE_LABEL[role] ?? role}</span>
                         </div>
+                        {isGuide && (
+                            <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-sm text-slate-500 dark:text-slate-400">Verificación guide</span>
+                                <span className={`text-xs font-black px-2.5 py-1 rounded-full ${user.isGuideVerified
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                    }`}>
+                                    {user.isGuideVerified ? "Verificado" : "Pendiente"}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center py-3">
                             <span className="text-sm text-slate-500 dark:text-slate-400">Miembro desde</span>
                             <span className="text-sm font-semibold text-slate-900 dark:text-white">

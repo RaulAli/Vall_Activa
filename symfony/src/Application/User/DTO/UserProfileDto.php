@@ -25,6 +25,7 @@ final class UserProfileDto
         public readonly ?string $bio = null,
         /** @var list<string>|null */
         public readonly ?array $sports = null,
+        public readonly ?bool $isGuideVerified = null,
     ) {
     }
 }

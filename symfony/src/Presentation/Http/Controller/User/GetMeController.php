@@ -58,6 +58,7 @@ final class GetMeController extends AbstractController
                 'lat' => $profile->lat,
                 'lng' => $profile->lng,
                 'sports' => $profile->sports,
+                'isGuideVerified' => $profile->isGuideVerified,
             ],
             default => [],
         };

@@ -23,6 +23,7 @@ export const endpoints = {
         filters: "/api/public/routes/filters",
         mapMarkers: "/api/public/routes/map-markers",
         details: (slug: string) => `/api/public/routes/${slug}`,
+        bookingSlots: (slug: string) => `/api/public/routes/${slug}/booking-slots`,
         create: "/api/routes",
         update: (id: string) => `/api/routes/${id}`,
         mine: "/api/me/routes",
@@ -39,10 +40,20 @@ export const endpoints = {
     business: {
         profile: "/api/business/me/profile",
     },
+    guide: {
+        availability: "/api/guide/me/availability",
+        bookings: "/api/guide/bookings",
+        myBookings: "/api/guide/me/bookings",
+        updateBooking: (id: string) => `/api/guide/me/bookings/${id}`,
+    },
+    athlete: {
+        myBookings: "/api/athlete/me/bookings",
+    },
     admin: {
         stats: "/api/admin/stats",
         users: "/api/admin/users",
         toggleUser: (id: string) => `/api/admin/users/${id}/toggle`,
+        verifyGuide: (id: string) => `/api/admin/guides/${id}/verify`,
         deleteUser: (id: string) => `/api/admin/users/${id}`,
         routes: "/api/admin/routes",
         toggleRoute: (id: string) => `/api/admin/routes/${id}/toggle`,

@@ -104,7 +104,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
             ->leftJoin(SportOrm::class, 'sp', 'WITH', 'sp.id = r.sportId')
-            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.isActive, r.createdAt, r.image, sp.code AS sportCode, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
+            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.isActive, r.createdAt, r.image, sp.code AS sportCode, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -131,6 +131,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                 creatorName: $r['athleteName'] ?? $r['guideName'] ?? null,
                 creatorSlug: $r['athleteSlug'] ?? $r['guideSlug'] ?? null,
                 creatorAvatar: $r['athleteAvatar'] ?? $r['guideAvatar'] ?? null,
+                creatorIsVerified: $r['guideName'] !== null ? (bool) ($r['guideIsVerified'] ?? false) : null,
                 durationSeconds: isset($r['durationSeconds']) ? (int) $r['durationSeconds'] : null,
                 difficulty: $r['difficulty'] ?? null,
                 routeType: $r['routeType'] ?? null,
@@ -217,7 +218,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                  r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.polyline, r.createdAt, r.image,
                  sp.code AS sportCode,
                  aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar,
-                 gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar')
+                  gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified')
             ->from(RouteOrm::class, 'r')
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
@@ -239,6 +240,8 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
 
         $createdAt = $row['createdAt'];
         $createdAtStr = $createdAt instanceof \DateTimeInterface ? $createdAt->format(DATE_ATOM) : (string) $createdAt;
+        $creatorRole = $row['guideName'] !== null ? 'ROLE_GUIDE' : ($row['athleteName'] !== null ? 'ROLE_ATHLETE' : null);
+        $creatorIsVerified = $creatorRole === 'ROLE_GUIDE' ? (bool) ($row['guideIsVerified'] ?? false) : null;
 
         return new \App\Application\Route\DTO\RoutePublicDetails(
             id: (string) $row['id'],
@@ -265,6 +268,8 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             creatorName: $row['athleteName'] ?? $row['guideName'] ?? null,
             creatorSlug: $row['athleteSlug'] ?? $row['guideSlug'] ?? null,
             creatorAvatar: $row['athleteAvatar'] ?? $row['guideAvatar'] ?? null,
+            creatorRole: $creatorRole,
+            creatorIsVerified: $creatorIsVerified,
             durationSeconds: isset($row['durationSeconds']) ? (int) $row['durationSeconds'] : null,
             difficulty: $row['difficulty'] ?? null,
             routeType: $row['routeType'] ?? null,

@@ -16,6 +16,7 @@ export interface PublicProfile {
     birthDate?: string | null;
     bio?: string | null;
     sports?: string[] | null;
+    isVerified?: boolean | null;
 }
 
 export async function getPublicProfile(slug: string, token?: string | null): Promise<PublicProfile> {

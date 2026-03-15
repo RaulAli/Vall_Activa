@@ -11,6 +11,10 @@ final class RegisterCommand
         public readonly string $role,
         public readonly string $name,
         public readonly string $slug,
+        public readonly ?string $bio = null,
+        public readonly ?string $city = null,
+        /** @var list<string>|null */
+        public readonly ?array $sports = null,
     ) {
     }
 }

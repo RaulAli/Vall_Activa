@@ -22,6 +22,7 @@ export type RouteListItem = {
     creatorName?: string | null;
     creatorSlug?: string | null;
     creatorAvatar?: string | null;
+    creatorIsVerified?: boolean | null;
 };
 
 export type PaginatedResult<T> = {

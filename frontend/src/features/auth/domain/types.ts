@@ -11,6 +11,9 @@ export interface RegisterRequest {
     role: AuthRole;
     name: string;
     slug: string;
+    bio?: string;
+    city?: string;
+    sports?: string[];
 }
 
 export interface AuthResponse {
@@ -34,4 +37,5 @@ export interface AuthUser {
     birthDate?: string | null;
     bio?: string | null;
     sports?: string[] | null;
+    isGuideVerified?: boolean | null;
 }

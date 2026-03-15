@@ -24,6 +24,7 @@ export const RouteListItemSchema = z.object({
     creatorName: z.string().nullable().optional(),
     creatorSlug: z.string().nullable().optional(),
     creatorAvatar: z.string().nullable().optional(),
+    creatorIsVerified: z.boolean().nullable().optional(),
 });
 
 export const PaginatedSchema = <T extends z.ZodTypeAny>(item: T) =>

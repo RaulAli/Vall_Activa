@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useShopStore } from "../../store/shopStore";
 import { useAuthStore } from "../../store/authStore";
 import { logout } from "../../features/auth/api/authApi";
 import { getTheme, toggleTheme, type Theme } from "../../shared/utils/theme";
@@ -41,6 +40,7 @@ export function Header() {
     };
 
     const isHome = location.pathname === "/";
+    const isMarketplace = location.pathname === "/marketplace";
     const isOffers = location.pathname === "/offers";
     const isRoutes = location.pathname === "/routes";
 
@@ -69,12 +69,17 @@ export function Header() {
                     {/* Desktop Nav */}
                     <nav className="hidden md:flex items-center gap-1 bg-slate-100/50 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
                         <button
+                            onClick={() => { navigate("/marketplace"); setMobileMenuOpen(false); }}
+                            className={`px-4 py-1.5 text-sm font-bold rounded-xl transition-all ${isMarketplace ? "bg-white dark:bg-slate-900 text-primary shadow-sm ring-1 ring-black/5" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
+                        >
+                            Marketplace
+                        </button>
+                        <button
                             onClick={handleGoHome}
                             className={`px-4 py-1.5 text-sm font-bold rounded-xl transition-all ${isHome ? "bg-white dark:bg-slate-900 text-primary shadow-sm ring-1 ring-black/5" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
                         >
                             Home
                         </button>
-                        <button className="px-4 py-1.5 text-sm font-medium text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-50" title="Próximamente">Marketplace</button>
                         <button
                             onClick={() => handleGoToDiscover("offers")}
                             className={`px-4 py-1.5 text-sm font-bold rounded-xl transition-all ${isOffers ? "bg-white dark:bg-slate-900 text-primary shadow-sm ring-1 ring-black/5" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"}`}
@@ -158,6 +163,24 @@ export function Header() {
                                         )}
                                         {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
                                             <>
+                                                {user.role === "ROLE_ATHLETE" && (
+                                                    <button
+                                                        onClick={() => { setUserMenuOpen(false); navigate("/me/bookings"); }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">event_note</span>
+                                                        Mis reservas
+                                                    </button>
+                                                )}
+                                                {user.role === "ROLE_GUIDE" && (
+                                                    <button
+                                                        onClick={() => { setUserMenuOpen(false); navigate("/guide/dashboard"); }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">calendar_month</span>
+                                                        Dashboard guide
+                                                    </button>
+                                                )}
                                                 <button
                                                     onClick={() => { setUserMenuOpen(false); navigate("/me/routes"); }}
                                                     className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
@@ -242,7 +265,7 @@ export function Header() {
             {mobileMenuOpen && (
                 <div className="md:hidden bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-4 py-6 flex flex-col gap-4 animate-in fade-in slide-in-from-top-1">
                     <button className={`text-left font-bold ${isHome ? "text-primary" : "text-slate-500"}`} onClick={handleGoHome}>Home</button>
-                    <button className="text-left font-medium text-slate-400 opacity-50 cursor-not-allowed">Marketplace</button>
+                    <button className={`text-left font-bold ${isMarketplace ? "text-primary" : "text-slate-500"}`} onClick={() => { setMobileMenuOpen(false); navigate("/marketplace"); }}>Marketplace</button>
                     <button className={`text-left font-bold ${isOffers ? "text-primary" : "text-slate-500"}`} onClick={() => handleGoToDiscover("offers")}>Offers</button>
                     <button className={`text-left font-bold ${isRoutes ? "text-primary" : "text-slate-500"}`} onClick={() => handleGoToDiscover("routes")}>Routes</button>
                     <div className="h-px bg-slate-100 dark:bg-slate-800 my-2" />
@@ -267,6 +290,22 @@ export function Header() {
                             )}
                             {(user.role === "ROLE_ATHLETE" || user.role === "ROLE_GUIDE") && (
                                 <>
+                                    {user.role === "ROLE_ATHLETE" && (
+                                        <button
+                                            onClick={() => { setMobileMenuOpen(false); navigate("/me/bookings"); }}
+                                            className="w-full py-3 text-center font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl"
+                                        >
+                                            Mis reservas
+                                        </button>
+                                    )}
+                                    {user.role === "ROLE_GUIDE" && (
+                                        <button
+                                            onClick={() => { setMobileMenuOpen(false); navigate("/guide/dashboard"); }}
+                                            className="w-full py-3 text-center font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl"
+                                        >
+                                            Dashboard guide
+                                        </button>
+                                    )}
                                     <button
                                         onClick={() => { setMobileMenuOpen(false); navigate("/me/routes"); }}
                                         className="w-full py-3 text-center font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-xl"

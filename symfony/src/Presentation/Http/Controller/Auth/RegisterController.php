@@ -42,6 +42,9 @@ final class RegisterController extends AbstractController
                 role: $dto->role,
                 name: $dto->name,
                 slug: $dto->slug,
+                bio: $dto->bio,
+                city: $dto->city,
+                sports: $dto->sports,
             ));
         } catch (\DomainException $e) {
             return match ($e->getMessage()) {

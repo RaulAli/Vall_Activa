@@ -1,4 +1,6 @@
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useRouteDetailsQuery } from "../features/routes/queries/useRouteDetailsQuery";
 import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
@@ -6,6 +8,19 @@ import { Header } from "../widgets/layout/Header";
 import { Footer } from "../widgets/layout/Footer";
 import { getFallbackImage } from "../shared/utils/images";
 import { DetailsMap } from "../shared/ui/DetailsMap";
+import { useAuthStore } from "../store/authStore";
+import { HttpError } from "../shared/api/http";
+import { createGuideBooking, getRouteBookingSlots } from "../features/guides/api/guideBookingApi";
+
+const DAY_LABEL: Record<string, string> = {
+    MONDAY: "Lunes",
+    TUESDAY: "Martes",
+    WEDNESDAY: "Miércoles",
+    THURSDAY: "Jueves",
+    FRIDAY: "Viernes",
+    SATURDAY: "Sábado",
+    SUNDAY: "Domingo",
+};
 
 function formatDuration(seconds: number): string {
     const h = Math.floor(seconds / 3600);
@@ -17,7 +32,79 @@ function formatDuration(seconds: number): string {
 export function RouteDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
+    const { token, isAuthenticated } = useAuthStore();
     const { data: route, isLoading, error } = useRouteDetailsQuery(slug || null);
+    const isGuideRoute = route?.creatorRole === "ROLE_GUIDE";
+    const [bookingOpen, setBookingOpen] = useState(false);
+    const [selectedStartsAt, setSelectedStartsAt] = useState<string>("");
+    const [notes, setNotes] = useState("");
+    const [bookingMessage, setBookingMessage] = useState<string | null>(null);
+
+    const bookingSlotsQuery = useQuery({
+        queryKey: ["routes", "booking-slots", slug],
+        queryFn: () => getRouteBookingSlots(slug as string),
+        enabled: bookingOpen && !!slug && isGuideRoute,
+        staleTime: 15_000,
+    });
+
+    const groupedSlots = useMemo(() => {
+        const slots = bookingSlotsQuery.data?.slots ?? [];
+        const byDate: Record<string, { day: string; items: typeof slots }> = {};
+        for (const slot of slots) {
+            if (!byDate[slot.date]) {
+                byDate[slot.date] = { day: slot.day, items: [] };
+            }
+            byDate[slot.date].items.push(slot);
+        }
+        return Object.entries(byDate).sort((a, b) => a[0].localeCompare(b[0]));
+    }, [bookingSlotsQuery.data?.slots]);
+
+    const selectedSlot = useMemo(
+        () => (bookingSlotsQuery.data?.slots ?? []).find((slot) => slot.startsAt === selectedStartsAt),
+        [bookingSlotsQuery.data?.slots, selectedStartsAt],
+    );
+
+    const createBookingMut = useMutation({
+        mutationFn: () => createGuideBooking(token!, {
+            routeId: route!.id,
+            startsAt: selectedStartsAt,
+            notes: notes.trim() || undefined,
+        }),
+        onSuccess: () => {
+            setBookingMessage("Reserva enviada correctamente. El guide verá tu solicitud.");
+            setSelectedStartsAt("");
+            setNotes("");
+            bookingSlotsQuery.refetch();
+        },
+        onError: (err) => {
+            if (err instanceof HttpError) {
+                const apiError = typeof err.body?.error === "string" ? err.body.error : null;
+                const msg = apiError === "slot_already_booked"
+                    ? "Ese horario acaba de reservarse. Elige otro."
+                    : apiError === "slot_not_available"
+                        ? "Ese horario ya no está disponible."
+                        : apiError === "forbidden_role"
+                            ? "Solo los atletas pueden reservar rutas por ahora."
+                            : "No se pudo completar la reserva.";
+                setBookingMessage(msg);
+                return;
+            }
+            setBookingMessage("No se pudo completar la reserva.");
+        },
+    });
+
+    const openBookingModal = () => {
+        setBookingMessage(null);
+        setSelectedStartsAt("");
+        setNotes("");
+
+        if (!isAuthenticated || !token) {
+            navigate("/auth");
+            return;
+        }
+
+        setBookingOpen(true);
+    };
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
     if (error || !route) return <ErrorState message="No se pudo cargar la ruta" />;
@@ -27,7 +114,6 @@ export function RouteDetailPage() {
             <Header />
 
             <main className="max-w-[1200px] mx-auto w-full px-4 md:px-10">
-                {/* Breadcrumbs */}
                 <div className="flex flex-wrap items-center gap-2 py-6">
                     <a className="text-[#4c669a] text-sm font-medium hover:text-primary transition-colors" href="/">Home</a>
                     <span className="material-symbols-outlined text-sm text-[#4c669a]">chevron_right</span>
@@ -36,7 +122,6 @@ export function RouteDetailPage() {
                     <span className="text-[#0d121b] dark:text-white text-sm font-semibold">{route.title}</span>
                 </div>
 
-                {/* Header Section */}
                 <section className="mb-8">
                     <div className="relative w-full h-[450px] overflow-hidden rounded-xl bg-slate-200 dark:bg-slate-800 shadow-xl group">
                         <div
@@ -90,11 +175,8 @@ export function RouteDetailPage() {
                     </div>
                 </section>
 
-                {/* Main Content Layout */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 pb-20">
-                    {/* Left Column: Details & Map */}
                     <div className="lg:col-span-2 space-y-10">
-                        {/* Description */}
                         <section>
                             <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                                 <span className="material-symbols-outlined text-primary">description</span>
@@ -117,7 +199,6 @@ export function RouteDetailPage() {
                             </div>
                         </section>
 
-                        {/* Map Section */}
                         <section className="bg-slate-50 dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold flex items-center gap-2">
@@ -136,7 +217,6 @@ export function RouteDetailPage() {
                             </div>
                         </section>
 
-                        {/* Creator section */}
                         {(route.creatorName || route.creatorAvatar) && (
                             <section className="bg-slate-50 dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
                                 <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -169,10 +249,8 @@ export function RouteDetailPage() {
                         )}
                     </div>
 
-                    {/* Right Column: Sticky Sidebar */}
                     <div className="lg:col-span-1">
                         <div className="sticky top-24 space-y-6">
-                            {/* Route Info Card */}
                             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl overflow-hidden">
                                 <div className="p-6">
                                     <h3 className="text-xl font-bold mb-6">Completar Ruta</h3>
@@ -232,10 +310,15 @@ export function RouteDetailPage() {
                                             <span className="material-symbols-outlined">download</span>
                                             Download GPX
                                         </button>
-                                        <button className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all">
-                                            <span className="material-symbols-outlined">print</span>
-                                            Print Route Guide
-                                        </button>
+                                        {isGuideRoute && (
+                                            <button
+                                                onClick={openBookingModal}
+                                                className="w-full bg-primary/10 hover:bg-primary/20 text-primary font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all"
+                                            >
+                                                <span className="material-symbols-outlined">event_available</span>
+                                                Reservar ruta
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="bg-primary/5 dark:bg-primary/10 p-6 border-t border-primary/10">
@@ -272,7 +355,6 @@ export function RouteDetailPage() {
                                 </div>
                             </div>
 
-                            {/* Local Weather Card */}
                             <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white shadow-xl">
                                 <div className="flex items-center justify-between mb-4">
                                     <h4 className="font-bold">Current Weather</h4>
@@ -290,6 +372,109 @@ export function RouteDetailPage() {
                     </div>
                 </div>
             </main>
+
+            {bookingOpen && isGuideRoute && (
+                <div className="fixed inset-0 z-[2000] bg-black/45 backdrop-blur-sm flex items-end sm:items-center justify-center p-3 sm:p-6">
+                    <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-2xl">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-800">
+                            <div>
+                                <h3 className="text-lg font-black text-slate-900 dark:text-white">Reservar ruta con guide</h3>
+                                <p className="text-xs text-slate-500 mt-1">Selecciona horario disponible y envía tu solicitud.</p>
+                            </div>
+                            <button
+                                onClick={() => setBookingOpen(false)}
+                                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                                aria-label="Cerrar"
+                            >
+                                <span className="material-symbols-outlined">close</span>
+                            </button>
+                        </div>
+
+                        <div className="p-5 space-y-5">
+                            {bookingSlotsQuery.isLoading ? (
+                                <div className="py-8 flex justify-center"><Loader /></div>
+                            ) : groupedSlots.length === 0 ? (
+                                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-sm text-slate-500">
+                                    No hay horarios disponibles en este momento.
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-4 text-[11px] text-slate-500">
+                                        <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-primary" />Libre</span>
+                                        <span className="inline-flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-slate-400" />Ocupada</span>
+                                    </div>
+                                    {groupedSlots.map(([date, block]) => (
+                                        <div key={date}>
+                                            <p className="text-xs font-black uppercase tracking-wide text-slate-500 mb-2">
+                                                {DAY_LABEL[block.day] ?? block.day} · {date}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {block.items.map((slot) => {
+                                                    const selected = selectedStartsAt === slot.startsAt;
+                                                    const occupied = !slot.isAvailable;
+                                                    return (
+                                                        <button
+                                                            key={slot.startsAt}
+                                                            onClick={() => {
+                                                                if (occupied) return;
+                                                                setSelectedStartsAt(slot.startsAt);
+                                                            }}
+                                                            disabled={occupied}
+                                                            className={`px-3 py-2 rounded-lg border text-sm font-bold transition-all ${selected
+                                                                ? "bg-primary text-white border-primary"
+                                                                : occupied
+                                                                    ? "bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 border-slate-300 dark:border-slate-600 cursor-not-allowed"
+                                                                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-primary/50"
+                                                                }`}
+                                                            title={occupied ? "Hora ocupada" : "Hora libre"}
+                                                        >
+                                                            {slot.time}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div>
+                                <label className="block text-xs font-black uppercase tracking-wide text-slate-500 mb-2">Mensaje para el guide (opcional)</label>
+                                <textarea
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                    rows={3}
+                                    maxLength={1000}
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm outline-none focus:border-primary"
+                                    placeholder="Ejemplo: Somos 2 personas, ritmo moderado y disponibilidad de transporte propio."
+                                />
+                            </div>
+
+                            {bookingMessage && (
+                                <div className="text-sm rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-slate-700 dark:text-slate-200">
+                                    {bookingMessage}
+                                </div>
+                            )}
+
+                            <div className="flex flex-col sm:flex-row gap-2 sm:justify-end">
+                                <button
+                                    onClick={() => setBookingOpen(false)}
+                                    className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => createBookingMut.mutate()}
+                                    disabled={!selectedStartsAt || createBookingMut.isPending || selectedSlot?.isAvailable === false}
+                                    className="px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-60 disabled:cursor-not-allowed"
+                                >
+                                    {createBookingMut.isPending ? "Reservando..." : "Confirmar reserva"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <Footer />
         </div>

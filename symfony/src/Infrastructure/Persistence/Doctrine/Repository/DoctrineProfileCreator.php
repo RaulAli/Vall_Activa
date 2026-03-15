@@ -15,14 +15,14 @@ final class DoctrineProfileCreator implements ProfileCreatorInterface
     {
     }
 
-    public function create(string $userId, string $role, string $name, string $slug): void
+    public function create(string $userId, string $role, string $name, string $slug, array $data = []): void
     {
         $now = new \DateTimeImmutable();
 
         match ($role) {
             'ROLE_BUSINESS' => $this->createBusiness($userId, $name, $slug, $now),
             'ROLE_ATHLETE' => $this->createAthlete($userId, $name, $slug, $now),
-            'ROLE_GUIDE' => $this->createGuide($userId, $name, $slug, $now),
+            'ROLE_GUIDE' => $this->createGuide($userId, $name, $slug, $now, $data),
             default => null,
         };
     }
@@ -80,14 +80,18 @@ final class DoctrineProfileCreator implements ProfileCreatorInterface
         $this->em->flush();
     }
 
-    private function createGuide(string $userId, string $name, string $slug, \DateTimeImmutable $now): void
+    private function createGuide(string $userId, string $name, string $slug, \DateTimeImmutable $now, array $data): void
     {
         $orm = new GuideProfileOrm();
         $orm->userId = $userId;
         $orm->name = $name;
         $orm->slug = $slug;
         $orm->avatar = 'https://robohash.org/' . urlencode($slug) . '.png';
-        $orm->sports = [];
+        $orm->bio = isset($data['bio']) && is_string($data['bio']) ? trim($data['bio']) ?: null : null;
+        $orm->city = isset($data['city']) && is_string($data['city']) ? trim($data['city']) ?: null : null;
+        $sports = isset($data['sports']) && is_array($data['sports']) ? array_values(array_map('strval', $data['sports'])) : [];
+        $orm->sports = array_values(array_unique($sports));
+        $orm->isVerified = false;
         $orm->isActive = true;
         $orm->createdAt = $now;
         $orm->updatedAt = $now;

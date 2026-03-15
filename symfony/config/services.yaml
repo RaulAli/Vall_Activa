@@ -81,6 +81,9 @@ services:
 
   App\Application\User\Port\UserWriteRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineUserWriteRepository
+
+  App\Application\GuideAvailability\Port\GuideAvailabilityRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineGuideAvailabilityRepository
   # ----- Profile -----
 
   App\Application\Profile\Port\PublicProfileRepositoryInterface:

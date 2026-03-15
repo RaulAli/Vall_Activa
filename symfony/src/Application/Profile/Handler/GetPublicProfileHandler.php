@@ -48,6 +48,7 @@ final class GetPublicProfileHandler
             birthDate: $data['birthDate'] ?? null,
             bio: $data['bio'] ?? null,
             sports: $data['sports'] ?? null,
+            isVerified: $data['isVerified'] ?? null,
         );
     }
 }

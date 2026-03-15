@@ -11,6 +11,7 @@ interface ProfileCreatorInterface
         string $role,
         string $name,
         string $slug,
+        array $data = [],
     ): void;
 
     /**

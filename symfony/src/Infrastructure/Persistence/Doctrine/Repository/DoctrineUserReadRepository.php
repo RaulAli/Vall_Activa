@@ -36,6 +36,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
         $slug = $name = $avatar = $city = $birthDate = $bio = null;
         $lat = $lng = null;
         $sports = null;
+        $isGuideVerified = null;
 
         if ($role === 'ROLE_BUSINESS') {
             $p = $this->em->find(BusinessProfileOrm::class, $id);
@@ -66,6 +67,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
                 $lat = $p->lat;
                 $lng = $p->lng;
                 $sports = $p->sports ?? [];
+                $isGuideVerified = $p->isVerified;
             }
         }
 
@@ -83,6 +85,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
             birthDate: $birthDate,
             bio: $bio,
             sports: $sports,
+            isGuideVerified: $isGuideVerified,
         );
     }
 

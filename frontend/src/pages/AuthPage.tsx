@@ -38,6 +38,9 @@ export function AuthPage() {
     const [password, setPassword] = useState("");
     const [role, setRole] = useState<AuthRole>("ROLE_ATHLETE");
     const [slug, setSlug] = useState("");
+    const [guideCity, setGuideCity] = useState("");
+    const [guideBio, setGuideBio] = useState("");
+    const [guideSports, setGuideSports] = useState("");
 
     // UI state
     const [showPassword, setShowPassword] = useState(false);
@@ -67,6 +70,9 @@ export function AuthPage() {
         setEmail("");
         setPassword("");
         setSlug("");
+        setGuideCity("");
+        setGuideBio("");
+        setGuideSports("");
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -82,6 +88,8 @@ export function AuthPage() {
             if (password.length < 8) fe.password = "Password must be at least 8 characters.";
             if (password.length > 72) fe.password = "Password cannot exceed 72 characters.";
             if (slug.trim().length < 3) fe.slug = "Slug must be at least 3 characters.";
+            if (role === "ROLE_GUIDE" && guideBio.trim().length > 2000) fe.bio = "Bio cannot exceed 2000 characters.";
+            if (role === "ROLE_GUIDE" && guideCity.trim().length > 255) fe.city = "City cannot exceed 255 characters.";
             if (Object.keys(fe).length > 0) { setFieldErrors(fe); return; }
         }
 
@@ -94,12 +102,26 @@ export function AuthPage() {
                 setAuth(res.accessToken, user);
                 navigate("/", { replace: true });
             } else {
+                const parsedSports = role === "ROLE_GUIDE"
+                    ? guideSports
+                        .split(",")
+                        .map((item) => item.trim().toLowerCase())
+                        .filter(Boolean)
+                    : [];
+
                 await register({
                     email: email.trim(),
                     password,
                     role,
                     name: name.trim(),
                     slug: slug.trim(),
+                    ...(role === "ROLE_GUIDE"
+                        ? {
+                            city: guideCity.trim() || undefined,
+                            bio: guideBio.trim() || undefined,
+                            sports: parsedSports.length ? parsedSports : undefined,
+                        }
+                        : {}),
                 });
                 // Register succeeded — switch to login with email pre-filled
                 const registeredEmail = email.trim();
@@ -107,6 +129,9 @@ export function AuthPage() {
                 setName("");
                 setPassword("");
                 setSlug("");
+                setGuideCity("");
+                setGuideBio("");
+                setGuideSports("");
                 setFieldErrors({});
                 setEmail(registeredEmail);
                 setSuccessMessage("Account created! Sign in to continue.");
@@ -334,6 +359,54 @@ export function AuthPage() {
                                             ))}
                                         </div>
                                     </div>
+                                )}
+
+                                {mode === "register" && role === "ROLE_GUIDE" && (
+                                    <>
+                                        <div className="flex flex-col w-full">
+                                            <label className="text-sm font-semibold leading-normal pb-2">
+                                                City (optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guideCity}
+                                                onChange={(e) => { setGuideCity(e.target.value); setFieldErrors(p => ({ ...p, city: "" })); }}
+                                                placeholder="Barcelona"
+                                                maxLength={255}
+                                                className={`flex w-full rounded-xl border h-14 px-4 text-base font-normal placeholder:text-[#4c669a] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#1a2333] ${fieldErrors.city ? "border-red-400 focus:ring-red-300" : "border-[#cfd7e7] dark:border-[#2a3447] focus:ring-primary/50"}`}
+                                            />
+                                            {fieldErrors.city && <p className="mt-1.5 text-xs text-red-500 font-semibold">{fieldErrors.city}</p>}
+                                        </div>
+
+                                        <div className="flex flex-col w-full">
+                                            <label className="text-sm font-semibold leading-normal pb-2">
+                                                Sports (optional)
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={guideSports}
+                                                onChange={(e) => setGuideSports(e.target.value)}
+                                                placeholder="hike, bike, run"
+                                                className="flex w-full rounded-xl border h-14 px-4 text-base font-normal placeholder:text-[#4c669a] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#1a2333] border-[#cfd7e7] dark:border-[#2a3447] focus:ring-primary/50"
+                                            />
+                                            <p className="mt-1.5 text-xs text-[#4c669a]">Separados por comas. Ejemplo: hike, bike</p>
+                                        </div>
+
+                                        <div className="flex flex-col w-full">
+                                            <label className="text-sm font-semibold leading-normal pb-2">
+                                                Bio (optional)
+                                            </label>
+                                            <textarea
+                                                value={guideBio}
+                                                onChange={(e) => { setGuideBio(e.target.value); setFieldErrors(p => ({ ...p, bio: "" })); }}
+                                                placeholder="Cuéntanos qué tipo de rutas guías..."
+                                                maxLength={2000}
+                                                rows={4}
+                                                className={`flex w-full rounded-xl border px-4 py-3 text-base font-normal placeholder:text-[#4c669a] focus:outline-none focus:ring-2 transition-all bg-white dark:bg-[#1a2333] ${fieldErrors.bio ? "border-red-400 focus:ring-red-300" : "border-[#cfd7e7] dark:border-[#2a3447] focus:ring-primary/50"}`}
+                                            />
+                                            {fieldErrors.bio && <p className="mt-1.5 text-xs text-red-500 font-semibold">{fieldErrors.bio}</p>}
+                                        </div>
+                                    </>
                                 )}
 
                                 {/* Success */}

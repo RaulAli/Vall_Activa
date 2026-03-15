@@ -148,9 +148,17 @@ export function PublicProfilePage() {
                                 <h1 className="text-2xl font-black text-slate-900 dark:text-white">{profile.name}</h1>
                                 <p className="text-sm text-slate-500 dark:text-slate-400 font-mono mt-0.5">@{profile.slug}</p>
                             </div>
-                            <span className={`text-xs font-black px-3 py-1.5 rounded-full mt-1 ${ROLE_COLOR[profile.role] ?? "bg-slate-100 text-slate-600"}`}>
-                                {ROLE_LABEL[profile.role] ?? profile.role}
-                            </span>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className={`text-xs font-black px-3 py-1.5 rounded-full ${ROLE_COLOR[profile.role] ?? "bg-slate-100 text-slate-600"}`}>
+                                    {ROLE_LABEL[profile.role] ?? profile.role}
+                                </span>
+                                {profile.role === "ROLE_GUIDE" && profile.isVerified && (
+                                    <span className="inline-flex items-center gap-1 text-xs font-black px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+                                        <span className="material-symbols-outlined !text-sm">verified</span>
+                                        Verificado
+                                    </span>
+                                )}
+                            </div>
                         </div>
 
                         {/* Stats strip */}

@@ -41,6 +41,9 @@ class GuideProfileOrm
     #[ORM\Column(type: 'json')]
     public array $sports = [];
 
+    #[ORM\Column(name: 'is_verified', type: 'boolean', options: ['default' => false])]
+    public bool $isVerified = false;
+
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 

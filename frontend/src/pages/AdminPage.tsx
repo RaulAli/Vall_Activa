@@ -17,7 +17,7 @@ interface AdminStats {
 }
 
 interface AdminUser {
-    id: string; email: string; role: string; isActive: boolean; createdAt: string;
+    id: string; email: string; role: string; isActive: boolean; isGuideVerified: boolean | null; createdAt: string;
 }
 interface AdminRoute {
     id: string; title: string; slug: string; visibility: string; status: string;
@@ -287,6 +287,11 @@ function UsersSection({ token }: { token: string }) {
         onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "users"] }); qc.invalidateQueries({ queryKey: ["admin", "stats"] }); },
     });
 
+    const verifyGuideMutation = useMutation({
+        mutationFn: (id: string) => http<{ userId: string; isVerified: boolean }>("PATCH", endpoints.admin.verifyGuide(id), { headers: { Authorization: `Bearer ${token}` } }),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+    });
+
     const filtered = useMemo(() => {
         return users.filter(u => {
             if (q && !u.email.toLowerCase().includes(q.toLowerCase()) && !u.id.toLowerCase().includes(q.toLowerCase())) return false;
@@ -354,6 +359,7 @@ function UsersSection({ token }: { token: string }) {
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Email</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">ID</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Rol</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Verificación</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Estado</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Registro</th>
                                 <th className="px-5 py-3 text-right font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Acciones</th>
@@ -362,7 +368,7 @@ function UsersSection({ token }: { token: string }) {
                         <tbody>
                             {isLoading && [...Array(5)].map((_, i) => (
                                 <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50">
-                                    <td colSpan={6} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-48" /></td>
+                                    <td colSpan={7} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-48" /></td>
                                 </tr>
                             ))}
                             {paginated.map(user => (
@@ -375,6 +381,18 @@ function UsersSection({ token }: { token: string }) {
                                     </td>
                                     <td className="px-5 py-3">
                                         <Badge text={user.role.replace("ROLE_", "")} colorClass={ROLE_COLORS[user.role] ?? "bg-slate-100 text-slate-600"} />
+                                    </td>
+                                    <td className="px-5 py-3">
+                                        {user.role === "ROLE_GUIDE" ? (
+                                            <Badge
+                                                text={user.isGuideVerified ? "Verificado" : "Pendiente"}
+                                                colorClass={user.isGuideVerified
+                                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                                                    : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"}
+                                            />
+                                        ) : (
+                                            <span className="text-xs text-slate-400">—</span>
+                                        )}
                                     </td>
                                     <td className="px-5 py-3">
                                         <Badge
@@ -397,13 +415,26 @@ function UsersSection({ token }: { token: string }) {
                                             >
                                                 <span className="material-symbols-outlined !text-base">{user.isActive ? "toggle_on" : "toggle_off"}</span>
                                             </button>
+                                            {user.role === "ROLE_GUIDE" && (
+                                                <button
+                                                    onClick={() => verifyGuideMutation.mutate(user.id)}
+                                                    disabled={verifyGuideMutation.isPending}
+                                                    title={user.isGuideVerified ? "Quitar verificación" : "Verificar guide"}
+                                                    className={`p-1.5 rounded-lg transition-colors ${user.isGuideVerified
+                                                        ? "text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                        : "text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                                                        }`}
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">{user.isGuideVerified ? "verified" : "verified_user"}</span>
+                                                </button>
+                                            )}
                                             <DeleteButton onConfirm={() => deleteMutation.mutate(user.id)} />
                                         </div>
                                     </td>
                                 </tr>
                             ))}
                             {!isLoading && filtered.length === 0 && (
-                                <tr><td colSpan={6} className="px-5 py-10 text-center text-slate-400 font-bold">Sin resultados para los filtros aplicados</td></tr>
+                                <tr><td colSpan={7} className="px-5 py-10 text-center text-slate-400 font-bold">Sin resultados para los filtros aplicados</td></tr>
                             )}
                         </tbody>
                     </table>

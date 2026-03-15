@@ -59,6 +59,7 @@ final class DoctrinePublicProfileRepository implements PublicProfileRepositoryIn
                 'lat' => $p->lat,
                 'lng' => $p->lng,
                 'sports' => $p->sports ?? [],
+                'isVerified' => $p->isVerified,
             ];
         }
 

@@ -37,6 +37,8 @@ export const RouteDetailsSchema = z.object({
     creatorName: z.string().nullable().optional(),
     creatorSlug: z.string().nullable().optional(),
     creatorAvatar: z.string().nullable().optional(),
+    creatorRole: z.string().nullable().optional(),
+    creatorIsVerified: z.boolean().nullable().optional(),
 });
 
 export type RouteDetails = z.infer<typeof RouteDetailsSchema>;

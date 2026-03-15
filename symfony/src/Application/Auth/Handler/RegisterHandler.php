@@ -48,6 +48,11 @@ final class RegisterHandler
             role: $role,
             name: trim($cmd->name),
             slug: $slug,
+            data: [
+                'bio' => $cmd->bio,
+                'city' => $cmd->city,
+                'sports' => $cmd->sports,
+            ],
         );
 
         return $id;
