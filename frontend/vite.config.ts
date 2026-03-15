@@ -8,4 +8,15 @@ export default defineConfig({
     tailwindcss(),
     react(),
   ],
+  server: {
+    proxy: {
+      // All /api/* go through Vite → backend.
+      // This makes cookies same-origin (localhost:5173) so SameSite=Strict works.
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
+  },
 })

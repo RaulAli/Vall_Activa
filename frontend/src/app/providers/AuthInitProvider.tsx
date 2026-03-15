@@ -4,7 +4,7 @@ import { refreshToken } from "../../features/auth/api/authApi";
 import { onAuthBroadcast } from "../../shared/utils/authChannel";
 
 export function AuthInitProvider({ children }: { children: ReactNode }) {
-    const { token, user, setAuth, clearAuth, setInitializing } = useAuthStore();
+    const { token, user, setAuth, clearToken, clearAuth, setInitializing } = useAuthStore();
 
     useEffect(() => {
         if (token) {
@@ -17,10 +17,27 @@ export function AuthInitProvider({ children }: { children: ReactNode }) {
             return;
         }
 
-        refreshToken()
+        // AbortController prevents the React StrictMode double-invoke problem:
+        // StrictMode mounts → unmounts → remounts in dev. Without this, two refresh
+        // requests fire with the same cookie. The first rotates the token (A→B);
+        // the second arrives with the already-rotated A, triggering revokeByFamily
+        // which kills ALL sessions. The abort ensures only the second mount’s
+        // request actually completes.
+        const controller = new AbortController();
+
+        refreshToken(controller.signal)
             .then((data) => setAuth(data.accessToken, user))
-            .catch(() => clearAuth())
-            .finally(() => setInitializing(false));
+            .catch((err) => {
+                if ((err as Error)?.name !== 'AbortError') clearToken();
+            })
+            .finally(() => {
+                if (!controller.signal.aborted) setInitializing(false);
+            });
+
+        return () => {
+            controller.abort();
+            // Keep isInitializing=true until the real mount finishes.
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 

@@ -27,12 +27,47 @@ final class RefreshTokenHandler
     {
         $tokenHash = hash('sha256', $cmd->rawRefreshToken);
 
-        // 1. Blacklist check
+        // 1. Blacklist check (explicit logout)
         if ($this->blacklist->isBlacklisted($tokenHash)) {
             throw new \DomainException('token_blacklisted');
         }
 
-        // 2. Reuse detection — kill the whole family if replayed rotated token
+        // 2. Idempotent rotation grace period (10 s):
+        //    If the token was JUST rotated (e.g. F5 before Set-Cookie arrived), the client
+        //    may retry with the old token. Return the already-rotated session instead of
+        //    treating it as reuse/theft.
+        $recentSession = $this->sessions->findRecentlyRotatedByPreviousHash($tokenHash, 10);
+        if ($recentSession !== null) {
+            // The rotation already happened — rebuild the response with the current token.
+            $userById = $this->users->findById($recentSession['userId']);
+            if ($userById === null || !$userById->isActive) {
+                throw new \DomainException('user_inactive');
+            }
+
+            // Recover the raw token from the stored hash is not possible, so we rotate again
+            // (issuing a fresh token) to give the client a usable cookie.
+            $newRawToken = bin2hex(random_bytes(64));
+            $newTokenHash = hash('sha256', $newRawToken);
+            $now = new \DateTimeImmutable();
+            $newExpiresAt = $now->modify(sprintf('+%d seconds', AuthConfig::REFRESH_TTL_SECONDS));
+
+            $this->sessions->rotateToken($recentSession['id'], $newTokenHash, $newExpiresAt);
+
+            $accessToken = $this->jwt->generate($userById->id, $userById->email, [
+                'sessionId' => $recentSession['id'],
+                'sessionVersion' => $recentSession['sessionVersion'],
+            ]);
+
+            return new AuthTokensDto(
+                accessToken: $accessToken,
+                rawRefreshToken: $newRawToken,
+                refreshTtl: AuthConfig::REFRESH_TTL_SECONDS,
+                userId: $userById->id,
+                email: $userById->email,
+            );
+        }
+
+        // 3. Reuse detection — token was rotated long ago or by another device: kill the family
         $revokedSession = $this->sessions->findRevokedByTokenHash($tokenHash);
         if ($revokedSession !== null) {
             $this->sessions->revokeByFamily($revokedSession['familyId']);

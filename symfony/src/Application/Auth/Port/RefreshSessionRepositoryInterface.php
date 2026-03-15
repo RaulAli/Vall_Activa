@@ -31,6 +31,15 @@ interface RefreshSessionRepositoryInterface
     public function rotateToken(string $sessionId, string $newHash, \DateTimeImmutable $newExpiresAt): void;
 
     /**
+     * Finds an active session whose PREVIOUS token hash matches, rotated within the grace period.
+     * Used to make refresh idempotent: if the client retries with an already-rotated token
+     * (e.g. F5 before Set-Cookie arrived), we return the already-rotated session.
+     *
+     * @return array{id: string, userId: string, deviceId: string, familyId: string, sessionVersion: int, expiresAt: \DateTimeImmutable, currentTokenHash: string}|null
+     */
+    public function findRecentlyRotatedByPreviousHash(string $previousHash, int $graceSeconds = 10): ?array;
+
+    /**
      * Marks a session as revoked.
      */
     public function revoke(string $sessionId): void;

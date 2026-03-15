@@ -30,6 +30,14 @@ class RefreshSessionOrm
     #[ORM\Column(name: 'current_token_hash', type: 'string', length: 64)]
     public string $currentTokenHash;
 
+    /** SHA-256 hash of the immediately previous token (kept for idempotent rotation grace period) */
+    #[ORM\Column(name: 'previous_token_hash', type: 'string', length: 64, nullable: true)]
+    public ?string $previousTokenHash = null;
+
+    /** Timestamp of the last rotation (used to enforce grace period) */
+    #[ORM\Column(name: 'rotated_at', type: 'datetime_immutable', nullable: true)]
+    public ?\DateTimeImmutable $rotatedAt = null;
+
     #[ORM\Column(name: 'revoked', type: 'boolean', options: ['default' => false])]
     public bool $revoked = false;
 

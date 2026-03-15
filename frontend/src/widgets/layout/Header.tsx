@@ -12,6 +12,7 @@ export function Header() {
     const [themeState, setThemeState] = useState<Theme>(getTheme());
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const userMenuRef = useRef<HTMLDivElement>(null);
+    const loggingOutRef = useRef(false);
 
     const { isAuthenticated, user, token, clearAuth } = useAuthStore();
 
@@ -27,12 +28,15 @@ export function Header() {
     }, []);
 
     const handleLogout = async () => {
+        if (loggingOutRef.current) return;
+        loggingOutRef.current = true;
         setUserMenuOpen(false);
         try {
             if (token) await logout(token);
         } catch { /* ignore */ } finally {
             clearAuth();
             navigate("/");
+            loggingOutRef.current = false;
         }
     };
 

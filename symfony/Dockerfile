@@ -65,5 +65,8 @@ RUN composer dump-autoload --optimize --classmap-authoritative && \
 
 EXPOSE 8000
 
-# Start PHP-FPM and Nginx
-CMD php-fpm -D && nginx -g 'daemon off;'
+# Start PHP-FPM and Nginx (clear & warmup cache on every container start)
+CMD php-fpm -D && \
+    APP_ENV=prod APP_DEBUG=0 php bin/console cache:clear --no-warmup && \
+    APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup && \
+    nginx -g 'daemon off;'

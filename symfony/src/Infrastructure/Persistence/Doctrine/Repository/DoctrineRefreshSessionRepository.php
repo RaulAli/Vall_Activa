@@ -61,11 +61,45 @@ final class DoctrineRefreshSessionRepository implements RefreshSessionRepository
             return;
         }
 
+        $orm->previousTokenHash = $orm->currentTokenHash;
+        $orm->rotatedAt = new \DateTimeImmutable();
         $orm->currentTokenHash = $newHash;
         $orm->expiresAt = $newExpiresAt;
         $orm->updatedAt = new \DateTimeImmutable();
 
         $this->em->flush();
+    }
+
+    public function findRecentlyRotatedByPreviousHash(string $previousHash, int $graceSeconds = 10): ?array
+    {
+        $cutoff = new \DateTimeImmutable("-{$graceSeconds} seconds");
+
+        $orm = $this->em->createQueryBuilder()
+            ->select('s')
+            ->from(RefreshSessionOrm::class, 's')
+            ->where('s.previousTokenHash = :hash')
+            ->andWhere('s.revoked = :false')
+            ->andWhere('s.rotatedAt >= :cutoff')
+            ->setParameter('hash', $previousHash)
+            ->setParameter('false', false)
+            ->setParameter('cutoff', $cutoff)
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($orm === null) {
+            return null;
+        }
+
+        return [
+            'id' => $orm->id,
+            'userId' => $orm->userId,
+            'deviceId' => $orm->deviceId,
+            'familyId' => $orm->familyId,
+            'sessionVersion' => $orm->sessionVersion,
+            'expiresAt' => $orm->expiresAt,
+            'currentTokenHash' => $orm->currentTokenHash,
+        ];
     }
 
     public function revoke(string $sessionId): void

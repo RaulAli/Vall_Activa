@@ -16,23 +16,20 @@ final class DoctrineTokenBlacklistRepository implements TokenBlacklistRepository
 
     public function add(string $tokenHash, string $userId, \DateTimeImmutable $expiresAt): void
     {
-        // Prevent duplicate inserts
-        $existing = $this->em->getRepository(RefreshTokenBlacklistOrm::class)
-            ->findOneBy(['tokenHash' => $tokenHash]);
-
-        if ($existing !== null) {
-            return;
-        }
-
-        $orm = new RefreshTokenBlacklistOrm();
-        $orm->id = Uuid::v4()->value();
-        $orm->tokenHash = $tokenHash;
-        $orm->userId = $userId;
-        $orm->expiresAt = $expiresAt;
-        $orm->blacklistedAt = new \DateTimeImmutable();
-
-        $this->em->persist($orm);
-        $this->em->flush();
+        // Use DBAL directly with ON CONFLICT DO NOTHING to handle concurrent duplicate inserts
+        // atomically, without touching the ORM EntityManager state.
+        $this->em->getConnection()->executeStatement(
+            'INSERT INTO refresh_token_blacklist (id, token_hash, user_id, expires_at, blacklisted_at)
+             VALUES (:id, :tokenHash, :userId, :expiresAt, :blacklistedAt)
+             ON CONFLICT (token_hash) DO NOTHING',
+            [
+                'id' => Uuid::v4()->value(),
+                'tokenHash' => $tokenHash,
+                'userId' => $userId,
+                'expiresAt' => $expiresAt->format('Y-m-d H:i:s'),
+                'blacklistedAt' => (new \DateTimeImmutable())->format('Y-m-d H:i:s'),
+            ]
+        );
     }
 
     public function isBlacklisted(string $tokenHash): bool

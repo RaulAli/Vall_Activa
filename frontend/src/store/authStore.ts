@@ -10,6 +10,9 @@ interface AuthState {
 
     setAuth: (token: string, user: AuthUser) => void;
     setUser: (user: AuthUser) => void;
+    /** Clears only the in-memory token. Keeps user in localStorage so silent refresh can retry on next load. */
+    clearToken: () => void;
+    /** Full sign-out: wipes token + user from memory and localStorage. */
     clearAuth: () => void;
     setInitializing: (value: boolean) => void;
 }
@@ -26,6 +29,9 @@ export const useAuthStore = create<AuthState>()(
                 set({ token, user, isAuthenticated: true }),
 
             setUser: (user) => set({ user }),
+
+            clearToken: () =>
+                set({ token: null, isAuthenticated: false }),
 
             clearAuth: () =>
                 set({ token: null, user: null, isAuthenticated: false }),

@@ -105,7 +105,9 @@ export async function http<T>(
             }
         }
 
-        if (res.status === 401) {
+        // Never wipe session from inside an auth endpoint (login/refresh/logout).
+        // Their callers handle errors themselves. Only force-logout on 401 from protected routes.
+        if (res.status === 401 && !path.startsWith("/api/auth/")) {
             const { useAuthStore } = await import("../../store/authStore");
             useAuthStore.getState().clearAuth();
             window.location.href = "/auth";

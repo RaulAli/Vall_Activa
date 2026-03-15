@@ -35,6 +35,6 @@ export async function getMe(token: string): Promise<AuthUser> {
     });
 }
 
-export async function refreshToken(): Promise<AuthResponse> {
-    return http<AuthResponse>("POST", endpoints.auth.refresh, { withCredentials: true });
+export async function refreshToken(signal?: AbortSignal): Promise<AuthResponse> {
+    return http<AuthResponse>("POST", endpoints.auth.refresh, { withCredentials: true, signal });
 }
