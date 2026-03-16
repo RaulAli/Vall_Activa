@@ -48,6 +48,8 @@ export const endpoints = {
     },
     athlete: {
         myBookings: "/api/athlete/me/bookings",
+        checkout: (id: string) => `/api/athlete/me/bookings/${id}/payment/checkout`,
+        confirmPayment: "/api/athlete/me/bookings/payment/confirm",
     },
     admin: {
         stats: "/api/admin/stats",

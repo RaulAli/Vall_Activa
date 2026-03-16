@@ -37,6 +37,7 @@ export function RouteDetailPage() {
     const isGuideRoute = route?.creatorRole === "ROLE_GUIDE";
     const [bookingOpen, setBookingOpen] = useState(false);
     const [selectedStartsAt, setSelectedStartsAt] = useState<string>("");
+    const [selectedEndsAt, setSelectedEndsAt] = useState<string>("");
     const [notes, setNotes] = useState("");
     const [bookingMessage, setBookingMessage] = useState<string | null>(null);
 
@@ -64,10 +65,44 @@ export function RouteDetailPage() {
         [bookingSlotsQuery.data?.slots, selectedStartsAt],
     );
 
+    const endTimeOptions = useMemo(() => {
+        if (!selectedStartsAt || !bookingSlotsQuery.data) return [];
+        const { slots, slotMinutes: sm, timezone } = bookingSlotsQuery.data;
+        const smMs = sm * 60_000;
+        const startSlot = slots.find((s) => s.startsAt === selectedStartsAt);
+        if (!startSlot) return [];
+        const startDate = startSlot.date;
+        const slotByTs = new Map(slots.map((s) => [new Date(s.startsAt).getTime(), s]));
+        const startMs = new Date(selectedStartsAt).getTime();
+        const fmt = (ms: number) =>
+            new Date(ms).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: timezone ?? "UTC" });
+        const durLabel = (minutes: number) => {
+            const h = Math.floor(minutes / 60);
+            const m = minutes % 60;
+            if (h === 0) return `${m}min`;
+            return m > 0 ? `${h}h ${m}min` : `${h}h`;
+        };
+        const options: Array<{ endsAt: string; label: string; durLabel: string }> = [];
+        const push = (endsAtMs: number, step: number) =>
+            options.push({ endsAt: new Date(endsAtMs).toISOString(), label: fmt(endsAtMs), durLabel: durLabel(step * sm) });
+        push(startMs + smMs, 1);
+        let checkMs = startMs + smMs;
+        let step = 2;
+        while (true) {
+            const next = slotByTs.get(checkMs);
+            if (!next || !next.isAvailable || next.date !== startDate) break;
+            push(checkMs + smMs, step);
+            checkMs += smMs;
+            step++;
+        }
+        return options;
+    }, [selectedStartsAt, bookingSlotsQuery.data]);
+
     const createBookingMut = useMutation({
         mutationFn: () => createGuideBooking(token!, {
             routeId: route!.id,
             startsAt: selectedStartsAt,
+            endsAt: selectedEndsAt || undefined,
             notes: notes.trim() || undefined,
         }),
         onSuccess: () => {
@@ -96,6 +131,7 @@ export function RouteDetailPage() {
     const openBookingModal = () => {
         setBookingMessage(null);
         setSelectedStartsAt("");
+        setSelectedEndsAt("");
         setNotes("");
 
         if (!isAuthenticated || !token) {
@@ -418,6 +454,8 @@ export function RouteDetailPage() {
                                                             onClick={() => {
                                                                 if (occupied) return;
                                                                 setSelectedStartsAt(slot.startsAt);
+                                                                const slotMs = (bookingSlotsQuery.data?.slotMinutes ?? 60) * 60_000;
+                                                                setSelectedEndsAt(new Date(new Date(slot.startsAt).getTime() + slotMs).toISOString());
                                                             }}
                                                             disabled={occupied}
                                                             className={`px-3 py-2 rounded-lg border text-sm font-bold transition-all ${selected
@@ -438,8 +476,31 @@ export function RouteDetailPage() {
                                 </div>
                             )}
 
+                            {selectedStartsAt && endTimeOptions.length > 0 && (
+                                <div>
+                                    <label className="block text-xs font-black uppercase tracking-wide text-slate-500 mb-2">
+                                        Duración
+                                        {selectedSlot && ` · desde las ${selectedSlot.time}`}
+                                        {selectedEndsAt && ` → hasta las ${new Date(selectedEndsAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: bookingSlotsQuery.data?.timezone ?? "UTC" })}`}
+                                    </label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {endTimeOptions.map((opt) => (
+                                            <button
+                                                key={opt.endsAt}
+                                                onClick={() => setSelectedEndsAt(opt.endsAt)}
+                                                className={`px-3 py-2 rounded-lg border text-sm font-bold transition-all ${selectedEndsAt === opt.endsAt
+                                                        ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                                                        : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-primary/50"
+                                                    }`}
+                                            >
+                                                {opt.label} · {opt.durLabel}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             <div>
-                                <label className="block text-xs font-black uppercase tracking-wide text-slate-500 mb-2">Mensaje para el guide (opcional)</label>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
@@ -465,10 +526,15 @@ export function RouteDetailPage() {
                                 </button>
                                 <button
                                     onClick={() => createBookingMut.mutate()}
-                                    disabled={!selectedStartsAt || createBookingMut.isPending || selectedSlot?.isAvailable === false}
+                                    disabled={!selectedStartsAt || !selectedEndsAt || createBookingMut.isPending || selectedSlot?.isAvailable === false}
                                     className="px-4 py-2.5 rounded-xl bg-primary text-white text-sm font-bold disabled:opacity-60 disabled:cursor-not-allowed"
                                 >
-                                    {createBookingMut.isPending ? "Reservando..." : "Confirmar reserva"}
+                                    {createBookingMut.isPending
+                                        ? "Reservando..."
+                                        : selectedStartsAt && selectedEndsAt
+                                            ? `Reservar ${selectedSlot?.time ?? ""} → ${new Date(selectedEndsAt).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", timeZone: bookingSlotsQuery.data?.timezone ?? "UTC" })}`
+                                            : "Confirmar reserva"
+                                    }
                                 </button>
                             </div>
                         </div>

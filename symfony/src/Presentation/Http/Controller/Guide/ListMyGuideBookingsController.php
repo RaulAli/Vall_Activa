@@ -34,7 +34,7 @@ final class ListMyGuideBookingsController extends AbstractController
         }
 
         $rows = $em->createQueryBuilder()
-            ->select('b.id, b.status, b.notes, b.scheduledFor, b.createdAt, r.id AS routeId, r.slug AS routeSlug, r.title AS routeTitle, a.userId AS athleteUserId, a.name AS athleteName, a.slug AS athleteSlug, a.avatar AS athleteAvatar')
+            ->select('b.id, b.status, b.paymentStatus, b.paidAt, b.notes, b.scheduledFor, b.endsAt, b.createdAt, r.id AS routeId, r.slug AS routeSlug, r.title AS routeTitle, a.userId AS athleteUserId, a.name AS athleteName, a.slug AS athleteSlug, a.avatar AS athleteAvatar')
             ->from(GuideRouteBookingOrm::class, 'b')
             ->leftJoin(RouteOrm::class, 'r', 'WITH', 'r.id = b.routeId')
             ->leftJoin(AthleteProfileOrm::class, 'a', 'WITH', 'a.userId = b.athleteUserId')
@@ -51,10 +51,19 @@ final class ListMyGuideBookingsController extends AbstractController
             $createdAt = $row['createdAt'] instanceof \DateTimeInterface
                 ? $row['createdAt']->format(DATE_ATOM)
                 : (string) $row['createdAt'];
+            $paidAt = $row['paidAt'] instanceof \DateTimeInterface
+                ? $row['paidAt']->format(DATE_ATOM)
+                : null;
+            $endsAt = $row['endsAt'] instanceof \DateTimeInterface
+                ? $row['endsAt']->format(DATE_ATOM)
+                : null;
 
             return [
                 'id' => (string) $row['id'],
                 'status' => (string) $row['status'],
+                'paymentStatus' => isset($row['paymentStatus']) ? (string) $row['paymentStatus'] : 'UNPAID',
+                'paidAt' => $paidAt,
+                'endsAt' => $endsAt,
                 'notes' => isset($row['notes']) ? (string) $row['notes'] : null,
                 'scheduledFor' => $scheduledFor,
                 'createdAt' => $createdAt,

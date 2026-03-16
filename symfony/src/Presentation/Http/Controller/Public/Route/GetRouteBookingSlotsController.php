@@ -88,12 +88,12 @@ final class GetRouteBookingSlotsController extends AbstractController
         $rangeEndUtc = $rangeEndGuide->setTimezone(new \DateTimeZone('UTC'));
 
         $bookedRows = $em->createQueryBuilder()
-            ->select('b.scheduledFor')
+            ->select('b.scheduledFor, b.endsAt')
             ->from(GuideRouteBookingOrm::class, 'b')
             ->andWhere('b.guideUserId = :guideId')
             ->andWhere('b.status IN (:activeStatuses)')
-            ->andWhere('b.scheduledFor >= :fromUtc')
-            ->andWhere('b.scheduledFor <= :toUtc')
+            ->andWhere('b.scheduledFor < :toUtc')
+            ->andWhere('b.endsAt > :fromUtc')
             ->setParameter('guideId', (string) $route['createdByUserId'])
             ->setParameter('activeStatuses', ['REQUESTED', 'CONFIRMED'])
             ->setParameter('fromUtc', $rangeStartUtc)
@@ -101,16 +101,18 @@ final class GetRouteBookingSlotsController extends AbstractController
             ->getQuery()
             ->getArrayResult();
 
-        $bookedSet = [];
+        $bookedRanges = [];
         foreach ($bookedRows as $row) {
-            $dt = $row['scheduledFor'] ?? null;
-            if ($dt instanceof \DateTimeImmutable) {
-                $bookedSet[$dt->setTimezone(new \DateTimeZone('UTC'))->format(DATE_ATOM)] = true;
+            $start = $row['scheduledFor'] ?? null;
+            $end = $row['endsAt'] ?? null;
+            if (!($start instanceof \DateTimeInterface) || !($end instanceof \DateTimeInterface)) {
                 continue;
             }
-            if ($dt instanceof \DateTime) {
-                $bookedSet[(clone $dt)->setTimezone(new \DateTimeZone('UTC'))->format(DATE_ATOM)] = true;
-            }
+            $toUtcTs = static fn(\DateTimeInterface $dt): int =>
+                (int) (($dt instanceof \DateTimeImmutable ? $dt : \DateTimeImmutable::createFromMutable($dt))
+                    ->setTimezone(new \DateTimeZone('UTC'))
+                    ->format('U'));
+            $bookedRanges[] = [$toUtcTs($start), $toUtcTs($end)];
         }
 
         $slots = [];
@@ -141,7 +143,14 @@ final class GetRouteBookingSlotsController extends AbstractController
 
                 $slotUtc = $slotGuide->setTimezone(new \DateTimeZone('UTC'));
                 $slotUtcIso = $slotUtc->format(DATE_ATOM);
-                $isAvailable = !isset($bookedSet[$slotUtcIso]);
+                $slotTs = (int) $slotUtc->format('U');
+                $isAvailable = true;
+                foreach ($bookedRanges as [$bStart, $bEnd]) {
+                    if ($slotTs >= $bStart && $slotTs < $bEnd) {
+                        $isAvailable = false;
+                        break;
+                    }
+                }
 
                 $slots[] = [
                     'startsAt' => $slotUtcIso,

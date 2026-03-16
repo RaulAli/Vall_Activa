@@ -34,7 +34,7 @@ final class ListMyAthleteBookingsController extends AbstractController
         }
 
         $rows = $em->createQueryBuilder()
-            ->select('b.id, b.status, b.notes, b.scheduledFor, b.createdAt, r.id AS routeId, r.slug AS routeSlug, r.title AS routeTitle, g.userId AS guideUserId, g.name AS guideName, g.slug AS guideSlug, g.avatar AS guideAvatar, g.isVerified AS guideIsVerified')
+            ->select('b.id, b.status, b.paymentStatus, b.paymentAmountCents, b.paymentCurrency, b.paidAt, b.notes, b.scheduledFor, b.endsAt, b.createdAt, r.id AS routeId, r.slug AS routeSlug, r.title AS routeTitle, g.userId AS guideUserId, g.name AS guideName, g.slug AS guideSlug, g.avatar AS guideAvatar, g.isVerified AS guideIsVerified')
             ->from(GuideRouteBookingOrm::class, 'b')
             ->leftJoin(RouteOrm::class, 'r', 'WITH', 'r.id = b.routeId')
             ->leftJoin(GuideProfileOrm::class, 'g', 'WITH', 'g.userId = b.guideUserId')
@@ -51,10 +51,21 @@ final class ListMyAthleteBookingsController extends AbstractController
             $createdAt = $row['createdAt'] instanceof \DateTimeInterface
                 ? $row['createdAt']->format(DATE_ATOM)
                 : (string) $row['createdAt'];
+            $paidAt = $row['paidAt'] instanceof \DateTimeInterface
+                ? $row['paidAt']->format(DATE_ATOM)
+                : null;
+            $endsAt = $row['endsAt'] instanceof \DateTimeInterface
+                ? $row['endsAt']->format(DATE_ATOM)
+                : null;
 
             return [
                 'id' => (string) $row['id'],
                 'status' => (string) $row['status'],
+                'paymentStatus' => isset($row['paymentStatus']) ? (string) $row['paymentStatus'] : 'UNPAID',
+                'endsAt' => $endsAt,
+                'paymentAmountCents' => isset($row['paymentAmountCents']) ? (int) $row['paymentAmountCents'] : 0,
+                'paymentCurrency' => isset($row['paymentCurrency']) ? (string) $row['paymentCurrency'] : 'EUR',
+                'paidAt' => $paidAt,
                 'notes' => isset($row['notes']) ? (string) $row['notes'] : null,
                 'scheduledFor' => $scheduledFor,
                 'createdAt' => $createdAt,

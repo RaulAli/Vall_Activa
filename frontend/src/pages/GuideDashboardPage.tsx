@@ -352,17 +352,24 @@ export function GuideDashboardPage() {
                                                         {booking.routeTitle ?? "Ruta"}
                                                     </p>
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                        {booking.athleteName ?? "Atleta"} · {when.toLocaleString()}
+                                                        {booking.athleteName ?? "Atleta"} · {when.toLocaleDateString()} {when.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}{booking.endsAt ? ` → ${new Date(booking.endsAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : ''}
                                                     </p>
                                                 </div>
-                                                <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${booking.status === "CONFIRMED"
-                                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                    : booking.status === "REJECTED"
-                                                        ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-                                                        : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                                    }`}>
-                                                    {BOOKING_STATUS_LABEL[booking.status] ?? booking.status}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    {booking.paymentStatus === "PAID" && (
+                                                        <span className="text-[11px] font-black px-2.5 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                                            Pagado
+                                                        </span>
+                                                    )}
+                                                    <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${booking.status === "CONFIRMED"
+                                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                                        : booking.status === "REJECTED"
+                                                            ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                                                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                                        }`}>
+                                                        {BOOKING_STATUS_LABEL[booking.status] ?? booking.status}
+                                                    </span>
+                                                </div>
                                             </div>
 
                                             {booking.notes && (

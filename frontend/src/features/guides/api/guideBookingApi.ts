@@ -20,6 +20,7 @@ export interface RouteBookingSlotsResponse {
 export interface CreateGuideBookingPayload {
     routeId: string;
     startsAt: string;
+    endsAt?: string;
     notes?: string;
 }
 
@@ -37,6 +38,9 @@ export interface GuideBookingCreated {
 export interface GuideDashboardBookingItem {
     id: string;
     status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "CANCELLED";
+    paymentStatus: "UNPAID" | "PENDING" | "PAID";
+    paidAt: string | null;
+    endsAt: string | null;
     notes: string | null;
     scheduledFor: string;
     createdAt: string;
@@ -52,6 +56,11 @@ export interface GuideDashboardBookingItem {
 export interface AthleteDashboardBookingItem {
     id: string;
     status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "CANCELLED";
+    paymentStatus: "UNPAID" | "PENDING" | "PAID";
+    paymentAmountCents: number;
+    paymentCurrency: string;
+    paidAt: string | null;
+    endsAt: string | null;
     notes: string | null;
     scheduledFor: string;
     createdAt: string;
@@ -63,6 +72,18 @@ export interface AthleteDashboardBookingItem {
     guideSlug: string | null;
     guideAvatar: string | null;
     guideIsVerified: boolean | null;
+}
+
+export interface AthleteBookingCheckoutResponse {
+    checkoutUrl: string;
+    sessionId: string;
+    paymentStatus: "UNPAID" | "PENDING" | "PAID";
+}
+
+export interface ConfirmAthletePaymentResponse {
+    id: string;
+    paymentStatus: "UNPAID" | "PENDING" | "PAID";
+    paidAt: string | null;
 }
 
 export interface UpdateGuideBookingStatusPayload {
@@ -107,5 +128,26 @@ export async function updateMyGuideBookingStatus(
 export async function getMyAthleteBookings(token: string): Promise<AthleteDashboardBookingItem[]> {
     return http<AthleteDashboardBookingItem[]>("GET", endpoints.athlete.myBookings, {
         headers: { Authorization: `Bearer ${token}` },
+    });
+}
+
+export async function createAthleteBookingCheckout(
+    token: string,
+    bookingId: string,
+    returnOrigin: string,
+): Promise<AthleteBookingCheckoutResponse> {
+    return http<AthleteBookingCheckoutResponse>("POST", endpoints.athlete.checkout(bookingId), {
+        headers: { Authorization: `Bearer ${token}` },
+        body: { returnOrigin },
+    });
+}
+
+export async function confirmAthleteBookingPayment(
+    token: string,
+    sessionId: string,
+): Promise<ConfirmAthletePaymentResponse> {
+    return http<ConfirmAthletePaymentResponse>("POST", endpoints.athlete.confirmPayment, {
+        headers: { Authorization: `Bearer ${token}` },
+        body: { sessionId },
     });
 }

@@ -56,6 +56,7 @@ final class CreateGuideRouteBookingController extends AbstractController
 
         $routeId = isset($payload['routeId']) && is_string($payload['routeId']) ? trim($payload['routeId']) : '';
         $startsAtRaw = isset($payload['startsAt']) && is_string($payload['startsAt']) ? trim($payload['startsAt']) : '';
+        $endsAtRaw = isset($payload['endsAt']) && is_string($payload['endsAt']) ? trim($payload['endsAt']) : '';
         $notes = isset($payload['notes']) && is_string($payload['notes']) ? trim($payload['notes']) : null;
 
         if ($routeId === '' || $startsAtRaw === '') {
@@ -96,23 +97,47 @@ final class CreateGuideRouteBookingController extends AbstractController
             return $this->json(['error' => 'slot_not_available'], 409);
         }
 
-        if (!$this->isSlotAvailableInWeek($availability, $startsAtUtc)) {
+        $slotMinutes = $availability->slotMinutes > 0 ? $availability->slotMinutes : 60;
+
+        if ($endsAtRaw !== '') {
+            try {
+                $endsAtUtc = (new \DateTimeImmutable($endsAtRaw))->setTimezone(new \DateTimeZone('UTC'));
+            } catch (\Throwable) {
+                return $this->json(['error' => 'invalid_ends_at'], 400);
+            }
+        } else {
+            $endsAtUtc = $startsAtUtc->modify('+' . $slotMinutes . ' minutes');
+        }
+
+        if ($endsAtUtc <= $startsAtUtc) {
+            return $this->json(['error' => 'invalid_ends_at'], 400);
+        }
+
+        $tz = new \DateTimeZone($availability->timezone ?: 'UTC');
+        $lastSlotStart = $endsAtUtc->modify('-' . $slotMinutes . ' minutes');
+        if ($startsAtUtc->setTimezone($tz)->format('Y-m-d') !== $lastSlotStart->setTimezone($tz)->format('Y-m-d')) {
+            return $this->json(['error' => 'booking_spans_multiple_days'], 409);
+        }
+
+        if (!$this->areSlotsAvailableForRange($availability, $startsAtUtc, $endsAtUtc, $slotMinutes)) {
             return $this->json(['error' => 'slot_not_available'], 409);
         }
 
-        $activeBooking = $em->createQueryBuilder()
+        $conflictingBooking = $em->createQueryBuilder()
             ->select('b.id')
             ->from(GuideRouteBookingOrm::class, 'b')
             ->andWhere('b.guideUserId = :guideUserId')
-            ->andWhere('b.scheduledFor = :scheduledFor')
+            ->andWhere('b.scheduledFor < :endsAt')
+            ->andWhere('b.endsAt > :startsAt')
             ->andWhere('b.status IN (:activeStatuses)')
             ->setParameter('guideUserId', $guide->userId)
-            ->setParameter('scheduledFor', $startsAtUtc)
+            ->setParameter('endsAt', $endsAtUtc)
+            ->setParameter('startsAt', $startsAtUtc)
             ->setParameter('activeStatuses', ['REQUESTED', 'CONFIRMED'])
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
-        if ($activeBooking !== null) {
+        if ($conflictingBooking !== null) {
             return $this->json(['error' => 'slot_already_booked'], 409);
         }
 
@@ -122,7 +147,11 @@ final class CreateGuideRouteBookingController extends AbstractController
         $booking->guideUserId = $guide->userId;
         $booking->athleteUserId = $athleteUserId;
         $booking->scheduledFor = $startsAtUtc;
+        $booking->endsAt = $endsAtUtc;
         $booking->status = 'REQUESTED';
+        $booking->paymentStatus = 'UNPAID';
+        $booking->paymentAmountCents = $this->bookingAmountCents();
+        $booking->paymentCurrency = $this->bookingCurrency();
         $booking->notes = $notes !== null && $notes !== '' ? mb_substr($notes, 0, 1000) : null;
         $booking->createdAt = new \DateTimeImmutable();
         $booking->updatedAt = $booking->createdAt;
@@ -140,6 +169,7 @@ final class CreateGuideRouteBookingController extends AbstractController
             'guideUserId' => $booking->guideUserId,
             'athleteUserId' => $booking->athleteUserId,
             'startsAt' => $booking->scheduledFor->format(DATE_ATOM),
+            'endsAt' => $booking->endsAt->format(DATE_ATOM),
             'status' => $booking->status,
             'notes' => $booking->notes,
             'createdAt' => $booking->createdAt->format(DATE_ATOM),
@@ -159,6 +189,22 @@ final class CreateGuideRouteBookingController extends AbstractController
         } catch (\Throwable) {
             return null;
         }
+    }
+
+    private function areSlotsAvailableForRange(
+        GuideAvailabilityOrm $availability,
+        \DateTimeImmutable $startsAtUtc,
+        \DateTimeImmutable $endsAtUtc,
+        int $slotMinutes
+    ): bool {
+        $current = $startsAtUtc;
+        while ($current < $endsAtUtc) {
+            if (!$this->isSlotAvailableInWeek($availability, $current)) {
+                return false;
+            }
+            $current = $current->modify('+' . $slotMinutes . ' minutes');
+        }
+        return true;
     }
 
     private function isSlotAvailableInWeek(GuideAvailabilityOrm $availability, \DateTimeImmutable $startsAtUtc): bool
@@ -193,5 +239,27 @@ final class CreateGuideRouteBookingController extends AbstractController
         }
 
         return false;
+    }
+
+    private function bookingAmountCents(): int
+    {
+        $value = getenv('STRIPE_BOOKING_AMOUNT_CENTS');
+        if ($value === false || !is_numeric($value)) {
+            return 2500;
+        }
+
+        $amount = (int) $value;
+        return $amount > 0 ? $amount : 2500;
+    }
+
+    private function bookingCurrency(): string
+    {
+        $value = getenv('STRIPE_BOOKING_CURRENCY');
+        if ($value === false || trim((string) $value) === '') {
+            return 'EUR';
+        }
+
+        $currency = strtoupper(trim((string) $value));
+        return preg_match('/^[A-Z]{3}$/', $currency) ? $currency : 'EUR';
     }
 }
