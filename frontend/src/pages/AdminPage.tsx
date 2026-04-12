@@ -83,11 +83,16 @@ function Badge({ text, colorClass }: { text: string; colorClass: string }) {
     );
 }
 
-function StatCard({ icon, label, value, sub, color }: {
-    icon: string; label: string; value: number; sub?: string; color: string;
+function StatCard({ icon, label, value, sub, color, onClick }: {
+    icon: string; label: string; value: number; sub?: string; color: string; onClick?: () => void;
 }) {
+    const Wrapper: "button" | "div" = onClick ? "button" : "div";
+
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 flex items-center gap-5 shadow-sm">
+        <Wrapper
+            onClick={onClick}
+            className={`bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 flex items-center gap-5 shadow-sm text-left ${onClick ? "cursor-pointer hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors" : ""}`}
+        >
             <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
                 <span className="material-symbols-outlined !text-2xl">{icon}</span>
             </div>
@@ -96,7 +101,7 @@ function StatCard({ icon, label, value, sub, color }: {
                 <p className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400">{label}</p>
                 {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
             </div>
-        </div>
+        </Wrapper>
     );
 }
 
@@ -207,7 +212,7 @@ function Pagination({ page, totalPages, onChange }: {
 
 // --- Section: Dashboard -------------------------------------------------------
 
-function DashboardSection({ stats }: { stats: AdminStats }) {
+function DashboardSection({ stats, onNavigate }: { stats: AdminStats; onNavigate: (tab: Exclude<Tab, "dashboard">) => void }) {
     return (
         <div className="space-y-8">
             <div>
@@ -215,16 +220,19 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                 <p className="text-slate-500 dark:text-slate-400 font-medium">Resumen general de la plataforma.</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                <StatCard icon="group" label="Usuarios" value={stats.users.total} sub={`${stats.users.active} activos`} color="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" />
-                <StatCard icon="route" label="Rutas" value={stats.routes.total} sub={`${stats.routes.public} publicas`} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" />
-                <StatCard icon="storefront" label="Ofertas" value={stats.offers.total} sub={`${stats.offers.active} activas`} color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" />
-                <StatCard icon="business" label="Empresas" value={stats.businesses.total} color="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" />
-                <StatCard icon="sports" label="Deportes" value={stats.sports.total} color="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400" />
-                <StatCard icon="report_problem" label="Incidencias" value={stats.incidents.total} sub={`${stats.incidents.open} abiertas`} color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" />
+                <StatCard icon="group" label="Usuarios" value={stats.users.total} sub={`${stats.users.active} activos`} color="bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" onClick={() => onNavigate("users")} />
+                <StatCard icon="route" label="Rutas" value={stats.routes.total} sub={`${stats.routes.public} publicas`} color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400" onClick={() => onNavigate("routes")} />
+                <StatCard icon="storefront" label="Ofertas" value={stats.offers.total} sub={`${stats.offers.active} activas`} color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" onClick={() => onNavigate("offers")} />
+                <StatCard icon="business" label="Empresas" value={stats.businesses.total} color="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" onClick={() => onNavigate("businesses")} />
+                <StatCard icon="sports" label="Deportes" value={stats.sports.total} color="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400" onClick={() => onNavigate("sports")} />
+                <StatCard icon="report_problem" label="Incidencias" value={stats.incidents.total} sub={`${stats.incidents.open} abiertas`} color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" onClick={() => onNavigate("incidents")} />
             </div>
             {/* Ratios */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                <button
+                    onClick={() => onNavigate("users")}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm text-left cursor-pointer hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                >
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Actividad usuarios</p>
                     <div className="flex items-end gap-2 mb-2">
                         <span className="text-3xl font-black text-slate-900 dark:text-white">
@@ -238,8 +246,11 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                             style={{ width: `${stats.users.total > 0 ? (stats.users.active / stats.users.total) * 100 : 0}%` }}
                         />
                     </div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                </button>
+                <button
+                    onClick={() => onNavigate("routes")}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm text-left cursor-pointer hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                >
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Rutas publicas</p>
                     <div className="flex items-end gap-2 mb-2">
                         <span className="text-3xl font-black text-slate-900 dark:text-white">
@@ -253,8 +264,11 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                             style={{ width: `${stats.routes.total > 0 ? (stats.routes.public / stats.routes.total) * 100 : 0}%` }}
                         />
                     </div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                </button>
+                <button
+                    onClick={() => onNavigate("offers")}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm text-left cursor-pointer hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                >
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Ofertas activas</p>
                     <div className="flex items-end gap-2 mb-2">
                         <span className="text-3xl font-black text-slate-900 dark:text-white">
@@ -268,8 +282,11 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                             style={{ width: `${stats.offers.total > 0 ? (stats.offers.active / stats.offers.total) * 100 : 0}%` }}
                         />
                     </div>
-                </div>
-                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                </button>
+                <button
+                    onClick={() => onNavigate("incidents")}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm text-left cursor-pointer hover:border-primary/40 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                >
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Incidencias resueltas</p>
                     <div className="flex items-end gap-2 mb-2">
                         <span className="text-3xl font-black text-slate-900 dark:text-white">
@@ -284,7 +301,7 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                             style={{ width: `${stats.incidents.total > 0 ? (stats.incidents.resolved / stats.incidents.total) * 100 : 0}%` }}
                         />
                     </div>
-                </div>
+                </button>
             </div>
         </div>
     );
@@ -1623,7 +1640,7 @@ export function AdminPage() {
             {/* Main content */}
             <main className="flex-1 overflow-y-auto">
                 <div className="max-w-6xl mx-auto p-8">
-                    {activeTab === "dashboard" && stats && <DashboardSection stats={stats} />}
+                    {activeTab === "dashboard" && stats && <DashboardSection stats={stats} onNavigate={setActiveTab} />}
                     {activeTab === "dashboard" && !stats && (
                         <div className="space-y-4">
                             <div className="h-8 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse w-48" />
