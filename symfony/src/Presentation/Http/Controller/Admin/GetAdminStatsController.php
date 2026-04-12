@@ -28,6 +28,10 @@ final class GetAdminStatsController extends AbstractController
         $activeOffers = (int) $conn->fetchOne('SELECT COUNT(*) FROM offers WHERE is_active = true');
         $totalBusinesses = (int) $conn->fetchOne('SELECT COUNT(*) FROM business_profiles');
         $totalSports = (int) $conn->fetchOne('SELECT COUNT(*) FROM sports');
+        $totalIncidents = (int) $conn->fetchOne('SELECT COUNT(*) FROM incidents');
+        $openIncidents = (int) $conn->fetchOne("SELECT COUNT(*) FROM incidents WHERE UPPER(status) = 'OPEN'");
+        $reviewingIncidents = (int) $conn->fetchOne("SELECT COUNT(*) FROM incidents WHERE UPPER(status) = 'REVIEWING'");
+        $resolvedIncidents = (int) $conn->fetchOne("SELECT COUNT(*) FROM incidents WHERE UPPER(status) = 'RESOLVED'");
 
         return $this->json([
             'users' => ['total' => $totalUsers, 'active' => $activeUsers],
@@ -35,6 +39,12 @@ final class GetAdminStatsController extends AbstractController
             'offers' => ['total' => $totalOffers, 'active' => $activeOffers],
             'businesses' => ['total' => $totalBusinesses],
             'sports' => ['total' => $totalSports],
+            'incidents' => [
+                'total' => $totalIncidents,
+                'open' => $openIncidents,
+                'reviewing' => $reviewingIncidents,
+                'resolved' => $resolvedIncidents,
+            ],
         ]);
     }
 }

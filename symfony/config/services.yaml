@@ -84,6 +84,17 @@ services:
 
   App\Application\GuideAvailability\Port\GuideAvailabilityRepositoryInterface:
     class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineGuideAvailabilityRepository
+
+  # ----- Incident -----
+
+  App\Domain\Incident\Repository\IncidentRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineIncidentRepository
+
+  App\Application\Incident\Port\AdminIncidentReadRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineAdminIncidentReadRepository
+
+  App\Application\Incident\Port\IncidentCategoryReadRepositoryInterface:
+    class: App\Infrastructure\Persistence\Doctrine\Repository\DoctrineIncidentCategoryReadRepository
   # ----- Profile -----
 
   App\Application\Profile\Port\PublicProfileRepositoryInterface:

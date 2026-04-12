@@ -4,6 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { http } from "../shared/api/http";
 import { endpoints } from "../shared/api/endpoints";
+import {
+    createAdminIncidentCategory,
+    listAdminIncidentCategories,
+    listAdminIncidents,
+    toggleAdminIncidentCategory,
+    updateAdminIncidentStatus,
+    updateAdminIncidentCategory,
+} from "../features/incidents/api/incidentsApi";
+import type { AdminIncident, AdminIncidentCategory } from "../features/incidents/domain/types";
 
 const PAGE_SIZE = 20;
 
@@ -14,6 +23,7 @@ interface AdminStats {
     offers: { total: number; active: number };
     businesses: { total: number };
     sports: { total: number };
+    incidents: { total: number; open: number; reviewing: number; resolved: number };
 }
 
 interface AdminUser {
@@ -41,7 +51,7 @@ interface AdminSport {
 
 // --- Helpers -----------------------------------------------------------------
 
-type Tab = "dashboard" | "users" | "routes" | "offers" | "businesses" | "sports";
+type Tab = "dashboard" | "users" | "routes" | "offers" | "businesses" | "sports" | "incidents";
 
 const ROLE_COLORS: Record<string, string> = {
     ROLE_ADMIN: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -210,9 +220,10 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                 <StatCard icon="storefront" label="Ofertas" value={stats.offers.total} sub={`${stats.offers.active} activas`} color="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400" />
                 <StatCard icon="business" label="Empresas" value={stats.businesses.total} color="bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" />
                 <StatCard icon="sports" label="Deportes" value={stats.sports.total} color="bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400" />
+                <StatCard icon="report_problem" label="Incidencias" value={stats.incidents.total} sub={`${stats.incidents.open} abiertas`} color="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400" />
             </div>
             {/* Ratios */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
                     <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Actividad usuarios</p>
                     <div className="flex items-end gap-2 mb-2">
@@ -255,6 +266,22 @@ function DashboardSection({ stats }: { stats: AdminStats }) {
                         <div
                             className="h-full bg-amber-500 rounded-full transition-all"
                             style={{ width: `${stats.offers.total > 0 ? (stats.offers.active / stats.offers.total) * 100 : 0}%` }}
+                        />
+                    </div>
+                </div>
+                <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Incidencias resueltas</p>
+                    <div className="flex items-end gap-2 mb-2">
+                        <span className="text-3xl font-black text-slate-900 dark:text-white">
+                            {stats.incidents.total > 0 ? Math.round((stats.incidents.resolved / stats.incidents.total) * 100) : 0}%
+                        </span>
+                        <span className="text-sm font-bold text-slate-500 mb-1">resueltas</span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-2">{stats.incidents.resolved} resueltas · {stats.incidents.reviewing} en revision · {stats.incidents.open} abiertas</p>
+                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-red-500 rounded-full transition-all"
+                            style={{ width: `${stats.incidents.total > 0 ? (stats.incidents.resolved / stats.incidents.total) * 100 : 0}%` }}
                         />
                     </div>
                 </div>
@@ -1152,6 +1179,356 @@ function SportsSection({ token }: { token: string }) {
         </div>
     );
 }
+
+// --- Section: Incidents ------------------------------------------------------
+
+function IncidentCategoriesSection({ token }: { token: string }) {
+    const qc = useQueryClient();
+    const [newCode, setNewCode] = useState("");
+    const [newName, setNewName] = useState("");
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [editName, setEditName] = useState("");
+    const [editCode, setEditCode] = useState("");
+
+    const { data: categories = [], isLoading } = useQuery<AdminIncidentCategory[]>({
+        queryKey: ["admin", "incident-categories"],
+        queryFn: () => listAdminIncidentCategories(token),
+    });
+
+    const createMutation = useMutation({
+        mutationFn: () => createAdminIncidentCategory(token, {
+            code: newCode.toUpperCase().trim(),
+            name: newName.trim(),
+        }),
+        onSuccess: () => {
+            setNewCode("");
+            setNewName("");
+            qc.invalidateQueries({ queryKey: ["admin", "incident-categories"] });
+        },
+    });
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, code, name }: { id: string; code: string; name: string }) =>
+            updateAdminIncidentCategory(token, id, {
+                code: code.toUpperCase().trim(),
+                name: name.trim(),
+            }),
+        onSuccess: () => {
+            setEditingId(null);
+            qc.invalidateQueries({ queryKey: ["admin", "incident-categories"] });
+        },
+    });
+
+    const toggleMutation = useMutation({
+        mutationFn: (id: string) => toggleAdminIncidentCategory(token, id),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["admin", "incident-categories"] });
+        },
+    });
+
+    return (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm space-y-4">
+            <div className="flex items-center justify-between">
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Categorias de incidencias</h3>
+                <p className="text-xs font-bold text-slate-400">{categories.length} categorias</p>
+            </div>
+
+            <div className="flex items-end gap-3 flex-wrap">
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Codigo</label>
+                    <input
+                        value={newCode}
+                        onChange={e => setNewCode(e.target.value.toUpperCase())}
+                        placeholder="TECHNICAL"
+                        maxLength={30}
+                        className="px-3 py-2 text-sm font-mono font-black bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 w-40"
+                    />
+                </div>
+                <div>
+                    <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 mb-1.5 uppercase tracking-wider">Nombre</label>
+                    <input
+                        value={newName}
+                        onChange={e => setNewName(e.target.value)}
+                        placeholder="Problema tecnico"
+                        maxLength={80}
+                        className="px-3 py-2 text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 w-56"
+                    />
+                </div>
+                <button
+                    onClick={() => createMutation.mutate()}
+                    disabled={!newCode.trim() || !newName.trim() || createMutation.isPending}
+                    className="px-5 py-2 bg-primary text-white font-black rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                    <span className="material-symbols-outlined !text-base">add</span>
+                    Crear
+                </button>
+            </div>
+
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm min-w-[640px]">
+                    <thead>
+                        <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                            <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-4 py-3">Codigo</th>
+                            <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-4 py-3">Nombre</th>
+                            <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-4 py-3">Estado</th>
+                            <th className="px-4 py-3 text-right font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {isLoading && [...Array(3)].map((_, i) => (
+                            <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50">
+                                <td colSpan={4} className="px-4 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-44" /></td>
+                            </tr>
+                        ))}
+                        {categories.map((category) => (
+                            <tr key={category.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                <td className="px-4 py-3">
+                                    {editingId === category.id ? (
+                                        <input
+                                            value={editCode}
+                                            onChange={e => setEditCode(e.target.value.toUpperCase())}
+                                            maxLength={30}
+                                            className="px-2 py-1 text-xs font-mono font-black bg-slate-50 dark:bg-slate-800 border border-primary/40 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 w-40"
+                                        />
+                                    ) : (
+                                        <span className="font-mono font-black text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg text-xs">{category.code}</span>
+                                    )}
+                                </td>
+                                <td className="px-4 py-3">
+                                    {editingId === category.id ? (
+                                        <input
+                                            value={editName}
+                                            onChange={e => setEditName(e.target.value)}
+                                            maxLength={80}
+                                            className="px-2 py-1 text-sm bg-slate-50 dark:bg-slate-800 border border-primary/40 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/40 w-64"
+                                        />
+                                    ) : (
+                                        <span className="font-semibold text-slate-900 dark:text-white">{category.name}</span>
+                                    )}
+                                </td>
+                                <td className="px-4 py-3">
+                                    <Badge
+                                        text={category.isActive ? "Activa" : "Inactiva"}
+                                        colorClass={category.isActive
+                                            ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"}
+                                    />
+                                </td>
+                                <td className="px-4 py-3">
+                                    <div className="flex items-center gap-1 justify-end">
+                                        {editingId === category.id ? (
+                                            <>
+                                                <button
+                                                    onClick={() => updateMutation.mutate({ id: category.id, code: editCode, name: editName })}
+                                                    disabled={updateMutation.isPending}
+                                                    className="p-1.5 rounded-lg bg-primary text-white hover:bg-blue-600 transition-colors"
+                                                    title="Guardar"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">check</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => setEditingId(null)}
+                                                    className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                                                    title="Cancelar"
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">close</span>
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => { setEditingId(category.id); setEditName(category.name); setEditCode(category.code); }}
+                                                className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                                                title="Editar"
+                                            >
+                                                <span className="material-symbols-outlined !text-base">edit</span>
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => toggleMutation.mutate(category.id)}
+                                            disabled={toggleMutation.isPending}
+                                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                            title={category.isActive ? "Desactivar" : "Activar"}
+                                        >
+                                            <span className="material-symbols-outlined !text-base">{category.isActive ? "toggle_on" : "toggle_off"}</span>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    );
+}
+
+function IncidentsSection({ token }: { token: string }) {
+    const qc = useQueryClient();
+    const [q, setQ] = useState("");
+    const [statusFilter, setStatusFilter] = useState("");
+    const [page, setPage] = useState(1);
+
+    const { data: incidents = [], isLoading } = useQuery<AdminIncident[]>({
+        queryKey: ["admin", "incidents"],
+        queryFn: () => listAdminIncidents(token),
+    });
+
+    const statusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: "OPEN" | "REVIEWING" | "RESOLVED" }) =>
+            updateAdminIncidentStatus(token, id, status),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: ["admin", "incidents"] });
+            qc.invalidateQueries({ queryKey: ["my-incidents"] });
+        },
+    });
+
+    const filtered = useMemo(() => {
+        return incidents.filter(incident => {
+            if (q) {
+                const lc = q.toLowerCase();
+                const haystack = `${incident.subject} ${incident.message} ${incident.category} ${incident.userEmail ?? ""}`.toLowerCase();
+                if (!haystack.includes(lc)) return false;
+            }
+            if (statusFilter && incident.status !== statusFilter) return false;
+            return true;
+        });
+    }, [incidents, q, statusFilter]);
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+    const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    const hasFilters = q || statusFilter;
+
+    return (
+        <div className="space-y-6">
+            <IncidentCategoriesSection token={token} />
+            <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">Incidencias</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">
+                    {filtered.length} de {incidents.length} incidencias{hasFilters ? " (filtradas)" : " registradas"}
+                </p>
+            </div>
+
+            <div className="flex flex-wrap gap-3 items-center bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-4 shadow-sm">
+                <SearchInput value={q} onChange={v => { setQ(v); setPage(1); }} placeholder="Buscar asunto, mensaje, categoria o email..." />
+                <SelectFilter
+                    value={statusFilter}
+                    onChange={v => { setStatusFilter(v); setPage(1); }}
+                    options={[
+                        { value: "OPEN", label: "Abierta" },
+                        { value: "REVIEWING", label: "En revision" },
+                        { value: "RESOLVED", label: "Resuelta" },
+                    ]}
+                    placeholder="Todos los estados"
+                />
+                {hasFilters && (
+                    <button
+                        onClick={() => { setQ(""); setStatusFilter(""); setPage(1); }}
+                        className="flex items-center gap-1 px-3 py-2 text-xs font-black text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                    >
+                        <span className="material-symbols-outlined !text-sm">filter_list_off</span>
+                        Limpiar
+                    </button>
+                )}
+                <div className="ml-auto text-xs font-bold text-slate-400">
+                    {paginated.length} mostradas · {PAGE_SIZE}/pagina
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[980px]">
+                        <thead>
+                            <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Asunto</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Categoria</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Usuario</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Estado</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Mensaje</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Fecha</th>
+                                <th className="px-5 py-3 text-right font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {isLoading && [...Array(5)].map((_, i) => (
+                                <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50">
+                                    <td colSpan={7} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-64" /></td>
+                                </tr>
+                            ))}
+                            {paginated.map(incident => (
+                                <tr key={incident.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                    <td className="px-5 py-3 max-w-[220px]">
+                                        <p className="font-semibold text-slate-900 dark:text-white truncate" title={incident.subject}>{incident.subject}</p>
+                                        <p className="text-[11px] text-slate-400 font-mono">{incident.id.slice(0, 8)}...</p>
+                                    </td>
+                                    <td className="px-5 py-3">
+                                        <Badge text={incident.category} colorClass="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400" />
+                                    </td>
+                                    <td className="px-5 py-3 text-slate-600 dark:text-slate-300">
+                                        {incident.userEmail ?? incident.userId}
+                                    </td>
+                                    <td className="px-5 py-3">
+                                        <Badge
+                                            text={incident.status}
+                                            colorClass={incident.status === "RESOLVED"
+                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                : incident.status === "REVIEWING"
+                                                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                                                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"}
+                                        />
+                                    </td>
+                                    <td className="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs max-w-[360px]">
+                                        <p className="max-h-10 overflow-hidden" title={incident.message}>{incident.message}</p>
+                                    </td>
+                                    <td className="px-5 py-3 text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap">
+                                        {new Date(incident.createdAt).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" })}
+                                    </td>
+                                    <td className="px-5 py-3">
+                                        <div className="flex items-center gap-1 justify-end">
+                                            {incident.status !== "OPEN" && (
+                                                <button
+                                                    onClick={() => statusMutation.mutate({ id: incident.id, status: "OPEN" })}
+                                                    disabled={statusMutation.isPending}
+                                                    className="px-2 py-1 text-[11px] font-black rounded-lg bg-red-50 text-red-700 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400"
+                                                >
+                                                    Reabrir
+                                                </button>
+                                            )}
+                                            {incident.status !== "REVIEWING" && (
+                                                <button
+                                                    onClick={() => statusMutation.mutate({ id: incident.id, status: "REVIEWING" })}
+                                                    disabled={statusMutation.isPending}
+                                                    className="px-2 py-1 text-[11px] font-black rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400"
+                                                >
+                                                    En revision
+                                                </button>
+                                            )}
+                                            {incident.status !== "RESOLVED" && (
+                                                <button
+                                                    onClick={() => statusMutation.mutate({ id: incident.id, status: "RESOLVED" })}
+                                                    disabled={statusMutation.isPending}
+                                                    className="px-2 py-1 text-[11px] font-black rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:text-emerald-400"
+                                                >
+                                                    Resolver
+                                                </button>
+                                            )}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                            {!isLoading && filtered.length === 0 && (
+                                <tr><td colSpan={7} className="px-5 py-10 text-center text-slate-400 font-bold">Sin incidencias para los filtros aplicados</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="px-5 py-3">
+                    <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // --- Nav items ----------------------------------------------------------------
 
 const NAV_ITEMS: { tab: Tab; icon: string; label: string }[] = [
@@ -1161,6 +1538,7 @@ const NAV_ITEMS: { tab: Tab; icon: string; label: string }[] = [
     { tab: "offers", icon: "storefront", label: "Ofertas" },
     { tab: "businesses", icon: "business", label: "Empresas" },
     { tab: "sports", icon: "sports", label: "Deportes" },
+    { tab: "incidents", icon: "report_problem", label: "Incidencias" },
 ];
 
 // --- Main AdminPage -----------------------------------------------------------
@@ -1261,6 +1639,7 @@ export function AdminPage() {
                     {activeTab === "offers" && <OffersSection token={token!} />}
                     {activeTab === "businesses" && <BusinessesSection token={token!} />}
                     {activeTab === "sports" && <SportsSection token={token!} />}
+                    {activeTab === "incidents" && <IncidentsSection token={token!} />}
                 </div>
             </main>
         </div>
