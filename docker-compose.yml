@@ -29,10 +29,27 @@ services:
       APP_ENV: prod
       APP_DEBUG: 0
       DATABASE_URL: "postgresql://postgres:postgres@db:5432/vamo?serverVersion=16&charset=utf8"
+      FASTAPI_URL: "http://fastapi:8001"
+      NL_SEARCH_ENABLED: "1"
+      NL_SEARCH_TIMEOUT_MS: "900"
+      NL_SEARCH_MIN_CONFIDENCE: "0.55"
     volumes:
       - ./symfony:/app
     depends_on:
       - db
+      - fastapi
+    restart: always
+
+  fastapi:
+    build: ./fastapi
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./fastapi/.env
+    environment:
+      PYTHONUNBUFFERED: "1"
+    volumes:
+      - ./fastapi:/app
     restart: always
 
 volumes:

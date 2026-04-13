@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Header } from "../widgets/layout/Header";
 import { useRoutesListQuery } from "../features/routes/queries/useRoutesListQuery";
 import { useOffersListQuery } from "../features/offers/queries/useOffersListQuery";
@@ -7,6 +7,7 @@ import { getFallbackImage } from "../shared/utils/images";
 
 export function HomePage() {
     const navigate = useNavigate();
+    const [homeQuery, setHomeQuery] = useState("");
 
     const routesQuery = useRoutesListQuery({
         bbox: { minLng: -10, minLat: 35, maxLng: 5, maxLat: 45 },
@@ -58,6 +59,12 @@ export function HomePage() {
     }, [offersQuery.data?.items]);
 
     const handleGoToDiscover = (tab: "routes" | "offers") => {
+        if (tab === "routes") {
+            const q = homeQuery.trim();
+            navigate(q ? `/routes?q=${encodeURIComponent(q)}` : "/routes");
+            return;
+        }
+
         navigate(`/${tab}`);
     };
 
@@ -96,6 +103,13 @@ export function HomePage() {
                                     className="flex-1 h-full bg-transparent border-none focus:ring-0 text-slate-900 dark:text-white placeholder-slate-400 text-xl font-medium"
                                     placeholder="Where do you want to go?"
                                     type="text"
+                                    value={homeQuery}
+                                    onChange={(e) => setHomeQuery(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleGoToDiscover("routes");
+                                        }
+                                    }}
                                 />
                                 <button
                                     onClick={() => handleGoToDiscover("routes")}
@@ -108,8 +122,8 @@ export function HomePage() {
                         {/* Quick tags */}
                         <div className="flex flex-wrap justify-center gap-3">
                             {[
-                                { label: "Running", sportCode: "run" },
-                                { label: "Hiking", sportCode: "hike" },
+                                { label: "Running", sportCode: "running" },
+                                { label: "Hiking", sportCode: "hiking" },
                                 { label: "Surfing", sportCode: "surf" },
                                 { label: "Kayaking", sportCode: "kayak" },
                             ].map(tag => (
@@ -170,14 +184,14 @@ export function HomePage() {
                             {[
                                 {
                                     label: "Running",
-                                    sportCode: "run",
+                                    sportCode: "running",
                                     image: "https://images.unsplash.com/photo-1571008887538-b36bb32f4571?auto=format&fit=crop&q=80&w=800",
                                     icon: "directions_run",
                                     color: "from-orange-900/80",
                                 },
                                 {
                                     label: "Hiking",
-                                    sportCode: "hike",
+                                    sportCode: "hiking",
                                     image: "https://images.unsplash.com/photo-1551632811-561732d1e306?auto=format&fit=crop&q=80&w=800",
                                     icon: "hiking",
                                     color: "from-emerald-900/80",

@@ -51,7 +51,6 @@ export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
 
             return RouteFiltersMetaSchema.parse(data) as RouteFiltersMeta;
         },
-        placeholderData: (prev) => prev,
         enabled: hasGeo,
     });
 }

@@ -71,6 +71,8 @@ export function RoutesSidebarPanel() {
         order: routes.order,
     });
 
+    const appliedFilters = listQuery.data?.pages[0]?.appliedFilters;
+
     const hasGeo = !!bbox || !!routes.focusBbox;
 
     // Scroll to top cuando cambian los filtros
@@ -80,6 +82,65 @@ export function RoutesSidebarPanel() {
         qDebounced, routes.sportCode, routes.difficulty, routes.routeType,
         routes.distanceMin, routes.distanceMax, routes.gainMin, routes.gainMax,
         routes.durationMin, routes.durationMax, routes.sort, routes.order,
+    ]);
+
+    useEffect(() => {
+        if (!qDebounced || !appliedFilters) return;
+
+        const patch: Partial<typeof routes> = {};
+
+        if (appliedFilters.sportCode !== null && routes.sportCode !== appliedFilters.sportCode) {
+            patch.sportCode = appliedFilters.sportCode;
+        }
+        if (appliedFilters.distanceMin !== null && routes.distanceMin !== appliedFilters.distanceMin) {
+            patch.distanceMin = appliedFilters.distanceMin;
+        }
+        if (appliedFilters.distanceMax !== null && routes.distanceMax !== appliedFilters.distanceMax) {
+            patch.distanceMax = appliedFilters.distanceMax;
+        }
+        if (appliedFilters.gainMin !== null && routes.gainMin !== appliedFilters.gainMin) {
+            patch.gainMin = appliedFilters.gainMin;
+        }
+        if (appliedFilters.gainMax !== null && routes.gainMax !== appliedFilters.gainMax) {
+            patch.gainMax = appliedFilters.gainMax;
+        }
+        if (appliedFilters.difficulty !== null && routes.difficulty !== appliedFilters.difficulty) {
+            patch.difficulty = appliedFilters.difficulty;
+        }
+        if (appliedFilters.routeType !== null && routes.routeType !== appliedFilters.routeType) {
+            patch.routeType = appliedFilters.routeType;
+        }
+        if (appliedFilters.durationMin !== null && routes.durationMin !== appliedFilters.durationMin) {
+            patch.durationMin = appliedFilters.durationMin;
+        }
+        if (appliedFilters.durationMax !== null && routes.durationMax !== appliedFilters.durationMax) {
+            patch.durationMax = appliedFilters.durationMax;
+        }
+        if (appliedFilters.sort !== null && routes.sort !== appliedFilters.sort) {
+            patch.sort = appliedFilters.sort;
+        }
+        if (appliedFilters.order !== null && routes.order !== appliedFilters.order) {
+            patch.order = appliedFilters.order;
+        }
+
+        if (Object.keys(patch).length > 0) {
+            setRoutes({ ...patch, page: 1 });
+        }
+    }, [
+        qDebounced,
+        appliedFilters,
+        routes.sportCode,
+        routes.distanceMin,
+        routes.distanceMax,
+        routes.gainMin,
+        routes.gainMax,
+        routes.difficulty,
+        routes.routeType,
+        routes.durationMin,
+        routes.durationMax,
+        routes.sort,
+        routes.order,
+        setRoutes,
     ]);
 
     // IntersectionObserver para cargar la siguiente página
@@ -206,7 +267,7 @@ export function RoutesSidebarPanel() {
                     </div>
 
                     {/* Row 3: Sport pills */}
-                    {(filtersQuery.data?.sports ?? []).length > 0 && (
+                    {!filtersQuery.isLoading && !filtersQuery.isFetching && (filtersQuery.data?.sports ?? []).length > 0 && (
                         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 hide-scrollbar">
                             <button
                                 onClick={() => setRoutes({ sportCode: null, page: 1 })}

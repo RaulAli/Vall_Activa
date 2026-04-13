@@ -1,17 +1,20 @@
 nelmio_cors:
     defaults:
-        allow_origin: ['http://localhost:5173']
+        allow_origin: ['^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$']
+        origin_regex: true
         allow_credentials: true
         allow_headers: ['Content-Type', 'Authorization', 'X-User-Id', 'X-User-Role']
         allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
-        expose_headers: ['Content-Type']
+        expose_headers: ['Content-Type', 'X-Search-Request-Id', 'X-Search-Ai-Used', 'X-Search-Ai-Confidence', 'X-Search-Applied-Sport-Code', 'X-Search-Applied-Distance-Min', 'X-Search-Applied-Distance-Max', 'X-Search-Applied-Gain-Min', 'X-Search-Applied-Gain-Max', 'X-Search-Applied-Difficulty', 'X-Search-Applied-Route-Type', 'X-Search-Applied-Duration-Min', 'X-Search-Applied-Duration-Max', 'X-Search-Applied-Sort', 'X-Search-Applied-Order']
         max_age: 3600
     paths:
         '^/api/':
-            allow_origin: ['http://localhost:5173']
+            allow_origin: ['^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$']
+            origin_regex: true
             allow_credentials: true
             allow_headers: ['Content-Type', 'Authorization', 'X-User-Id', 'X-User-Role']
             allow_methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
         '^/':
-            allow_origin: ['http://localhost:5173']
+            allow_origin: ['^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$']
+            origin_regex: true
             allow_credentials: false

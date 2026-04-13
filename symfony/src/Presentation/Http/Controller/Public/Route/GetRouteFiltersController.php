@@ -6,6 +6,7 @@ namespace App\Presentation\Http\Controller\Public\Route;
 use App\Application\Route\DTO\RoutePublicFilters;
 use App\Application\Route\Handler\GetRouteFiltersHandler;
 use App\Application\Route\PublicQuery\GetRouteFiltersQuery;
+use App\Infrastructure\Ai\NaturalLanguageSearchClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,8 +15,10 @@ use Symfony\Component\Routing\Attribute\Route;
 final class GetRouteFiltersController extends AbstractController
 {
     #[Route('/api/public/routes/filters', name: 'public_route_filters', methods: ['GET'], priority: 20)]
-    public function __invoke(Request $request, GetRouteFiltersHandler $handler): JsonResponse
+    public function __invoke(Request $request, GetRouteFiltersHandler $handler, NaturalLanguageSearchClient $nlSearch): JsonResponse
     {
+        $requestId = $this->resolveRequestId($request);
+
         $sportCode = $this->stringOrNull($request->query->get('sportCode'));
         $distanceMin = $this->intOrNull($request->query->get('distanceMin'));
         $distanceMax = $this->intOrNull($request->query->get('distanceMax'));
@@ -28,6 +31,39 @@ final class GetRouteFiltersController extends AbstractController
         $routeType = $routeType !== null ? strtoupper($routeType) : null;
         $durationMin = $this->intOrNull($request->query->get('durationMin'));
         $durationMax = $this->intOrNull($request->query->get('durationMax'));
+
+        if ($q !== null) {
+            $nlDetailed = $nlSearch->interpretDetailed('routes', $q, [
+                'mode' => 'filters',
+                'sportCode' => $sportCode,
+                'difficulty' => $difficulty,
+                'routeType' => $routeType,
+            ], $requestId);
+
+            $nlFilters = is_array($nlDetailed) ? ($nlDetailed['filters'] ?? null) : null;
+            if (is_array($nlFilters)) {
+                // If AI doesn't return q, drop raw sentence search to avoid over-filtering.
+                $q = array_key_exists('q', $nlFilters) ? $this->stringOrNull($nlFilters['q']) : null;
+
+                $sportCode = $sportCode ?? $this->stringOrNull($nlFilters['sportCode'] ?? null);
+                $distanceMin = $distanceMin ?? $this->intOrNull($nlFilters['distanceMin'] ?? null);
+                $distanceMax = $distanceMax ?? $this->intOrNull($nlFilters['distanceMax'] ?? null);
+                $gainMin = $gainMin ?? $this->intOrNull($nlFilters['gainMin'] ?? null);
+                $gainMax = $gainMax ?? $this->intOrNull($nlFilters['gainMax'] ?? null);
+                $durationMin = $durationMin ?? $this->intOrNull($nlFilters['durationMin'] ?? null);
+                $durationMax = $durationMax ?? $this->intOrNull($nlFilters['durationMax'] ?? null);
+
+                if ($difficulty === null) {
+                    $difficultyCandidate = $this->stringOrNull($nlFilters['difficulty'] ?? null);
+                    $difficulty = $difficultyCandidate !== null ? strtoupper($difficultyCandidate) : null;
+                }
+
+                if ($routeType === null) {
+                    $routeTypeCandidate = $this->stringOrNull($nlFilters['routeType'] ?? null);
+                    $routeType = $routeTypeCandidate !== null ? strtoupper($routeTypeCandidate) : null;
+                }
+            }
+        }
 
         // focus tiene prioridad
         [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
@@ -68,6 +104,16 @@ final class GetRouteFiltersController extends AbstractController
 
         $meta = $handler(new GetRouteFiltersQuery($filters));
         return $this->json($meta);
+    }
+
+    private function resolveRequestId(Request $request): string
+    {
+        $incoming = $request->headers->get('X-Request-Id');
+        if (is_string($incoming) && trim($incoming) !== '') {
+            return trim($incoming);
+        }
+
+        return bin2hex(random_bytes(16));
     }
 
     private function stringOrNull(mixed $v): ?string

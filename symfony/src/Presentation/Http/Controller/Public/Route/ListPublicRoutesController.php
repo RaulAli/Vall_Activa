@@ -6,6 +6,7 @@ namespace App\Presentation\Http\Controller\Public\Route;
 use App\Application\Route\DTO\RoutePublicFilters;
 use App\Application\Route\Handler\ListPublicRoutesHandler;
 use App\Application\Route\PublicQuery\ListPublicRoutesQuery;
+use App\Infrastructure\Ai\NaturalLanguageSearchClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,8 +15,12 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ListPublicRoutesController extends AbstractController
 {
     #[Route('/api/public/routes', name: 'public_list_routes', methods: ['GET'])]
-    public function __invoke(Request $request, ListPublicRoutesHandler $handler): JsonResponse
+    public function __invoke(Request $request, ListPublicRoutesHandler $handler, NaturalLanguageSearchClient $nlSearch): JsonResponse
     {
+        $requestId = $this->resolveRequestId($request);
+        $aiUsed = false;
+        $aiConfidence = null;
+
         $page = (int) $request->query->get('page', 1);
         $limit = (int) $request->query->get('limit', 20);
 
@@ -23,7 +28,7 @@ final class ListPublicRoutesController extends AbstractController
         $order = (string) $request->query->get('order', 'desc');
 
         $sportCode = $request->query->get('sportCode');
-        $sportCode = is_string($sportCode) && trim($sportCode) !== '' ? mb_strtolower(trim($sportCode)) : null;
+        $sportCode = is_string($sportCode) && trim($sportCode) !== '' ? strtolower(trim($sportCode)) : null;
 
         $distanceMin = $this->intOrNull($request->query->get('distanceMin'));
         $distanceMax = $this->intOrNull($request->query->get('distanceMax'));
@@ -42,6 +47,61 @@ final class ListPublicRoutesController extends AbstractController
         $q = $request->query->get('q');
         $q = is_string($q) && trim($q) !== '' ? trim($q) : null;
 
+        // Try NLP interpretation, but never break explicit filters from the request.
+        if ($q !== null) {
+            $nlDetailed = $nlSearch->interpretDetailed('routes', $q, [
+                'mode' => 'list',
+                'sort' => $sort,
+                'order' => $order,
+                'sportCode' => $sportCode,
+                'difficulty' => $difficulty,
+                'routeType' => $routeType,
+            ], $requestId);
+
+            $nlFilters = is_array($nlDetailed) ? ($nlDetailed['filters'] ?? null) : null;
+            if (is_array($nlDetailed)) {
+                $aiUsed = true;
+                $aiConfidence = isset($nlDetailed['confidence']) ? (float) $nlDetailed['confidence'] : null;
+            }
+
+            if (is_array($nlFilters)) {
+                // If AI doesn't return q, drop raw sentence search to avoid over-filtering.
+                $q = array_key_exists('q', $nlFilters) ? $this->stringOrNull($nlFilters['q']) : null;
+
+                $sportCode = $sportCode ?? $this->stringOrNull($nlFilters['sportCode'] ?? null);
+                $distanceMin = $distanceMin ?? $this->intOrNull($nlFilters['distanceMin'] ?? null);
+                $distanceMax = $distanceMax ?? $this->intOrNull($nlFilters['distanceMax'] ?? null);
+                $gainMin = $gainMin ?? $this->intOrNull($nlFilters['gainMin'] ?? null);
+                $gainMax = $gainMax ?? $this->intOrNull($nlFilters['gainMax'] ?? null);
+                $durationMin = $durationMin ?? $this->intOrNull($nlFilters['durationMin'] ?? null);
+                $durationMax = $durationMax ?? $this->intOrNull($nlFilters['durationMax'] ?? null);
+
+                if ($difficulty === null) {
+                    $difficultyCandidate = $this->stringOrNull($nlFilters['difficulty'] ?? null);
+                    $difficulty = $difficultyCandidate !== null ? strtoupper($difficultyCandidate) : null;
+                }
+
+                if ($routeType === null) {
+                    $routeTypeCandidate = $this->stringOrNull($nlFilters['routeType'] ?? null);
+                    $routeType = $routeTypeCandidate !== null ? strtoupper($routeTypeCandidate) : null;
+                }
+
+                if ($sort === 'recent') {
+                    $sortCandidate = strtolower((string) ($nlFilters['sort'] ?? ''));
+                    if (in_array($sortCandidate, ['recent', 'distance', 'gain'], true)) {
+                        $sort = $sortCandidate;
+                    }
+                }
+
+                if ($order === 'desc') {
+                    $orderCandidate = strtolower((string) ($nlFilters['order'] ?? ''));
+                    if (in_array($orderCandidate, ['asc', 'desc'], true)) {
+                        $order = $orderCandidate;
+                    }
+                }
+            }
+        }
+
         // focus=lng,lat,radiusM (si existe, IGNORA bbox)
         [$focusLng, $focusLat, $focusRadiusM] = $this->parseFocus($request->query->get('focus'));
 
@@ -55,10 +115,11 @@ final class ListPublicRoutesController extends AbstractController
 
         // Seguridad: si no hay focus ni bbox, devolvemos 400 (evita “todo el mundo”)
         if ($focusLng === null && $bboxMinLng === null) {
-            return $this->json([
+            $response = $this->json([
                 'error' => 'bad_request',
                 'message' => 'Missing bbox or focus parameter.'
             ], 400);
+            return $this->withSearchHeaders($response, $requestId, $aiUsed, $aiConfidence);
         }
 
         $filters = new RoutePublicFilters(
@@ -89,7 +150,68 @@ final class ListPublicRoutesController extends AbstractController
             order: $order
         ));
 
-        return $this->json($result);
+        $response = $this->json($result);
+        return $this->withSearchHeaders($response, $requestId, $aiUsed, $aiConfidence, [
+            'sportCode' => $sportCode,
+            'distanceMin' => $distanceMin,
+            'distanceMax' => $distanceMax,
+            'gainMin' => $gainMin,
+            'gainMax' => $gainMax,
+            'difficulty' => $difficulty,
+            'routeType' => $routeType,
+            'durationMin' => $durationMin,
+            'durationMax' => $durationMax,
+            'sort' => $sort,
+            'order' => $order,
+        ]);
+    }
+
+    private function resolveRequestId(Request $request): string
+    {
+        $incoming = $request->headers->get('X-Request-Id');
+        if (is_string($incoming) && trim($incoming) !== '') {
+            return trim($incoming);
+        }
+
+        return bin2hex(random_bytes(16));
+    }
+
+    private function withSearchHeaders(JsonResponse $response, string $requestId, bool $aiUsed, ?float $confidence, array $appliedFilters = []): JsonResponse
+    {
+        $response->headers->set('X-Search-Request-Id', $requestId);
+        $response->headers->set('X-Search-Ai-Used', $aiUsed ? '1' : '0');
+        if ($confidence !== null) {
+            $response->headers->set('X-Search-Ai-Confidence', number_format($confidence, 2, '.', ''));
+        }
+
+        $headerMap = [
+            'sportCode' => 'X-Search-Applied-Sport-Code',
+            'distanceMin' => 'X-Search-Applied-Distance-Min',
+            'distanceMax' => 'X-Search-Applied-Distance-Max',
+            'gainMin' => 'X-Search-Applied-Gain-Min',
+            'gainMax' => 'X-Search-Applied-Gain-Max',
+            'difficulty' => 'X-Search-Applied-Difficulty',
+            'routeType' => 'X-Search-Applied-Route-Type',
+            'durationMin' => 'X-Search-Applied-Duration-Min',
+            'durationMax' => 'X-Search-Applied-Duration-Max',
+            'sort' => 'X-Search-Applied-Sort',
+            'order' => 'X-Search-Applied-Order',
+        ];
+
+        foreach ($headerMap as $key => $headerName) {
+            if (!array_key_exists($key, $appliedFilters)) {
+                continue;
+            }
+
+            $value = $appliedFilters[$key];
+            if ($value === null || $value === '') {
+                continue;
+            }
+
+            $response->headers->set($headerName, (string) $value);
+        }
+
+        return $response;
     }
 
     private function intOrNull(mixed $v): ?int
@@ -97,6 +219,11 @@ final class ListPublicRoutesController extends AbstractController
         if ($v === null || $v === '')
             return null;
         return is_numeric($v) ? (int) $v : null;
+    }
+
+    private function stringOrNull(mixed $v): ?string
+    {
+        return (is_string($v) && trim($v) !== '') ? trim($v) : null;
     }
 
     /**
