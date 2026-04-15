@@ -5,6 +5,7 @@ import { useAuthStore } from "../store/authStore";
 import { updateMe, getMe } from "../features/user/api/userApi";
 import { getPublicProfile, getMyFollowers, getMyFollowing } from "../features/user/api/profileApi";
 import type { ProfileStub } from "../features/user/api/profileApi";
+import { VipStatusCard } from "../features/vip/ui/VipStatusCard";
 import { HttpError } from "../shared/api/http";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -275,11 +276,19 @@ export function ProfilePage() {
                     </div>
                 </div>
 
+                {isAthlete && <VipStatusCard user={user} />}
+
                 <div className="flex gap-3 flex-wrap">
                     {user.slug && (
                         <button onClick={() => navigate(`/profile/${user.slug}`)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
                             <span className="material-symbols-outlined !text-base">person</span>
                             Ver perfil publico
+                        </button>
+                    )}
+                    {isAthlete && (
+                        <button onClick={() => navigate("/plans")} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-amber-200 dark:border-amber-700 text-sm font-bold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all">
+                            <span className="material-symbols-outlined !text-base">workspace_premium</span>
+                            Ver planes VIP
                         </button>
                     )}
                     <button onClick={() => navigate("/settings")} className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">

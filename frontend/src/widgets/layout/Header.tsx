@@ -43,6 +43,7 @@ export function Header() {
     const isMarketplace = location.pathname === "/marketplace";
     const isOffers = location.pathname === "/offers";
     const isRoutes = location.pathname === "/routes";
+    const isPlans = location.pathname === "/plans";
 
     const handleGoToDiscover = (newTab: "routes" | "offers") => {
         navigate(`/${newTab}`);
@@ -96,6 +97,25 @@ export function Header() {
 
                     {/* Actions */}
                     <div className="hidden md:flex items-center gap-3">
+                        {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                            <button
+                                onClick={() => navigate("/plans")}
+                                className={`group relative h-10 px-4 rounded-xl border transition-all flex items-center gap-2 ${isPlans
+                                        ? "border-amber-400 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 dark:from-amber-900/40 dark:to-orange-900/30 dark:text-amber-200 dark:border-amber-700"
+                                        : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800 dark:hover:bg-amber-900/35"
+                                    }`}
+                            >
+                                <span className="material-symbols-outlined !text-[18px]">workspace_premium</span>
+                                <span className="text-xs font-black tracking-wide">VIP</span>
+                                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${user.isVip
+                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                    }`}>
+                                    {user.isVip ? "ACTIVO" : "INACTIVO"}
+                                </span>
+                            </button>
+                        )}
+
                         <button
                             onClick={() => setThemeState(toggleTheme())}
                             className="p-2 text-slate-400 dark:text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -170,6 +190,15 @@ export function Header() {
                                                     >
                                                         <span className="material-symbols-outlined !text-base">event_note</span>
                                                         Mis reservas
+                                                    </button>
+                                                )}
+                                                {user.role === "ROLE_ATHLETE" && (
+                                                    <button
+                                                        onClick={() => { setUserMenuOpen(false); navigate("/plans"); }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">workspace_premium</span>
+                                                        Planes VIP
                                                     </button>
                                                 )}
                                                 {user.role === "ROLE_GUIDE" && (
@@ -264,6 +293,24 @@ export function Header() {
             {/* Mobile Menu */}
             {mobileMenuOpen && (
                 <div className="md:hidden bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-4 py-6 flex flex-col gap-4 animate-in fade-in slide-in-from-top-1">
+                    {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); navigate("/plans"); }}
+                            className="w-full py-2.5 px-3 flex items-center justify-between rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20"
+                        >
+                            <span className="flex items-center gap-2 text-amber-700 dark:text-amber-300 font-black text-sm">
+                                <span className="material-symbols-outlined !text-base">workspace_premium</span>
+                                VIP
+                            </span>
+                            <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${user.isVip
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                }`}>
+                                {user.isVip ? "ACTIVO" : "INACTIVO"}
+                            </span>
+                        </button>
+                    )}
+
                     <button className={`text-left font-bold ${isHome ? "text-primary" : "text-slate-500"}`} onClick={handleGoHome}>Home</button>
                     <button className={`text-left font-bold ${isMarketplace ? "text-primary" : "text-slate-500"}`} onClick={() => { setMobileMenuOpen(false); navigate("/marketplace"); }}>Marketplace</button>
                     <button className={`text-left font-bold ${isOffers ? "text-primary" : "text-slate-500"}`} onClick={() => handleGoToDiscover("offers")}>Offers</button>
@@ -296,6 +343,14 @@ export function Header() {
                                             className="w-full py-3 text-center font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl"
                                         >
                                             Mis reservas
+                                        </button>
+                                    )}
+                                    {user.role === "ROLE_ATHLETE" && (
+                                        <button
+                                            onClick={() => { setMobileMenuOpen(false); navigate("/plans"); }}
+                                            className="w-full py-3 text-center font-bold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl"
+                                        >
+                                            Planes VIP
                                         </button>
                                     )}
                                     {user.role === "ROLE_GUIDE" && (

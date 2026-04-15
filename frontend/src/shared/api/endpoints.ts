@@ -50,6 +50,9 @@ export const endpoints = {
         myBookings: "/api/athlete/me/bookings",
         checkout: (id: string) => `/api/athlete/me/bookings/${id}/payment/checkout`,
         confirmPayment: "/api/athlete/me/bookings/payment/confirm",
+        vipCheckout: "/api/athlete/me/vip/payment/checkout",
+        vipConfirmPayment: "/api/athlete/me/vip/payment/confirm",
+        vipRenewal: "/api/athlete/me/vip/renewal",
     },
     incidents: {
         create: "/api/incidents",

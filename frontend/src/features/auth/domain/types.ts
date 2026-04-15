@@ -27,6 +27,11 @@ export interface AuthUser {
     email: string;
     role: string;
     createdAt: string;
+    isVip?: boolean;
+    vipPlan?: "MONTHLY" | "YEARLY" | null;
+    vipStartedAt?: string | null;
+    vipExpiresAt?: string | null;
+    vipCancelAtPeriodEnd?: boolean;
     slug: string | null;
     name: string | null;
     avatar: string | null;

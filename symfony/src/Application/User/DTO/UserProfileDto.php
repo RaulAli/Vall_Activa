@@ -10,6 +10,11 @@ final class UserProfileDto
         public readonly string $email,
         public readonly string $role,
         public readonly string $createdAt,
+        public readonly bool $isVip = false,
+        public readonly ?string $vipPlan = null,
+        public readonly ?string $vipStartedAt = null,
+        public readonly ?string $vipExpiresAt = null,
+        public readonly bool $vipCancelAtPeriodEnd = false,
         // Profile fields — null when the user has no profile yet
         public readonly ?string $slug = null,
         public readonly ?string $name = null,

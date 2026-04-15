@@ -28,6 +28,21 @@ class UserOrm implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'is_active', type: 'boolean', options: ['default' => true])]
     public bool $isActive = true;
 
+    #[ORM\Column(name: 'vip_active', type: 'boolean', options: ['default' => false])]
+    public bool $vipActive = false;
+
+    #[ORM\Column(name: 'vip_plan', type: 'string', length: 20, nullable: true)]
+    public ?string $vipPlan = null;
+
+    #[ORM\Column(name: 'vip_started_at', type: 'datetime_immutable', nullable: true)]
+    public ?\DateTimeImmutable $vipStartedAt = null;
+
+    #[ORM\Column(name: 'vip_expires_at', type: 'datetime_immutable', nullable: true)]
+    public ?\DateTimeImmutable $vipExpiresAt = null;
+
+    #[ORM\Column(name: 'vip_cancel_at_period_end', type: 'boolean', options: ['default' => false])]
+    public bool $vipCancelAtPeriodEnd = false;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     public \DateTimeImmutable $createdAt;
 
