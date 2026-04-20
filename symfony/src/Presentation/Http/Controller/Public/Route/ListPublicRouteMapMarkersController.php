@@ -31,6 +31,7 @@ final class ListPublicRouteMapMarkersController extends AbstractController
         $routeType = $routeType !== null ? strtoupper($routeType) : null;
         $durationMin = $this->intOrNull($request->query->get('durationMin'));
         $durationMax = $this->intOrNull($request->query->get('durationMax'));
+        $guideOnly = $this->boolOrFalse($request->query->get('guideOnly'));
 
         if ($q !== null) {
             $nlDetailed = $nlSearch->interpretDetailed('routes', $q, [
@@ -94,6 +95,7 @@ final class ListPublicRouteMapMarkersController extends AbstractController
             routeType: $routeType,
             durationMin: $durationMin,
             durationMax: $durationMax,
+            guideOnly: $guideOnly,
         );
 
         $limit = (int) $request->query->get('limit', 5000);
@@ -125,6 +127,24 @@ final class ListPublicRouteMapMarkersController extends AbstractController
         if ($v === null || $v === '')
             return null;
         return is_numeric($v) ? (int) $v : null;
+    }
+
+    private function boolOrFalse(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        return false;
     }
 
     /** @return array{0:?float,1:?float,2:?float,3:?float} */

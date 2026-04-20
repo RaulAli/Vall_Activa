@@ -23,6 +23,7 @@ export type RoutesMapMarkersParams = {
 
     q: string;
     sportCode: string | null;
+    guideOnly?: boolean;
 
     distanceMin: number | null;
     distanceMax: number | null;
@@ -46,6 +47,7 @@ export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
         geoParam,
         params.q || "",
         params.sportCode || "",
+        params.guideOnly ? "1" : "0",
         params.distanceMin ?? "",
         params.distanceMax ?? "",
         params.gainMin ?? "",
@@ -64,6 +66,7 @@ export function useRoutesMapMarkersQuery(params: RoutesMapMarkersParams) {
                     bbox: geoParam,
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
+                    guideOnly: params.guideOnly ? 1 : null,
                     distanceMin: params.distanceMin ?? null,
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,

@@ -41,6 +41,7 @@ final class RoutePublicDetails
         public readonly ?string $difficulty = null,
         public readonly ?string $routeType = null,
         public readonly ?string $sportCode = null,
+        public readonly ?float $guidePricePerHour = null,
     ) {
     }
 }

@@ -9,6 +9,7 @@ const LIMIT = 10;
 
 export type AppliedRouteFilters = {
     sportCode: string | null;
+    guideOnly: boolean;
     distanceMin: number | null;
     distanceMax: number | null;
     gainMin: number | null;
@@ -31,6 +32,7 @@ export type RoutesListParams = {
 
     q: string;
     sportCode: string | null;
+    guideOnly?: boolean;
 
     distanceMin: number | null;
     distanceMax: number | null;
@@ -59,6 +61,7 @@ export function useRoutesListQuery(params: RoutesListParams) {
         geoParam,
         params.q || "",
         params.sportCode || "",
+        params.guideOnly ? "1" : "0",
         params.distanceMin ?? "",
         params.distanceMax ?? "",
         params.gainMin ?? "",
@@ -80,6 +83,7 @@ export function useRoutesListQuery(params: RoutesListParams) {
                 bbox: geoParam,
                 q: params.q || null,
                 sportCode: params.sportCode ?? null,
+                guideOnly: params.guideOnly ? 1 : null,
                 distanceMin: params.distanceMin ?? null,
                 distanceMax: params.distanceMax ?? null,
                 gainMin: params.gainMin ?? null,
@@ -128,6 +132,7 @@ export function useRoutesListQuery(params: RoutesListParams) {
 function extractAppliedFilters(headers: Headers): AppliedRouteFilters {
     return {
         sportCode: normalizeString(headers.get("X-Search-Applied-Sport-Code")),
+        guideOnly: normalizeBool(headers.get("X-Search-Applied-Guide-Only")),
         distanceMin: normalizeInt(headers.get("X-Search-Applied-Distance-Min")),
         distanceMax: normalizeInt(headers.get("X-Search-Applied-Distance-Max")),
         gainMin: normalizeInt(headers.get("X-Search-Applied-Gain-Min")),
@@ -139,6 +144,12 @@ function extractAppliedFilters(headers: Headers): AppliedRouteFilters {
         sort: normalizeSort(headers.get("X-Search-Applied-Sort")),
         order: normalizeOrder(headers.get("X-Search-Applied-Order")),
     };
+}
+
+function normalizeBool(value: string | null): boolean {
+    if (!value) return false;
+    const normalized = value.trim().toLowerCase();
+    return normalized === "1" || normalized === "true" || normalized === "yes" || normalized === "on";
 }
 
 function normalizeString(value: string | null): string | null {

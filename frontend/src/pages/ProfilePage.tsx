@@ -4,8 +4,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "../store/authStore";
 import { updateMe, getMe } from "../features/user/api/userApi";
 import { getPublicProfile, getMyFollowers, getMyFollowing } from "../features/user/api/profileApi";
+import { getAthletePointsSummary } from "../features/points/api/pointsApi";
 import type { ProfileStub } from "../features/user/api/profileApi";
 import { VipStatusCard } from "../features/vip/ui/VipStatusCard";
+import { AthletePointsCard } from "../features/points/ui/AthletePointsCard";
 import { HttpError } from "../shared/api/http";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -119,12 +121,28 @@ export function ProfilePage() {
         staleTime: 30_000,
     });
 
+    const pointsSummaryQuery = useQuery({
+        queryKey: ["athlete", "points", "summary"],
+        queryFn: () => getAthletePointsSummary(token!),
+        enabled: !!token && user?.role === "ROLE_ATHLETE",
+        staleTime: 5_000,
+    });
+
+    useEffect(() => {
+        if (!user || user.role !== "ROLE_ATHLETE") return;
+        const liveBalance = pointsSummaryQuery.data?.balance;
+        if (typeof liveBalance !== "number") return;
+        if ((user.pointsBalance ?? 0) === liveBalance) return;
+        setUser({ ...user, pointsBalance: liveBalance });
+    }, [pointsSummaryQuery.data?.balance, setUser, user]);
+
     if (!user || !isAuthenticated) return null;
 
     const role = user.role;
     const isBusiness = role === "ROLE_BUSINESS";
     const isAthlete = role === "ROLE_ATHLETE";
     const isGuide = role === "ROLE_GUIDE";
+    const visiblePointsBalance = pointsSummaryQuery.data?.balance ?? user.pointsBalance ?? 0;
 
     const openDrawer = () => {
         setName(user.name ?? "");
@@ -267,6 +285,14 @@ export function ProfilePage() {
                                 </span>
                             </div>
                         )}
+                        {isAthlete && (
+                            <div className="flex justify-between items-center py-3 border-b border-slate-100 dark:border-slate-800">
+                                <span className="text-sm text-slate-500 dark:text-slate-400">Saldo de puntos</span>
+                                <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                    {visiblePointsBalance} VAC
+                                </span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center py-3">
                             <span className="text-sm text-slate-500 dark:text-slate-400">Miembro desde</span>
                             <span className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -277,6 +303,7 @@ export function ProfilePage() {
                 </div>
 
                 {isAthlete && <VipStatusCard user={user} />}
+                {isAthlete && <AthletePointsCard />}
 
                 <div className="flex gap-3 flex-wrap">
                     {user.slug && (

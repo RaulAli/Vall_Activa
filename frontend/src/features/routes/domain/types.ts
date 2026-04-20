@@ -23,6 +23,7 @@ export type RouteListItem = {
     creatorSlug?: string | null;
     creatorAvatar?: string | null;
     creatorIsVerified?: boolean | null;
+    guidePricePerHour?: number | null;
 };
 
 export type PaginatedResult<T> = {

@@ -1,4 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { useOfferDetailsQuery } from "../features/offers/queries/useOfferDetailsQuery";
 import { Loader } from "../shared/ui/Loader";
 import { ErrorState } from "../shared/ui/ErrorState";
@@ -6,11 +8,50 @@ import { Header } from "../widgets/layout/Header";
 import { Footer } from "../widgets/layout/Footer";
 import { getFallbackImage } from "../shared/utils/images";
 import { DetailsMap } from "../shared/ui/DetailsMap";
+import { useAuthStore } from "../store/authStore";
+import { redeemOfferWithPoints } from "../features/offers/api/offerApi";
+import { getMe } from "../features/user/api/userApi";
+import { HttpError } from "../shared/api/http";
 
 export function OfferDetailPage() {
     const { slug } = useParams<{ slug: string }>();
     const navigate = useNavigate();
+    const { token, user, setUser, isAuthenticated } = useAuthStore();
+    const [redeemMessage, setRedeemMessage] = useState<string | null>(null);
     const { data: offer, isLoading, error } = useOfferDetailsQuery(slug || null);
+
+    const redeemMutation = useMutation({
+        mutationFn: () => redeemOfferWithPoints(token!, offer!.id),
+        onSuccess: async () => {
+            if (token) {
+                const me = await getMe(token);
+                setUser(me);
+            }
+            setRedeemMessage("Oferta canjeada correctamente. Tus puntos se han actualizado.");
+        },
+        onError: (err) => {
+            if (err instanceof HttpError) {
+                const code = typeof err.body?.error === "string" ? err.body.error : "";
+                if (code === "insufficient_points") {
+                    setRedeemMessage("No tienes puntos suficientes para canjear esta oferta.");
+                    return;
+                }
+                if (code === "out_of_stock") {
+                    setRedeemMessage("No hay stock disponible para esta oferta.");
+                    return;
+                }
+                if (code === "forbidden_role") {
+                    setRedeemMessage("Solo los atletas pueden canjear ofertas con puntos.");
+                    return;
+                }
+            }
+            setRedeemMessage("No se pudo completar el canje en este momento.");
+        },
+    });
+
+    const canRedeemByRole = user?.role === "ROLE_ATHLETE";
+    const pointsBalance = user?.pointsBalance ?? 0;
+    const canRedeemByBalance = pointsBalance >= offer?.pointsCost;
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
     if (error || !offer) return <ErrorState message="No se pudo cargar la oferta" />;
@@ -146,10 +187,21 @@ export function OfferDetailPage() {
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Total en puntos</span>
                                             <span className="text-xl font-black text-primary">{offer.pointsCost} VAC</span>
                                         </div>
+                                        <div className="flex items-center justify-between py-2 border-t border-slate-100 dark:border-slate-800">
+                                            <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Tu saldo</span>
+                                            <span className={`text-base font-black ${canRedeemByBalance ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                                                {pointsBalance} VAC
+                                            </span>
+                                        </div>
                                         <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg text-[11px] text-slate-500 flex items-start gap-2 italic">
                                             <span className="material-symbols-outlined !text-sm mt-0.5">info</span>
                                             Al canjear esta oferta, recibirás un cupón digital para presentar en el establecimiento.
                                         </div>
+                                        {redeemMessage && (
+                                            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                                                {redeemMessage}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="space-y-3">
@@ -157,9 +209,24 @@ export function OfferDetailPage() {
                                             <span className="material-symbols-outlined">shopping_cart</span>
                                             Comprar ahora
                                         </button>
-                                        <button className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg">
+                                        <button
+                                            onClick={() => {
+                                                setRedeemMessage(null);
+                                                if (!isAuthenticated || !token) {
+                                                    navigate("/auth");
+                                                    return;
+                                                }
+                                                if (!canRedeemByRole) {
+                                                    setRedeemMessage("Solo los atletas pueden canjear ofertas con puntos.");
+                                                    return;
+                                                }
+                                                redeemMutation.mutate();
+                                            }}
+                                            disabled={!canRedeemByRole || !canRedeemByBalance || redeemMutation.isPending || offer.pointsCost <= 0}
+                                            className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+                                        >
                                             <span className="material-symbols-outlined">stars</span>
-                                            Canjear con {offer.pointsCost} VAC
+                                            {redeemMutation.isPending ? "Canjeando..." : `Canjear con ${offer.pointsCost} VAC`}
                                         </button>
                                     </div>
                                 </div>

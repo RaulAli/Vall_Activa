@@ -31,6 +31,9 @@ class GuideProfileOrm
     #[ORM\Column(type: 'string', length: 255, nullable: true)]
     public ?string $city = null;
 
+    #[ORM\Column(name: 'price_per_hour_cents', type: 'integer', options: ['default' => 2500])]
+    public int $pricePerHourCents = 2500;
+
     #[ORM\Column(type: 'float', nullable: true)]
     public ?float $lat = null;
 

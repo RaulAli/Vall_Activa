@@ -39,6 +39,7 @@ export const RouteDetailsSchema = z.object({
     creatorAvatar: z.string().nullable().optional(),
     creatorRole: z.string().nullable().optional(),
     creatorIsVerified: z.boolean().nullable().optional(),
+    guidePricePerHour: z.number().nullable().optional(),
 });
 
 export type RouteDetails = z.infer<typeof RouteDetailsSchema>;

@@ -9,6 +9,7 @@ import { confirmAthleteBookingPayment, createAthleteBookingCheckout, getMyAthlet
 const STATUS_LABEL: Record<string, string> = {
     REQUESTED: "Pendiente",
     CONFIRMED: "Aceptada",
+    COMPLETED: "Completada",
     REJECTED: "Rechazada",
     CANCELLED: "Cancelada",
 };
@@ -129,9 +130,11 @@ export function MyBookingsPage() {
                                                     )}
                                                     <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${booking.status === "CONFIRMED"
                                                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                        : booking.status === "REJECTED"
-                                                            ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-                                                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                                        : booking.status === "COMPLETED"
+                                                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                                                            : booking.status === "REJECTED"
+                                                                ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                                                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                                                         }`}>
                                                         {STATUS_LABEL[booking.status] ?? booking.status}
                                                     </span>

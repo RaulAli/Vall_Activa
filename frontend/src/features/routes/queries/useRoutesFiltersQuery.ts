@@ -12,6 +12,7 @@ export type RoutesFiltersParams = {
 
     q: string;
     sportCode: string | null;
+    guideOnly?: boolean;
 
     distanceMin: number | null;
     distanceMax: number | null;
@@ -38,6 +39,7 @@ export function useRoutesFiltersQuery(params: RoutesFiltersParams) {
 
                     q: params.q || null,
                     sportCode: params.sportCode ?? null,
+                    guideOnly: params.guideOnly ? 1 : null,
                     distanceMin: params.distanceMin ?? null,
                     distanceMax: params.distanceMax ?? null,
                     gainMin: params.gainMin ?? null,

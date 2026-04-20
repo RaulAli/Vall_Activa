@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { logout } from "../../features/auth/api/authApi";
+import { getAthletePointsSummary } from "../../features/points/api/pointsApi";
 import { getTheme, toggleTheme, type Theme } from "../../shared/utils/theme";
 
 export function Header() {
@@ -14,6 +16,15 @@ export function Header() {
     const loggingOutRef = useRef(false);
 
     const { isAuthenticated, user, token, clearAuth } = useAuthStore();
+
+    const pointsSummaryQuery = useQuery({
+        queryKey: ["athlete", "points", "summary", "header"],
+        queryFn: () => getAthletePointsSummary(token!),
+        enabled: isAuthenticated && !!token && user?.role === "ROLE_ATHLETE",
+        staleTime: 5_000,
+    });
+
+    const visiblePointsBalance = pointsSummaryQuery.data?.balance ?? user?.pointsBalance ?? 0;
 
     // Close user menu on outside click
     useEffect(() => {
@@ -44,6 +55,7 @@ export function Header() {
     const isOffers = location.pathname === "/offers";
     const isRoutes = location.pathname === "/routes";
     const isPlans = location.pathname === "/plans";
+    const isMissions = location.pathname === "/missions";
 
     const handleGoToDiscover = (newTab: "routes" | "offers") => {
         navigate(`/${newTab}`);
@@ -99,17 +111,40 @@ export function Header() {
                     <div className="hidden md:flex items-center gap-3">
                         {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
                             <button
+                                onClick={() => navigate("/me")}
+                                className="h-10 px-4 rounded-xl border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 dark:hover:bg-indigo-900/35 transition-all flex items-center gap-2"
+                            >
+                                <span className="material-symbols-outlined !text-[18px]">stars</span>
+                                <span className="text-xs font-black tracking-wide">{visiblePointsBalance} VAC</span>
+                            </button>
+                        )}
+
+                        {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                            <button
+                                onClick={() => navigate("/missions")}
+                                className={`h-10 px-4 rounded-xl border transition-all flex items-center gap-2 ${isMissions
+                                    ? "border-indigo-400 bg-indigo-100 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-900/35 dark:text-indigo-200"
+                                    : "border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-300 dark:border-indigo-800 dark:hover:bg-indigo-900/35"
+                                    }`}
+                            >
+                                <span className="material-symbols-outlined !text-[18px]">flag</span>
+                                <span className="text-xs font-black tracking-wide">MISIONES</span>
+                            </button>
+                        )}
+
+                        {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                            <button
                                 onClick={() => navigate("/plans")}
                                 className={`group relative h-10 px-4 rounded-xl border transition-all flex items-center gap-2 ${isPlans
-                                        ? "border-amber-400 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 dark:from-amber-900/40 dark:to-orange-900/30 dark:text-amber-200 dark:border-amber-700"
-                                        : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800 dark:hover:bg-amber-900/35"
+                                    ? "border-amber-400 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-900 dark:from-amber-900/40 dark:to-orange-900/30 dark:text-amber-200 dark:border-amber-700"
+                                    : "border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800 dark:hover:bg-amber-900/35"
                                     }`}
                             >
                                 <span className="material-symbols-outlined !text-[18px]">workspace_premium</span>
                                 <span className="text-xs font-black tracking-wide">VIP</span>
                                 <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full ${user.isVip
-                                        ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                                        : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                                     }`}>
                                     {user.isVip ? "ACTIVO" : "INACTIVO"}
                                 </span>
@@ -190,6 +225,15 @@ export function Header() {
                                                     >
                                                         <span className="material-symbols-outlined !text-base">event_note</span>
                                                         Mis reservas
+                                                    </button>
+                                                )}
+                                                {user.role === "ROLE_ATHLETE" && (
+                                                    <button
+                                                        onClick={() => { setUserMenuOpen(false); navigate("/missions"); }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">flag</span>
+                                                        Misiones
                                                     </button>
                                                 )}
                                                 {user.role === "ROLE_ATHLETE" && (
@@ -295,6 +339,36 @@ export function Header() {
                 <div className="md:hidden bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800 px-4 py-6 flex flex-col gap-4 animate-in fade-in slide-in-from-top-1">
                     {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
                         <button
+                            onClick={() => { setMobileMenuOpen(false); navigate("/me"); }}
+                            className="w-full py-2.5 px-3 flex items-center justify-between rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20"
+                        >
+                            <span className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-black text-sm">
+                                <span className="material-symbols-outlined !text-base">stars</span>
+                                Puntos
+                            </span>
+                            <span className="text-xs font-black text-indigo-700 dark:text-indigo-300">
+                                {visiblePointsBalance} VAC
+                            </span>
+                        </button>
+                    )}
+
+                    {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                        <button
+                            onClick={() => { setMobileMenuOpen(false); navigate("/missions"); }}
+                            className="w-full py-2.5 px-3 flex items-center justify-between rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20"
+                        >
+                            <span className="flex items-center gap-2 text-indigo-700 dark:text-indigo-300 font-black text-sm">
+                                <span className="material-symbols-outlined !text-base">flag</span>
+                                Misiones
+                            </span>
+                            <span className="text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                                VER
+                            </span>
+                        </button>
+                    )}
+
+                    {isAuthenticated && user?.role === "ROLE_ATHLETE" && (
+                        <button
                             onClick={() => { setMobileMenuOpen(false); navigate("/plans"); }}
                             className="w-full py-2.5 px-3 flex items-center justify-between rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20"
                         >
@@ -303,8 +377,8 @@ export function Header() {
                                 VIP
                             </span>
                             <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${user.isVip
-                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-                                    : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
+                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                                 }`}>
                                 {user.isVip ? "ACTIVO" : "INACTIVO"}
                             </span>

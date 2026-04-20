@@ -15,6 +15,7 @@ final class UserProfileDto
         public readonly ?string $vipStartedAt = null,
         public readonly ?string $vipExpiresAt = null,
         public readonly bool $vipCancelAtPeriodEnd = false,
+        public readonly int $pointsBalance = 0,
         // Profile fields — null when the user has no profile yet
         public readonly ?string $slug = null,
         public readonly ?string $name = null,
@@ -31,6 +32,7 @@ final class UserProfileDto
         /** @var list<string>|null */
         public readonly ?array $sports = null,
         public readonly ?bool $isGuideVerified = null,
+        public readonly ?float $guidePricePerHour = null,
     ) {
     }
 }

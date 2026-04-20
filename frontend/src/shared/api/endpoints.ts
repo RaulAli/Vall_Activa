@@ -31,6 +31,9 @@ export const endpoints = {
     sports: {
         list: "/api/public/sports",
     },
+    points: {
+        settings: "/api/public/points/settings",
+    },
     profile: {
         get: (slug: string) => `/api/profile/${slug}`,
         follow: (slug: string) => `/api/profile/${slug}/follow`,
@@ -50,9 +53,13 @@ export const endpoints = {
         myBookings: "/api/athlete/me/bookings",
         checkout: (id: string) => `/api/athlete/me/bookings/${id}/payment/checkout`,
         confirmPayment: "/api/athlete/me/bookings/payment/confirm",
+        redeemOffer: (id: string) => `/api/athlete/me/offers/${id}/redeem`,
         vipCheckout: "/api/athlete/me/vip/payment/checkout",
         vipConfirmPayment: "/api/athlete/me/vip/payment/confirm",
         vipRenewal: "/api/athlete/me/vip/renewal",
+        pointsSummary: "/api/athlete/me/points/summary",
+        pointsMissions: "/api/athlete/me/points/missions",
+        completeMission: (id: string) => `/api/athlete/me/points/missions/${id}/complete`,
     },
     incidents: {
         create: "/api/incidents",
@@ -84,5 +91,9 @@ export const endpoints = {
         createSport: "/api/admin/sports",
         updateSport: (id: string) => `/api/admin/sports/${id}`,
         toggleSport: (id: string) => `/api/admin/sports/${id}/toggle`,
+        pointSettings: "/api/admin/points/settings",
+        pointMissions: "/api/admin/points/missions",
+        updatePointMission: (id: string) => `/api/admin/points/missions/${id}`,
+        togglePointMission: (id: string) => `/api/admin/points/missions/${id}/toggle`,
     },
 };

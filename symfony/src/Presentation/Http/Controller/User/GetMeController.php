@@ -43,6 +43,7 @@ final class GetMeController extends AbstractController
             'vipStartedAt' => $profile->vipStartedAt,
             'vipExpiresAt' => $profile->vipExpiresAt,
             'vipCancelAtPeriodEnd' => $profile->vipCancelAtPeriodEnd,
+            'pointsBalance' => $profile->pointsBalance,
             'slug' => $profile->slug,
             'name' => $profile->name,
             'avatar' => $profile->avatar,
@@ -64,6 +65,7 @@ final class GetMeController extends AbstractController
                 'lng' => $profile->lng,
                 'sports' => $profile->sports,
                 'isGuideVerified' => $profile->isGuideVerified,
+                'guidePricePerHour' => $profile->guidePricePerHour,
             ],
             default => [],
         };

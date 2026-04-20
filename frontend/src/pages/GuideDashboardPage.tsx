@@ -7,6 +7,7 @@ import { getMyRoutes } from "../features/routes/api/routeApi";
 import type { GuideAvailability, WeekdayKey } from "../features/guides/domain/types";
 import { getMyGuideAvailability, updateMyGuideAvailability } from "../features/guides/api/guideApi";
 import { getMyGuideBookings, updateMyGuideBookingStatus } from "../features/guides/api/guideBookingApi";
+import { getMe, updateMe } from "../features/user/api/userApi";
 
 const DAY_LABEL: Record<WeekdayKey, string> = {
     MONDAY: "Lunes",
@@ -23,6 +24,7 @@ const HOUR_SLOTS = Array.from({ length: 16 }, (_, i) => `${String(i + 6).padStar
 const BOOKING_STATUS_LABEL: Record<string, string> = {
     REQUESTED: "Pendiente",
     CONFIRMED: "Aceptada",
+    COMPLETED: "Completada",
     REJECTED: "Rechazada",
     CANCELLED: "Cancelada",
 };
@@ -39,11 +41,15 @@ const WEEKDAY_FROM_ENGLISH: Record<string, WeekdayKey> = {
 
 export function GuideDashboardPage() {
     const navigate = useNavigate();
-    const { token, user, isAuthenticated } = useAuthStore();
+    const { token, user, isAuthenticated, setUser } = useAuthStore();
 
     const [availability, setAvailability] = useState<GuideAvailability | null>(null);
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [saveError, setSaveError] = useState<string | null>(null);
+    const [guidePricePerHour, setGuidePricePerHour] = useState<string>(
+        user?.guidePricePerHour != null ? user.guidePricePerHour.toFixed(2) : "25.00",
+    );
+    const [priceSaveMessage, setPriceSaveMessage] = useState<string | null>(null);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -75,6 +81,11 @@ export function GuideDashboardPage() {
         }
     }, [loadAvailabilityError]);
 
+    useEffect(() => {
+        if (user?.guidePricePerHour == null) return;
+        setGuidePricePerHour(user.guidePricePerHour.toFixed(2));
+    }, [user?.guidePricePerHour]);
+
     const { data: myRoutes = [] } = useQuery({
         queryKey: ["me", "routes"],
         queryFn: () => getMyRoutes(token!),
@@ -88,7 +99,7 @@ export function GuideDashboardPage() {
     });
 
     const updateBookingMut = useMutation({
-        mutationFn: ({ id, status }: { id: string; status: "CONFIRMED" | "REJECTED" }) =>
+        mutationFn: ({ id, status }: { id: string; status: "CONFIRMED" | "REJECTED" | "COMPLETED" }) =>
             updateMyGuideBookingStatus(token!, id, { status }),
         onSuccess: () => {
             bookingsQuery.refetch();
@@ -104,6 +115,22 @@ export function GuideDashboardPage() {
         },
         onError: () => {
             setSaveError("No se pudo guardar la disponibilidad. Reintenta.");
+        },
+    });
+
+    const saveGuidePriceMut = useMutation({
+        mutationFn: async (pricePerHour: number) => {
+            await updateMe(token!, { guidePricePerHour: pricePerHour });
+            return getMe(token!);
+        },
+        onSuccess: (updatedUser) => {
+            setUser(updatedUser);
+            setGuidePricePerHour(updatedUser.guidePricePerHour != null ? updatedUser.guidePricePerHour.toFixed(2) : guidePricePerHour);
+            setPriceSaveMessage("Precio por hora guardado.");
+            setTimeout(() => setPriceSaveMessage(null), 2500);
+        },
+        onError: () => {
+            setPriceSaveMessage("No se pudo guardar el precio por hora.");
         },
     });
 
@@ -203,6 +230,16 @@ export function GuideDashboardPage() {
         persist(next);
     };
 
+    const persistGuidePrice = () => {
+        if (!token) return;
+        const parsed = Number.parseFloat(guidePricePerHour);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+            setPriceSaveMessage("Introduce un precio/hora valido (> 0).");
+            return;
+        }
+        saveGuidePriceMut.mutate(parsed);
+    };
+
     if (!user || !isAuthenticated) return null;
     if (user.role !== "ROLE_GUIDE") return null;
 
@@ -249,6 +286,32 @@ export function GuideDashboardPage() {
                             <p className="text-xs font-black uppercase tracking-wider text-slate-400">Solicitudes pendientes</p>
                             <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">{pendingBookings}</p>
                         </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 mb-6">
+                        <p className="text-xs font-black uppercase tracking-wider text-slate-400 mb-2">Precio del guide</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <label className="text-sm font-semibold text-slate-600 dark:text-slate-300">Precio por hora (EUR/h)</label>
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    step="0.5"
+                                    min="1"
+                                    value={guidePricePerHour}
+                                    onChange={(e) => setGuidePricePerHour(e.target.value)}
+                                    onBlur={persistGuidePrice}
+                                    className="w-36 h-10 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 text-sm font-bold text-slate-900 dark:text-white"
+                                />
+                                <button
+                                    onClick={persistGuidePrice}
+                                    disabled={saveGuidePriceMut.isPending}
+                                    className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-bold disabled:opacity-60"
+                                >
+                                    {saveGuidePriceMut.isPending ? "Guardando..." : "Guardar"}
+                                </button>
+                            </div>
+                        </div>
+                        {priceSaveMessage && <p className="text-[11px] mt-2 text-slate-500 dark:text-slate-400">{priceSaveMessage}</p>}
                     </div>
 
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden">
@@ -343,6 +406,7 @@ export function GuideDashboardPage() {
                                 {(bookingsQuery.data ?? []).map((booking) => {
                                     const when = new Date(booking.scheduledFor);
                                     const isPending = booking.status === "REQUESTED";
+                                    const canComplete = booking.status === "CONFIRMED" && booking.paymentStatus === "PAID";
 
                                     return (
                                         <div key={booking.id} className="p-4 sm:p-5 flex flex-col gap-3">
@@ -363,9 +427,11 @@ export function GuideDashboardPage() {
                                                     )}
                                                     <span className={`text-[11px] font-black px-2.5 py-1 rounded-full ${booking.status === "CONFIRMED"
                                                         ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                                        : booking.status === "REJECTED"
-                                                            ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-                                                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                                        : booking.status === "COMPLETED"
+                                                            ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300"
+                                                            : booking.status === "REJECTED"
+                                                                ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                                                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                                                         }`}>
                                                         {BOOKING_STATUS_LABEL[booking.status] ?? booking.status}
                                                     </span>
@@ -393,6 +459,18 @@ export function GuideDashboardPage() {
                                                         className="px-3 py-2 rounded-lg bg-primary text-white text-xs font-bold"
                                                     >
                                                         Aceptar
+                                                    </button>
+                                                </div>
+                                            )}
+
+                                            {canComplete && (
+                                                <div className="flex gap-2 justify-end">
+                                                    <button
+                                                        onClick={() => updateBookingMut.mutate({ id: booking.id, status: "COMPLETED" })}
+                                                        disabled={updateBookingMut.isPending}
+                                                        className="px-3 py-2 rounded-lg bg-indigo-600 text-white text-xs font-bold"
+                                                    >
+                                                        Marcar como completada
                                                     </button>
                                                 </div>
                                             )}

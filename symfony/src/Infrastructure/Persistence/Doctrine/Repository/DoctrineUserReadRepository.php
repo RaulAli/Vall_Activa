@@ -37,6 +37,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
         $lat = $lng = null;
         $sports = null;
         $isGuideVerified = null;
+        $guidePricePerHour = null;
 
         if ($role === 'ROLE_BUSINESS') {
             $p = $this->em->find(BusinessProfileOrm::class, $id);
@@ -68,6 +69,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
                 $lng = $p->lng;
                 $sports = $p->sports ?? [];
                 $isGuideVerified = $p->isVerified;
+                $guidePricePerHour = max(0, $p->pricePerHourCents) / 100;
             }
         }
 
@@ -81,6 +83,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
             vipStartedAt: $orm->vipStartedAt?->format(\DateTimeInterface::ATOM),
             vipExpiresAt: $orm->vipExpiresAt?->format(\DateTimeInterface::ATOM),
             vipCancelAtPeriodEnd: $orm->vipCancelAtPeriodEnd,
+            pointsBalance: $orm->pointsBalance,
             slug: $slug,
             name: $name,
             avatar: $avatar,
@@ -91,6 +94,7 @@ final class DoctrineUserReadRepository implements UserReadRepositoryInterface
             bio: $bio,
             sports: $sports,
             isGuideVerified: $isGuideVerified,
+            guidePricePerHour: $guidePricePerHour,
         );
     }
 

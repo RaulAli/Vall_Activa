@@ -29,6 +29,7 @@ final class RoutePublicFilters
         public readonly ?string $routeType = null,
         public readonly ?int $durationMin = null,
         public readonly ?int $durationMax = null,
+        public readonly bool $guideOnly = false,
     ) {
     }
 

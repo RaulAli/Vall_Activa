@@ -13,6 +13,16 @@ import {
     updateAdminIncidentCategory,
 } from "../features/incidents/api/incidentsApi";
 import type { AdminIncident, AdminIncidentCategory } from "../features/incidents/domain/types";
+import {
+    createAdminPointMission,
+    getAdminPointMissions,
+    getAdminPointSettings,
+    toggleAdminPointMission,
+    updateAdminPointMission,
+    updateAdminPointSettings,
+    type AdminPointMission,
+    type AdminPointSettings,
+} from "../features/points/api/pointsApi";
 
 const PAGE_SIZE = 20;
 
@@ -27,7 +37,7 @@ interface AdminStats {
 }
 
 interface AdminUser {
-    id: string; email: string; role: string; isActive: boolean; isGuideVerified: boolean | null; createdAt: string;
+    id: string; email: string; role: string; isActive: boolean; isGuideVerified: boolean | null; isVip: boolean; pointsBalance: number; createdAt: string;
 }
 interface AdminRoute {
     id: string; title: string; slug: string; visibility: string; status: string;
@@ -51,7 +61,7 @@ interface AdminSport {
 
 // --- Helpers -----------------------------------------------------------------
 
-type Tab = "dashboard" | "users" | "routes" | "offers" | "businesses" | "sports" | "incidents";
+type Tab = "dashboard" | "users" | "routes" | "offers" | "businesses" | "sports" | "points" | "incidents";
 
 const ROLE_COLORS: Record<string, string> = {
     ROLE_ADMIN: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -403,6 +413,8 @@ function UsersSection({ token }: { token: string }) {
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Email</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">ID</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Rol</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">VIP</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Puntos</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Verificación</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Estado</th>
                                 <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Registro</th>
@@ -412,7 +424,7 @@ function UsersSection({ token }: { token: string }) {
                         <tbody>
                             {isLoading && [...Array(5)].map((_, i) => (
                                 <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50">
-                                    <td colSpan={7} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-48" /></td>
+                                    <td colSpan={9} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-48" /></td>
                                 </tr>
                             ))}
                             {paginated.map(user => (
@@ -425,6 +437,14 @@ function UsersSection({ token }: { token: string }) {
                                     </td>
                                     <td className="px-5 py-3">
                                         <Badge text={user.role.replace("ROLE_", "")} colorClass={ROLE_COLORS[user.role] ?? "bg-slate-100 text-slate-600"} />
+                                    </td>
+                                    <td className="px-5 py-3">
+                                        {user.isVip
+                                            ? <Badge text="VIP" colorClass="bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300" />
+                                            : <span className="text-xs text-slate-400">-</span>}
+                                    </td>
+                                    <td className="px-5 py-3 text-slate-700 dark:text-slate-300 text-xs font-black whitespace-nowrap">
+                                        {user.pointsBalance} VAC
                                     </td>
                                     <td className="px-5 py-3">
                                         {user.role === "ROLE_GUIDE" ? (
@@ -478,7 +498,7 @@ function UsersSection({ token }: { token: string }) {
                                 </tr>
                             ))}
                             {!isLoading && filtered.length === 0 && (
-                                <tr><td colSpan={7} className="px-5 py-10 text-center text-slate-400 font-bold">Sin resultados para los filtros aplicados</td></tr>
+                                <tr><td colSpan={9} className="px-5 py-10 text-center text-slate-400 font-bold">Sin resultados para los filtros aplicados</td></tr>
                             )}
                         </tbody>
                     </table>
@@ -1197,6 +1217,240 @@ function SportsSection({ token }: { token: string }) {
     );
 }
 
+// --- Section: Points ----------------------------------------------------------
+
+function PointsSection({ token }: { token: string }) {
+    const qc = useQueryClient();
+    const [newCode, setNewCode] = useState("");
+    const [newTitle, setNewTitle] = useState("");
+    const [newDescription, setNewDescription] = useState("");
+    const [newPointsReward, setNewPointsReward] = useState(100);
+    const [editMissionId, setEditMissionId] = useState<string | null>(null);
+    const [editTitle, setEditTitle] = useState("");
+    const [editDescription, setEditDescription] = useState("");
+    const [editPointsReward, setEditPointsReward] = useState(100);
+
+    const { data: settings, isLoading: loadingSettings } = useQuery<AdminPointSettings>({
+        queryKey: ["admin", "points", "settings"],
+        queryFn: () => getAdminPointSettings(token),
+    });
+
+    const { data: missions = [], isLoading: loadingMissions } = useQuery<AdminPointMission[]>({
+        queryKey: ["admin", "points", "missions"],
+        queryFn: () => getAdminPointMissions(token),
+    });
+
+    const saveSettingsMutation = useMutation({
+        mutationFn: (payload: Partial<AdminPointSettings>) => updateAdminPointSettings(token, payload),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "points", "settings"] }),
+    });
+
+    const createMissionMutation = useMutation({
+        mutationFn: () => createAdminPointMission(token, {
+            code: newCode.trim().toUpperCase(),
+            title: newTitle.trim(),
+            description: newDescription.trim(),
+            pointsReward: newPointsReward,
+        }),
+        onSuccess: () => {
+            setNewCode("");
+            setNewTitle("");
+            setNewDescription("");
+            setNewPointsReward(100);
+            qc.invalidateQueries({ queryKey: ["admin", "points", "missions"] });
+        },
+    });
+
+    const updateMissionMutation = useMutation({
+        mutationFn: (id: string) => updateAdminPointMission(token, id, {
+            title: editTitle.trim(),
+            description: editDescription.trim() || null,
+            pointsReward: editPointsReward,
+        }),
+        onSuccess: () => {
+            setEditMissionId(null);
+            qc.invalidateQueries({ queryKey: ["admin", "points", "missions"] });
+        },
+    });
+
+    const toggleMissionMutation = useMutation({
+        mutationFn: (id: string) => toggleAdminPointMission(token, id),
+        onSuccess: () => qc.invalidateQueries({ queryKey: ["admin", "points", "missions"] }),
+    });
+
+    return (
+        <div className="space-y-6">
+            <div>
+                <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1">Puntos y misiones</h2>
+                <p className="text-slate-500 dark:text-slate-400 font-medium">Configura reglas globales de puntos y define misiones diarias para atletas.</p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Reglas globales</h3>
+                {loadingSettings && <p className="text-sm text-slate-400">Cargando configuración...</p>}
+                {settings && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Puntos por km</label>
+                            <input type="number" min={1} max={500} defaultValue={settings.pointsPerKm}
+                                onBlur={(e) => {
+                                    const value = Math.max(1, Math.min(500, Number(e.target.value) || settings.pointsPerKm));
+                                    if (value !== settings.pointsPerKm) saveSettingsMutation.mutate({ pointsPerKm: value });
+                                }}
+                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Limite diario atleta</label>
+                            <input type="number" min={1} max={20000} defaultValue={settings.dailyCapAthlete}
+                                onBlur={(e) => {
+                                    const value = Math.max(1, Math.min(20000, Number(e.target.value) || settings.dailyCapAthlete));
+                                    if (value !== settings.dailyCapAthlete) saveSettingsMutation.mutate({ dailyCapAthlete: value });
+                                }}
+                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Limite diario VIP</label>
+                            <input type="number" min={1} max={20000} defaultValue={settings.dailyCapVip}
+                                onBlur={(e) => {
+                                    const value = Math.max(1, Math.min(20000, Number(e.target.value) || settings.dailyCapVip));
+                                    if (value !== settings.dailyCapVip) saveSettingsMutation.mutate({ dailyCapVip: value });
+                                }}
+                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Multiplicador atleta VIP</label>
+                            <input type="number" min={1} max={5} defaultValue={settings.vipMultiplier}
+                                onBlur={(e) => {
+                                    const value = Math.max(1, Math.min(5, Number(e.target.value) || settings.vipMultiplier));
+                                    if (value !== settings.vipMultiplier) saveSettingsMutation.mutate({ vipMultiplier: value });
+                                }}
+                                className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                        </div>
+                    </div>
+                )}
+                {saveSettingsMutation.isPending && <p className="text-xs text-slate-400">Guardando cambios...</p>}
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-5 shadow-sm space-y-4">
+                <h3 className="text-sm font-black uppercase tracking-wider text-slate-700 dark:text-slate-300">Nueva misión diaria</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                    <input value={newCode} onChange={(e) => setNewCode(e.target.value.toUpperCase())} placeholder="Codigo (ej: CHECKIN)"
+                        className="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                    <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Titulo"
+                        className="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white md:col-span-2" />
+                    <input type="number" min={1} max={10000} value={newPointsReward} onChange={(e) => setNewPointsReward(Math.max(1, Number(e.target.value) || 1))}
+                        className="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                </div>
+                <div className="flex items-center gap-3">
+                    <input value={newDescription} onChange={(e) => setNewDescription(e.target.value)} placeholder="Descripcion (opcional)"
+                        className="flex-1 px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white" />
+                    <button
+                        onClick={() => createMissionMutation.mutate()}
+                        disabled={!newCode.trim() || !newTitle.trim() || createMissionMutation.isPending}
+                        className="px-4 py-2 rounded-xl bg-primary text-white text-sm font-black disabled:opacity-50"
+                    >
+                        Crear misión
+                    </button>
+                </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[900px]">
+                        <thead>
+                            <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50">
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Codigo</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Titulo</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Puntos</th>
+                                <th className="text-left font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px] px-5 py-3">Estado</th>
+                                <th className="px-5 py-3 text-right font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider text-[10px]">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loadingMissions && [...Array(4)].map((_, i) => (
+                                <tr key={i} className="border-b border-slate-50 dark:border-slate-800/50">
+                                    <td colSpan={5} className="px-5 py-3"><div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-52" /></td>
+                                </tr>
+                            ))}
+                            {missions.map((mission) => {
+                                const editing = editMissionId === mission.id;
+                                return (
+                                    <tr key={mission.id} className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                                        <td className="px-5 py-3"><span className="font-mono text-xs bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">{mission.code}</span></td>
+                                        <td className="px-5 py-3">
+                                            {editing ? (
+                                                <div className="space-y-2">
+                                                    <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full px-2 py-1 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" />
+                                                    <input value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full px-2 py-1 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" />
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <p className="font-semibold text-slate-900 dark:text-white">{mission.title}</p>
+                                                    {mission.description && <p className="text-xs text-slate-500 dark:text-slate-400">{mission.description}</p>}
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            {editing ? (
+                                                <input type="number" min={1} max={10000} value={editPointsReward} onChange={(e) => setEditPointsReward(Math.max(1, Number(e.target.value) || 1))}
+                                                    className="w-24 px-2 py-1 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white" />
+                                            ) : (
+                                                <span className="text-xs font-black text-primary bg-primary/10 px-2 py-1 rounded-lg">{mission.pointsReward} VAC</span>
+                                            )}
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <Badge text={mission.isActive ? "Activa" : "Inactiva"} colorClass={mission.isActive
+                                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                                : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400"} />
+                                        </td>
+                                        <td className="px-5 py-3">
+                                            <div className="flex items-center gap-1 justify-end">
+                                                {editing ? (
+                                                    <>
+                                                        <button onClick={() => updateMissionMutation.mutate(mission.id)} className="p-1.5 rounded-lg bg-primary text-white" title="Guardar">
+                                                            <span className="material-symbols-outlined !text-base">check</span>
+                                                        </button>
+                                                        <button onClick={() => setEditMissionId(null)} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Cancelar">
+                                                            <span className="material-symbols-outlined !text-base">close</span>
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => {
+                                                            setEditMissionId(mission.id);
+                                                            setEditTitle(mission.title);
+                                                            setEditDescription(mission.description ?? "");
+                                                            setEditPointsReward(mission.pointsReward);
+                                                        }}
+                                                        className="p-1.5 rounded-lg text-slate-400 hover:text-primary hover:bg-primary/10 transition-colors"
+                                                        title="Editar misión"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">edit</span>
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => toggleMissionMutation.mutate(mission.id)}
+                                                    className="p-1.5 rounded-lg text-slate-400 hover:text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"
+                                                    title={mission.isActive ? "Desactivar misión" : "Activar misión"}
+                                                >
+                                                    <span className="material-symbols-outlined !text-base">{mission.isActive ? "toggle_on" : "toggle_off"}</span>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
+                            {!loadingMissions && missions.length === 0 && (
+                                <tr><td colSpan={5} className="px-5 py-10 text-center text-slate-400 font-bold">No hay misiones creadas</td></tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
 // --- Section: Incidents ------------------------------------------------------
 
 function IncidentCategoriesSection({ token }: { token: string }) {
@@ -1555,6 +1809,7 @@ const NAV_ITEMS: { tab: Tab; icon: string; label: string }[] = [
     { tab: "offers", icon: "storefront", label: "Ofertas" },
     { tab: "businesses", icon: "business", label: "Empresas" },
     { tab: "sports", icon: "sports", label: "Deportes" },
+    { tab: "points", icon: "workspace_premium", label: "Puntos" },
     { tab: "incidents", icon: "report_problem", label: "Incidencias" },
 ];
 
@@ -1656,6 +1911,7 @@ export function AdminPage() {
                     {activeTab === "offers" && <OffersSection token={token!} />}
                     {activeTab === "businesses" && <BusinessesSection token={token!} />}
                     {activeTab === "sports" && <SportsSection token={token!} />}
+                    {activeTab === "points" && <PointsSection token={token!} />}
                     {activeTab === "incidents" && <IncidentsSection token={token!} />}
                 </div>
             </main>

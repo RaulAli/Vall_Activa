@@ -21,6 +21,7 @@ export function RoutesMapPanel() {
         focusBbox: routes.focusBbox,
         q: qDebounced,
         sportCode: routes.sportCode,
+        guideOnly: routes.guideOnly,
         distanceMin: routes.distanceMin,
         distanceMax: routes.distanceMax,
         gainMin: routes.gainMin,

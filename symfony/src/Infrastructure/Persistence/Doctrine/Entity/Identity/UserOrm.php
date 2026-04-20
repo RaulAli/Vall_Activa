@@ -43,6 +43,9 @@ class UserOrm implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(name: 'vip_cancel_at_period_end', type: 'boolean', options: ['default' => false])]
     public bool $vipCancelAtPeriodEnd = false;
 
+    #[ORM\Column(name: 'points_balance', type: 'integer', options: ['default' => 0])]
+    public int $pointsBalance = 0;
+
     #[ORM\Column(name: 'created_at', type: 'datetime_immutable')]
     public \DateTimeImmutable $createdAt;
 

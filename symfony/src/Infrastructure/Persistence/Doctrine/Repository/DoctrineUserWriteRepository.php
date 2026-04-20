@@ -133,6 +133,11 @@ final class DoctrineUserWriteRepository implements UserWriteRepositoryInterface
         if (isset($data['sports']) && is_array($data['sports'])) {
             $orm->sports = array_values(array_map('strval', $data['sports']));
         }
+        if (array_key_exists('guidePricePerHour', $data) && $data['guidePricePerHour'] !== null && is_numeric($data['guidePricePerHour'])) {
+            $pricePerHour = (float) $data['guidePricePerHour'];
+            $pricePerHour = max(1.0, min(10000.0, $pricePerHour));
+            $orm->pricePerHourCents = (int) round($pricePerHour * 100);
+        }
 
         $orm->updatedAt = $now;
         $this->em->flush();

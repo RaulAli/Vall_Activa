@@ -57,6 +57,8 @@ final class ListAdminUsersController extends AbstractController
             'email' => $u->email,
             'role' => $u->role,
             'isActive' => $u->isActive,
+            'isVip' => $u->vipActive,
+            'pointsBalance' => $u->pointsBalance,
             'isGuideVerified' => $u->role === 'ROLE_GUIDE' ? ($guideVerifiedMap[$u->id] ?? false) : null,
             'createdAt' => $u->createdAt->format(\DateTimeInterface::ATOM),
         ], $users);

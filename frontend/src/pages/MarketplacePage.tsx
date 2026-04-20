@@ -49,6 +49,7 @@ export function MarketplacePage() {
         focusBbox: null,
         q: "",
         sportCode: null,
+        guideOnly: true,
         distanceMin: null,
         distanceMax: null,
         gainMin: null,
@@ -70,7 +71,7 @@ export function MarketplacePage() {
 
         for (const route of routeItems) {
             if (!route.creatorSlug || !route.creatorName) continue;
-            if (route.creatorIsVerified !== true) continue;
+            if (route.guidePricePerHour === null || route.guidePricePerHour === undefined) continue;
             if (uniqueByCreator.has(route.creatorSlug)) continue;
 
             uniqueByCreator.set(route.creatorSlug, {
@@ -80,8 +81,8 @@ export function MarketplacePage() {
                 routeTitle: route.title,
                 routeImage: route.image ?? getFallbackImage(route.id, "route"),
                 routeSlug: route.slug,
-                hourlyRate: 25 + (uniqueByCreator.size % 6) * 5,
-                isVerified: true,
+                hourlyRate: route.guidePricePerHour,
+                isVerified: route.creatorIsVerified === true,
             });
         }
 

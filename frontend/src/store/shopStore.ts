@@ -30,6 +30,7 @@ export type RoutesUiState = {
 
     difficulty: string | null;
     routeType: string | null;
+    guideOnly: boolean;
 
     durationMin: number | null;
     durationMax: number | null;
@@ -97,6 +98,7 @@ const defaultRoutes: RoutesUiState = {
     gainMax: null,
     difficulty: null,
     routeType: null,
+    guideOnly: false,
     durationMin: null,
     durationMax: null,
     sort: "recent",

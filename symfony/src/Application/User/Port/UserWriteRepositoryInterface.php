@@ -7,7 +7,7 @@ interface UserWriteRepositoryInterface
 {
     /**
      * Update the profile row for the given role.
-     * Only keys present in $data are updated (slug, name, avatar, city, lat, lng, birthDate, bio, sports).
+     * Only keys present in $data are updated (slug, name, avatar, city, lat, lng, birthDate, bio, sports, guidePricePerHour).
      */
     public function updateProfile(string $userId, string $role, array $data): void;
 

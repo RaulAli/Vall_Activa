@@ -3,10 +3,15 @@ declare(strict_types=1);
 
 namespace App\Presentation\Http\Controller\Route;
 
+use App\Application\Points\AutoMissionService;
+use App\Application\Points\PointsEngine;
 use App\Application\Route\Command\CreateRouteFromSourceCommand;
 use App\Application\Route\Handler\CreateRouteFromSourceHandler;
 use App\Application\Shared\Security\CurrentUserProviderInterface;
 use App\Domain\Identity\ValueObject\UserId;
+use App\Infrastructure\Persistence\Doctrine\Entity\Identity\UserOrm;
+use App\Infrastructure\Persistence\Doctrine\Entity\Route\RouteOrm;
+use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,7 +29,10 @@ final class CreateRouteFromSourceController extends AbstractController
     public function __invoke(
         Request $request,
         CurrentUserProviderInterface $currentUser,
-        CreateRouteFromSourceHandler $handler
+        CreateRouteFromSourceHandler $handler,
+        EntityManagerInterface $em,
+        AutoMissionService $autoMissionService,
+        PointsEngine $pointsEngine,
     ): JsonResponse {
         // Extract userId from Bearer JWT
         $userIdStr = $this->extractUserId($request);
@@ -115,7 +123,45 @@ final class CreateRouteFromSourceController extends AbstractController
             }
         }
 
-        return $this->json(['id' => $id], 201);
+        $pointsPayload = null;
+        $user = $em->find(UserOrm::class, $userIdStr);
+        if ($user instanceof UserOrm && $user->role === 'ROLE_ATHLETE' && $user->isActive) {
+            $route = $em->find(RouteOrm::class, $id);
+
+            if ($route instanceof RouteOrm) {
+                $settings = $pointsEngine->getSettings();
+                $distanceKm = max(0.0, round($route->distanceM / 1000, 2));
+                $basePoints = max(0, (int) round($distanceKm * $settings->pointsPerKm));
+
+                $result = $pointsEngine->award(
+                    user: $user,
+                    basePoints: $basePoints,
+                    sourceType: 'ROUTE_UPLOAD_KM',
+                    sourceRef: $route->id,
+                );
+
+                $pointsPayload = [
+                    'awarded' => $result['awarded'],
+                    'requested' => $result['requested'],
+                    'today' => $result['today'],
+                    'cap' => $result['cap'],
+                    'multiplier' => $result['multiplier'],
+                    'balance' => $user->pointsBalance,
+                    'distanceKm' => $distanceKm,
+                    'pointsPerKm' => $settings->pointsPerKm,
+                    'alreadyAwarded' => $result['alreadyAwarded'],
+                ];
+            }
+
+            $autoMissionService->syncDaily10Km($user);
+            $autoMissionService->syncFirstRouteUploadDaily($user);
+            $em->flush();
+        }
+
+        return $this->json([
+            'id' => $id,
+            'points' => $pointsPayload,
+        ], 201);
     }
 
     private function extractUserId(Request $request): ?string

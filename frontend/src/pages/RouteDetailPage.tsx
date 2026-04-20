@@ -11,6 +11,7 @@ import { DetailsMap } from "../shared/ui/DetailsMap";
 import { useAuthStore } from "../store/authStore";
 import { HttpError } from "../shared/api/http";
 import { createGuideBooking, getRouteBookingSlots } from "../features/guides/api/guideBookingApi";
+import { getPublicPointSettings } from "../features/points/api/pointsApi";
 
 const DAY_LABEL: Record<string, string> = {
     MONDAY: "Lunes",
@@ -34,6 +35,11 @@ export function RouteDetailPage() {
     const navigate = useNavigate();
     const { token, isAuthenticated } = useAuthStore();
     const { data: route, isLoading, error } = useRouteDetailsQuery(slug || null);
+    const { data: pointSettings } = useQuery({
+        queryKey: ["public", "points", "settings"],
+        queryFn: () => getPublicPointSettings(),
+        staleTime: 30_000,
+    });
     const isGuideRoute = route?.creatorRole === "ROLE_GUIDE";
     const [bookingOpen, setBookingOpen] = useState(false);
     const [selectedStartsAt, setSelectedStartsAt] = useState<string>("");
@@ -144,6 +150,18 @@ export function RouteDetailPage() {
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
     if (error || !route) return <ErrorState message="No se pudo cargar la ruta" />;
+
+    const pointsPerKm = pointSettings?.pointsPerKm ?? 50;
+    const rewardPoints = Math.max(0, Math.round((route.distanceM / 1000) * pointsPerKm));
+    const guidePricePerHour = route.guidePricePerHour ?? null;
+    const selectedDurationHours = selectedStartsAt && selectedEndsAt
+        ? Math.max(0, (new Date(selectedEndsAt).getTime() - new Date(selectedStartsAt).getTime()) / 3_600_000)
+        : null;
+    const selectedStartMs = selectedStartsAt ? new Date(selectedStartsAt).getTime() : null;
+    const selectedEndMs = selectedEndsAt ? new Date(selectedEndsAt).getTime() : null;
+    const estimatedBookingPrice = guidePricePerHour !== null && selectedDurationHours !== null
+        ? guidePricePerHour * selectedDurationHours
+        : null;
 
     return (
         <div className="relative flex flex-col w-full overflow-x-hidden font-display bg-white dark:bg-background-dark text-slate-900 dark:text-white min-h-screen transition-colors duration-300">
@@ -294,11 +312,11 @@ export function RouteDetailPage() {
                                     <div className="space-y-4 mb-8">
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
                                             <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Recompensa</span>
-                                            <span className="text-xl font-black text-primary">500 VAC</span>
+                                            <span className="text-xl font-black text-primary">{rewardPoints} VAC</span>
                                         </div>
                                         <div className="p-4 bg-primary/5 dark:bg-primary/10 rounded-lg text-[11px] text-slate-500 flex items-start gap-2 italic">
                                             <span className="material-symbols-outlined !text-sm mt-0.5">info</span>
-                                            Sube tu track GPX o registra la actividad para reclamar tus puntos.
+                                            Esta recompensa se calcula como km de ruta x puntos por km ({pointsPerKm}) definidos en admin.
                                         </div>
                                     </div>
                                     <div className="space-y-4 mb-8">
@@ -331,6 +349,15 @@ export function RouteDetailPage() {
                                                 <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${{ EASY: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400', MODERATE: 'bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400', HARD: 'bg-orange-100 text-orange-700 dark:bg-orange-950/40 dark:text-orange-400', EXPERT: 'bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400' }[route.difficulty] ?? 'bg-slate-100 text-slate-600'}`}>
                                                     {{ EASY: 'Fácil', MODERATE: 'Moderada', HARD: 'Difícil', EXPERT: 'Experto' }[route.difficulty] ?? route.difficulty}
                                                 </span>
+                                            </div>
+                                        )}
+                                        {guidePricePerHour !== null && (
+                                            <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="material-symbols-outlined text-primary">payments</span>
+                                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Precio guía</span>
+                                                </div>
+                                                <span className="text-sm font-bold text-slate-900 dark:text-white">{guidePricePerHour.toFixed(2)} EUR/h</span>
                                             </div>
                                         )}
                                         <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-slate-800">
@@ -446,7 +473,11 @@ export function RouteDetailPage() {
                                             </p>
                                             <div className="flex flex-wrap gap-2">
                                                 {block.items.map((slot) => {
-                                                    const selected = selectedStartsAt === slot.startsAt;
+                                                    const slotStartMs = new Date(slot.startsAt).getTime();
+                                                    const selected = selectedStartMs !== null
+                                                        && selectedEndMs !== null
+                                                        && slotStartMs >= selectedStartMs
+                                                        && slotStartMs < selectedEndMs;
                                                     const occupied = !slot.isAvailable;
                                                     return (
                                                         <button
@@ -489,8 +520,8 @@ export function RouteDetailPage() {
                                                 key={opt.endsAt}
                                                 onClick={() => setSelectedEndsAt(opt.endsAt)}
                                                 className={`px-3 py-2 rounded-lg border text-sm font-bold transition-all ${selectedEndsAt === opt.endsAt
-                                                        ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
-                                                        : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-primary/50"
+                                                    ? "bg-primary text-white border-primary shadow-sm shadow-primary/20"
+                                                    : "bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-primary/50"
                                                     }`}
                                             >
                                                 {opt.label} · {opt.durLabel}
@@ -510,6 +541,15 @@ export function RouteDetailPage() {
                                     placeholder="Ejemplo: Somos 2 personas, ritmo moderado y disponibilidad de transporte propio."
                                 />
                             </div>
+
+                            {guidePricePerHour !== null && selectedDurationHours !== null && estimatedBookingPrice !== null && (
+                                <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200">
+                                    <p className="font-bold">Estimación de precio</p>
+                                    <p className="text-xs mt-1">
+                                        {guidePricePerHour.toFixed(2)} EUR/h x {selectedDurationHours.toFixed(2)} h = {estimatedBookingPrice.toFixed(2)} EUR
+                                    </p>
+                                </div>
+                            )}
 
                             {bookingMessage && (
                                 <div className="text-sm rounded-xl border border-slate-200 dark:border-slate-700 px-3 py-2 text-slate-700 dark:text-slate-200">

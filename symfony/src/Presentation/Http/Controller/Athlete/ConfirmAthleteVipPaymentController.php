@@ -71,13 +71,18 @@ final class ConfirmAthleteVipPaymentController extends AbstractController
 
         $now = new \DateTimeImmutable();
 
+        $upgradeFromMonthlyMeta = isset($session->metadata->vipUpgradeFromMonthly)
+            ? (string) $session->metadata->vipUpgradeFromMonthly
+            : '0';
+        $isUpgradeFromMonthly = $plan === 'YEARLY' && $upgradeFromMonthlyMeta === '1';
+
         $renewBase = $now;
         if ($user->vipExpiresAt instanceof \DateTimeImmutable && $user->vipExpiresAt > $now) {
             $renewBase = $user->vipExpiresAt;
         }
 
         $newExpiry = $plan === 'YEARLY'
-            ? $renewBase->modify('+1 year')
+            ? ($isUpgradeFromMonthly ? $renewBase->modify('+11 months') : $renewBase->modify('+1 year'))
             : $renewBase->modify('+1 month');
 
         $user->vipActive = true;

@@ -32,6 +32,7 @@ export interface AuthUser {
     vipStartedAt?: string | null;
     vipExpiresAt?: string | null;
     vipCancelAtPeriodEnd?: boolean;
+    pointsBalance?: number;
     slug: string | null;
     name: string | null;
     avatar: string | null;
@@ -43,4 +44,5 @@ export interface AuthUser {
     bio?: string | null;
     sports?: string[] | null;
     isGuideVerified?: boolean | null;
+    guidePricePerHour?: number | null;
 }

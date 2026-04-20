@@ -75,6 +75,11 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             $baseQb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
         }
 
+        if ($filters->guideOnly) {
+            $baseQb->innerJoin(GuideProfileOrm::class, 'gOnly', 'WITH', 'gOnly.userId = r.createdByUserId')
+                ->andWhere('gOnly.isActive = true');
+        }
+
         // GEO: focus > bbox
         $this->applyGeoFilter($baseQb, $filters);
 
@@ -104,7 +109,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
             ->leftJoin(SportOrm::class, 'sp', 'WITH', 'sp.id = r.sportId')
-            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.isActive, r.createdAt, r.image, sp.code AS sportCode, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified')
+            ->select('r.id, r.sportId, r.title, r.slug, r.startLat, r.startLng, r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.isActive, r.createdAt, r.image, sp.code AS sportCode, aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar, gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified, gProf.pricePerHourCents AS guidePricePerHourCents')
             ->orderBy($orderByField, strtoupper($order))
             ->setFirstResult($offset)
             ->setMaxResults($limit)
@@ -136,6 +141,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                 difficulty: $r['difficulty'] ?? null,
                 routeType: $r['routeType'] ?? null,
                 sportCode: isset($r['sportCode']) ? strtoupper((string) $r['sportCode']) : null,
+                guidePricePerHour: isset($r['guidePricePerHourCents']) ? ((float) $r['guidePricePerHourCents'] / 100) : null,
             );
         }, $rows);
 
@@ -184,6 +190,11 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
         if ($filters->durationMax !== null)
             $qb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
 
+        if ($filters->guideOnly) {
+            $qb->innerJoin(GuideProfileOrm::class, 'gOnly', 'WITH', 'gOnly.userId = r.createdByUserId')
+                ->andWhere('gOnly.isActive = true');
+        }
+
         $this->applyGeoFilter($qb, $filters);
 
         if ($filters->q !== null && trim($filters->q) !== '') {
@@ -218,7 +229,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
                  r.distanceM, r.elevationGainM, r.elevationLossM, r.durationSeconds, r.difficulty, r.routeType, r.polyline, r.createdAt, r.image,
                  sp.code AS sportCode,
                  aProf.name AS athleteName, aProf.slug AS athleteSlug, aProf.avatar AS athleteAvatar,
-                  gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified')
+                  gProf.name AS guideName, gProf.slug AS guideSlug, gProf.avatar AS guideAvatar, gProf.isVerified AS guideIsVerified, gProf.pricePerHourCents AS guidePricePerHourCents')
             ->from(RouteOrm::class, 'r')
             ->leftJoin(AthleteProfileOrm::class, 'aProf', 'WITH', 'aProf.userId = r.createdByUserId')
             ->leftJoin(GuideProfileOrm::class, 'gProf', 'WITH', 'gProf.userId = r.createdByUserId')
@@ -274,6 +285,7 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
             difficulty: $row['difficulty'] ?? null,
             routeType: $row['routeType'] ?? null,
             sportCode: isset($row['sportCode']) ? strtoupper((string) $row['sportCode']) : null,
+            guidePricePerHour: isset($row['guidePricePerHourCents']) ? ((float) $row['guidePricePerHourCents'] / 100) : null,
         );
     }
 
@@ -315,6 +327,11 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
         }
         if ($filters->durationMax !== null) {
             $baseQb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
+        }
+
+        if ($filters->guideOnly) {
+            $baseQb->innerJoin(GuideProfileOrm::class, 'gOnly', 'WITH', 'gOnly.userId = r.createdByUserId')
+                ->andWhere('gOnly.isActive = true');
         }
 
         $this->applyGeoFilter($baseQb, $filters);
@@ -394,6 +411,11 @@ final class DoctrineRoutePublicReadRepository implements RoutePublicReadReposito
         }
         if ($filters->durationMax !== null) {
             $facetQb->andWhere('r.durationSeconds <= :durMax')->setParameter('durMax', $filters->durationMax);
+        }
+
+        if ($filters->guideOnly) {
+            $facetQb->innerJoin(GuideProfileOrm::class, 'gOnly', 'WITH', 'gOnly.userId = r.createdByUserId')
+                ->andWhere('gOnly.isActive = true');
         }
 
         $this->applyGeoFilter($facetQb, $filters);

@@ -37,7 +37,7 @@ export interface GuideBookingCreated {
 
 export interface GuideDashboardBookingItem {
     id: string;
-    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "CANCELLED";
+    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "COMPLETED" | "CANCELLED";
     paymentStatus: "UNPAID" | "PENDING" | "PAID";
     paidAt: string | null;
     endsAt: string | null;
@@ -55,7 +55,7 @@ export interface GuideDashboardBookingItem {
 
 export interface AthleteDashboardBookingItem {
     id: string;
-    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "CANCELLED";
+    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "COMPLETED" | "CANCELLED";
     paymentStatus: "UNPAID" | "PENDING" | "PAID";
     paymentAmountCents: number;
     paymentCurrency: string;
@@ -87,12 +87,12 @@ export interface ConfirmAthletePaymentResponse {
 }
 
 export interface UpdateGuideBookingStatusPayload {
-    status: "CONFIRMED" | "REJECTED";
+    status: "CONFIRMED" | "REJECTED" | "COMPLETED";
 }
 
 export interface UpdateGuideBookingStatusResponse {
     id: string;
-    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "CANCELLED";
+    status: "REQUESTED" | "CONFIRMED" | "REJECTED" | "COMPLETED" | "CANCELLED";
 }
 
 export async function getRouteBookingSlots(slug: string, days = 14): Promise<RouteBookingSlotsResponse> {

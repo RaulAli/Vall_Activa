@@ -11,6 +11,7 @@ export interface UpdateMeRequest {
     // Guide
     bio?: string | null;
     sports?: string[];
+    guidePricePerHour?: number;
 }
 
 export interface ChangePasswordRequest {

@@ -26,3 +26,9 @@ export async function updateOffer(
         body: patch,
     });
 }
+
+export async function redeemOfferWithPoints(token: string, offerId: string): Promise<{ redemptionId: string; pointsSpent: number; balance: number; quantityLeft: number }> {
+    return http<{ redemptionId: string; pointsSpent: number; balance: number; quantityLeft: number }>("POST", endpoints.athlete.redeemOffer(offerId), {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+}

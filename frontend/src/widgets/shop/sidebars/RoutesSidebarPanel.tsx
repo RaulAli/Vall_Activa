@@ -44,6 +44,7 @@ export function RoutesSidebarPanel() {
         focusBbox: routes.focusBbox,
         q: qDebounced,
         sportCode: routes.sportCode,
+        guideOnly: routes.guideOnly,
         distanceMin: routes.distanceMin,
         distanceMax: routes.distanceMax,
         gainMin: routes.gainMin,
@@ -59,6 +60,7 @@ export function RoutesSidebarPanel() {
         focusBbox: routes.focusBbox,
         q: qDebounced,
         sportCode: routes.sportCode,
+        guideOnly: routes.guideOnly,
         distanceMin: routes.distanceMin,
         distanceMax: routes.distanceMax,
         gainMin: routes.gainMin,
@@ -81,7 +83,7 @@ export function RoutesSidebarPanel() {
     }, [
         qDebounced, routes.sportCode, routes.difficulty, routes.routeType,
         routes.distanceMin, routes.distanceMax, routes.gainMin, routes.gainMax,
-        routes.durationMin, routes.durationMax, routes.sort, routes.order,
+        routes.durationMin, routes.durationMax, routes.guideOnly, routes.sort, routes.order,
     ]);
 
     useEffect(() => {
@@ -91,6 +93,9 @@ export function RoutesSidebarPanel() {
 
         if (appliedFilters.sportCode !== null && routes.sportCode !== appliedFilters.sportCode) {
             patch.sportCode = appliedFilters.sportCode;
+        }
+        if (routes.guideOnly !== appliedFilters.guideOnly) {
+            patch.guideOnly = appliedFilters.guideOnly;
         }
         if (appliedFilters.distanceMin !== null && routes.distanceMin !== appliedFilters.distanceMin) {
             patch.distanceMin = appliedFilters.distanceMin;
@@ -130,6 +135,7 @@ export function RoutesSidebarPanel() {
         qDebounced,
         appliedFilters,
         routes.sportCode,
+        routes.guideOnly,
         routes.distanceMin,
         routes.distanceMax,
         routes.gainMin,
@@ -138,6 +144,7 @@ export function RoutesSidebarPanel() {
         routes.routeType,
         routes.durationMin,
         routes.durationMax,
+        routes.guideOnly,
         routes.sort,
         routes.order,
         setRoutes,
@@ -173,6 +180,7 @@ export function RoutesSidebarPanel() {
         routes.gainMax,
         routes.durationMin,
         routes.durationMax,
+        routes.guideOnly ? "1" : null,
     ].filter((v) => v !== null && v !== undefined).length;
 
     // Total para el botón de reset (todos los filtros activos)
@@ -183,6 +191,7 @@ export function RoutesSidebarPanel() {
         setRoutes({
             q: "",
             sportCode: null,
+            guideOnly: false,
             difficulty: null,
             routeType: null,
             distanceMin: null,
@@ -269,6 +278,16 @@ export function RoutesSidebarPanel() {
                     {/* Row 3: Sport pills */}
                     {!filtersQuery.isLoading && !filtersQuery.isFetching && (filtersQuery.data?.sports ?? []).length > 0 && (
                         <div className="flex items-center gap-1.5 overflow-x-auto pb-0.5 hide-scrollbar">
+                            <button
+                                onClick={() => setRoutes({ guideOnly: !routes.guideOnly, page: 1 })}
+                                className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-all ${routes.guideOnly
+                                    ? "bg-emerald-600 text-white border-emerald-600 shadow-sm shadow-emerald-300/40"
+                                    : "bg-white dark:bg-slate-900 text-slate-500 border-slate-200 dark:border-slate-700 hover:border-emerald-500/50"
+                                    }`}
+                            >
+                                <span className="material-symbols-outlined !text-[11px]">hiking</span>
+                                Solo guías
+                            </button>
                             <button
                                 onClick={() => setRoutes({ sportCode: null, page: 1 })}
                                 className={`flex-shrink-0 flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-bold uppercase tracking-widest border transition-all ${!routes.sportCode

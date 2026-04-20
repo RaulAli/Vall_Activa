@@ -43,6 +43,7 @@ final class ListPublicRoutesController extends AbstractController
 
         $durationMin = $this->intOrNull($request->query->get('durationMin'));
         $durationMax = $this->intOrNull($request->query->get('durationMax'));
+        $guideOnly = $this->boolOrFalse($request->query->get('guideOnly'));
 
         $q = $request->query->get('q');
         $q = is_string($q) && trim($q) !== '' ? trim($q) : null;
@@ -140,6 +141,7 @@ final class ListPublicRoutesController extends AbstractController
             routeType: $routeType,
             durationMin: $durationMin,
             durationMax: $durationMax,
+            guideOnly: $guideOnly,
         );
 
         $result = $handler(new ListPublicRoutesQuery(
@@ -161,6 +163,7 @@ final class ListPublicRoutesController extends AbstractController
             'routeType' => $routeType,
             'durationMin' => $durationMin,
             'durationMax' => $durationMax,
+            'guideOnly' => $guideOnly ? '1' : null,
             'sort' => $sort,
             'order' => $order,
         ]);
@@ -194,6 +197,7 @@ final class ListPublicRoutesController extends AbstractController
             'routeType' => 'X-Search-Applied-Route-Type',
             'durationMin' => 'X-Search-Applied-Duration-Min',
             'durationMax' => 'X-Search-Applied-Duration-Max',
+            'guideOnly' => 'X-Search-Applied-Guide-Only',
             'sort' => 'X-Search-Applied-Sort',
             'order' => 'X-Search-Applied-Order',
         ];
@@ -224,6 +228,24 @@ final class ListPublicRoutesController extends AbstractController
     private function stringOrNull(mixed $v): ?string
     {
         return (is_string($v) && trim($v) !== '') ? trim($v) : null;
+    }
+
+    private function boolOrFalse(mixed $value): bool
+    {
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if (is_string($value)) {
+            $normalized = strtolower(trim($value));
+            return in_array($normalized, ['1', 'true', 'yes', 'on'], true);
+        }
+
+        if (is_numeric($value)) {
+            return (int) $value === 1;
+        }
+
+        return false;
     }
 
     /**

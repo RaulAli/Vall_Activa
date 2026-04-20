@@ -150,7 +150,7 @@ final class CreateGuideRouteBookingController extends AbstractController
         $booking->endsAt = $endsAtUtc;
         $booking->status = 'REQUESTED';
         $booking->paymentStatus = 'UNPAID';
-        $booking->paymentAmountCents = $this->bookingAmountCents();
+        $booking->paymentAmountCents = $this->bookingAmountCents($guide, $startsAtUtc, $endsAtUtc);
         $booking->paymentCurrency = $this->bookingCurrency();
         $booking->notes = $notes !== null && $notes !== '' ? mb_substr($notes, 0, 1000) : null;
         $booking->createdAt = new \DateTimeImmutable();
@@ -241,7 +241,19 @@ final class CreateGuideRouteBookingController extends AbstractController
         return false;
     }
 
-    private function bookingAmountCents(): int
+    private function bookingAmountCents(
+        GuideProfileOrm $guide,
+        \DateTimeImmutable $startsAtUtc,
+        \DateTimeImmutable $endsAtUtc
+    ): int {
+        $guideRate = $guide->pricePerHourCents > 0 ? $guide->pricePerHourCents : $this->defaultBookingAmountCents();
+        $durationMinutes = max(1, (int) ceil(($endsAtUtc->getTimestamp() - $startsAtUtc->getTimestamp()) / 60));
+        $amount = (int) round(($durationMinutes / 60) * $guideRate);
+
+        return max(100, $amount);
+    }
+
+    private function defaultBookingAmountCents(): int
     {
         $value = getenv('STRIPE_BOOKING_AMOUNT_CENTS');
         if ($value === false || !is_numeric($value)) {

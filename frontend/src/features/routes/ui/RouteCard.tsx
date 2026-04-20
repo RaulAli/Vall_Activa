@@ -34,6 +34,7 @@ const ROUTE_TYPE_BADGE: Record<string, { label: string; icon: string; cls: strin
 export function RouteCard({ item }: { item: RouteListItem }) {
   const navigate = useNavigate();
   const km = (item.distanceM / 1000).toFixed(1);
+  const guidePriceLabel = item.guidePricePerHour != null ? `${item.guidePricePerHour.toFixed(2)} EUR/h` : null;
 
   return (
     <div
@@ -77,6 +78,11 @@ export function RouteCard({ item }: { item: RouteListItem }) {
           <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate pr-2">
             {item.title}
           </h4>
+          {guidePriceLabel && (
+            <span className="ml-2 shrink-0 px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wider">
+              {guidePriceLabel}
+            </span>
+          )}
         </div>
         <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-tighter text-slate-400 mb-3">
           <div className="flex items-center gap-1">
