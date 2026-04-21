@@ -33,9 +33,7 @@ export function OfferCard({ item }: { item: OfferListItem }) {
                     <h4 className="font-bold text-slate-900 dark:text-white group-hover:text-primary transition-colors truncate pr-2">
                         {item.title}
                     </h4>
-                    <span className="font-extrabold text-primary text-sm whitespace-nowrap">
-                        {item.price} {item.currency}
-                    </span>
+                    <span className="font-extrabold text-primary text-sm whitespace-nowrap">{item.pointsCost} VAC</span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mb-3">
                     {item.description || "Sin descripción disponible"}

@@ -32,3 +32,24 @@ export async function redeemOfferWithPoints(token: string, offerId: string): Pro
         headers: { Authorization: `Bearer ${token}` },
     });
 }
+
+export interface AthleteOfferRedemptionItem {
+    redemptionId: string;
+    pointsSpent: number;
+    redeemedAt: string | null;
+    qrPayload: string;
+    offer: {
+        id: string;
+        title: string;
+        slug: string;
+        image: string | null;
+        businessName: string | null;
+        businessSlug: string | null;
+    };
+}
+
+export async function getMyOfferRedemptions(token: string): Promise<AthleteOfferRedemptionItem[]> {
+    return http<AthleteOfferRedemptionItem[]>("GET", endpoints.athlete.offerRedemptions, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+}

@@ -238,6 +238,15 @@ export function Header() {
                                                 )}
                                                 {user.role === "ROLE_ATHLETE" && (
                                                     <button
+                                                        onClick={() => { setUserMenuOpen(false); navigate("/me/coupons"); }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined !text-base">qr_code_2</span>
+                                                        Mis cupones QR
+                                                    </button>
+                                                )}
+                                                {user.role === "ROLE_ATHLETE" && (
+                                                    <button
                                                         onClick={() => { setUserMenuOpen(false); navigate("/plans"); }}
                                                         className="flex items-center gap-2 w-full px-4 py-2 text-sm font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-colors"
                                                     >
@@ -425,6 +434,14 @@ export function Header() {
                                             className="w-full py-3 text-center font-bold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 rounded-xl"
                                         >
                                             Planes VIP
+                                        </button>
+                                    )}
+                                    {user.role === "ROLE_ATHLETE" && (
+                                        <button
+                                            onClick={() => { setMobileMenuOpen(false); navigate("/me/coupons"); }}
+                                            className="w-full py-3 text-center font-bold text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-xl"
+                                        >
+                                            Mis cupones QR
                                         </button>
                                     )}
                                     {user.role === "ROLE_GUIDE" && (

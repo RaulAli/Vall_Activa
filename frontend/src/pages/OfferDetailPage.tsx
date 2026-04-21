@@ -49,9 +49,15 @@ export function OfferDetailPage() {
         },
     });
 
+    const roleLoaded = typeof user?.role === "string";
     const canRedeemByRole = user?.role === "ROLE_ATHLETE";
     const pointsBalance = user?.pointsBalance ?? 0;
-    const canRedeemByBalance = pointsBalance >= offer?.pointsCost;
+    const offerPointsCost = offer?.pointsCost ?? 0;
+    const canRedeemByBalance = pointsBalance >= offerPointsCost;
+    const disableRedeemButton = redeemMutation.isPending
+        || offerPointsCost <= 0
+        || (isAuthenticated && roleLoaded && !canRedeemByRole)
+        || (isAuthenticated && canRedeemByRole && !canRedeemByBalance);
 
     if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
     if (error || !offer) return <ErrorState message="No se pudo cargar la oferta" />;
@@ -103,12 +109,8 @@ export function OfferDetailPage() {
                                 )}
                             </div>
                             <div className="flex flex-wrap gap-3">
-                                <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 border border-white/20 min-w-[120px] text-center">
-                                    <p className="text-white/70 text-xs font-semibold uppercase">Precio</p>
-                                    <p className="text-white text-2xl font-black">{offer.price} {offer.currency}</p>
-                                </div>
                                 <div className="bg-primary/20 backdrop-blur-md rounded-xl p-4 border border-primary/30 min-w-[120px] text-center border-2">
-                                    <p className="text-white/70 text-xs font-semibold uppercase">O por solo</p>
+                                    <p className="text-white/70 text-xs font-semibold uppercase">Canje VAC</p>
                                     <p className="text-white text-2xl font-black">{offer.pointsCost} VAC</p>
                                 </div>
                             </div>
@@ -205,10 +207,6 @@ export function OfferDetailPage() {
                                     </div>
 
                                     <div className="space-y-3">
-                                        <button className="w-full bg-primary hover:bg-blue-700 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/20">
-                                            <span className="material-symbols-outlined">shopping_cart</span>
-                                            Comprar ahora
-                                        </button>
                                         <button
                                             onClick={() => {
                                                 setRedeemMessage(null);
@@ -216,13 +214,13 @@ export function OfferDetailPage() {
                                                     navigate("/auth");
                                                     return;
                                                 }
-                                                if (!canRedeemByRole) {
+                                                if (roleLoaded && !canRedeemByRole) {
                                                     setRedeemMessage("Solo los atletas pueden canjear ofertas con puntos.");
                                                     return;
                                                 }
                                                 redeemMutation.mutate();
                                             }}
-                                            disabled={!canRedeemByRole || !canRedeemByBalance || redeemMutation.isPending || offer.pointsCost <= 0}
+                                            disabled={disableRedeemButton}
                                             className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
                                         >
                                             <span className="material-symbols-outlined">stars</span>

@@ -17,6 +17,7 @@ import { GuideDashboardPage } from "../../pages/GuideDashboardPage";
 import { MarketplacePage } from "../../pages/MarketplacePage";
 import { PlansPage } from "../../pages/PlansPage";
 import { MissionsPage } from "../../pages/MissionsPage";
+import { MyCouponsPage } from "../../pages/MyCouponsPage";
 import { ProtectedRoute, PublicOnlyRoute } from "../../shared/ui/ProtectedRoute";
 
 export const router = createBrowserRouter([
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
             { path: "/me/offers", element: <MyOffersPage /> },
             { path: "/plans", element: <PlansPage /> },
             { path: "/missions", element: <MissionsPage /> },
+            { path: "/me/coupons", element: <MyCouponsPage /> },
             { path: "/guide/dashboard", element: <GuideDashboardPage /> },
             { path: "/admin", element: <AdminPage /> },
         ],

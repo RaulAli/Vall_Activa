@@ -54,6 +54,7 @@ export const endpoints = {
         checkout: (id: string) => `/api/athlete/me/bookings/${id}/payment/checkout`,
         confirmPayment: "/api/athlete/me/bookings/payment/confirm",
         redeemOffer: (id: string) => `/api/athlete/me/offers/${id}/redeem`,
+        offerRedemptions: "/api/athlete/me/offers/redemptions",
         vipCheckout: "/api/athlete/me/vip/payment/checkout",
         vipConfirmPayment: "/api/athlete/me/vip/payment/confirm",
         vipRenewal: "/api/athlete/me/vip/renewal",
